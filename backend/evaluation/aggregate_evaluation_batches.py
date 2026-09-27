@@ -113,6 +113,22 @@ def compute_aggregate_metrics(case_results: List[Dict[str, Any]], eval_mode_titl
     p_unv, r_unv, f1_unv = calc_p_r_f1("UNVERIFIED", "UNVERIFIED")
     macro_f1 = round((f1_supp + f1_cont + f1_unv) / 3, 2)
 
+    support_supp = sum(1 for c in case_results if c.get("ground_truth") == "SUPPORTED")
+    support_cont = sum(1 for c in case_results if c.get("ground_truth") == "CONTRADICTED")
+    support_unv = sum(1 for c in case_results if c.get("ground_truth") == "UNVERIFIED")
+    weighted_f1 = round((f1_supp * support_supp + f1_cont * support_cont + f1_unv * support_unv) / total_cases, 2)
+
+    pred_supp_count = sum(1 for c in case_results if c.get("v2_overall_assessment") == "SUPPORTED")
+    pred_cont_count = sum(1 for c in case_results if c.get("v2_overall_assessment") == "CONTRADICTED")
+    pred_unv_count = sum(1 for c in case_results if c.get("v2_overall_assessment") == "UNVERIFIED")
+
+    fc_evidence_count = sum(
+        1 for c in case_results for ev in c.get("retrieved_evidence", []) if ev.get("source_type") == "FACT_CHECK_API"
+    )
+    newsapi_evidence_count = sum(
+        1 for c in case_results for ev in c.get("retrieved_evidence", []) if ev.get("source_type") == "LIVE_NEWS_SEARCH"
+    )
+
     # 8. Latency
     response_times = [c.get("response_time_ms", 0.0) for c in case_results if "response_time_ms" in c]
     avg_latency = round(statistics.mean(response_times), 2) if response_times else 0.0
@@ -154,6 +170,8 @@ def compute_aggregate_metrics(case_results: List[Dict[str, Any]], eval_mode_titl
         "google_fact_check_api_status": fc_status,
         "news_api_status": news_status,
         "total_cases": total_cases,
+        "correct_cases_count": overall_correct_count,
+        "incorrect_cases_count": total_cases - overall_correct_count,
         "claim_extraction_success_rate": extraction_success_rate,
         "fact_check_hit_rate": fact_check_hit_rate,
         "live_news_hit_rate": live_news_hit_rate,
@@ -163,10 +181,18 @@ def compute_aggregate_metrics(case_results: List[Dict[str, Any]], eval_mode_titl
         "contradicts_evidence_count": total_contradicts,
         "neutral_evidence_count": total_neutrals,
         "total_all_evidence_count": total_all_evidence,
+        "fact_check_evidence_count": fc_evidence_count,
+        "newsapi_evidence_count": newsapi_evidence_count,
         "verdict_coverage_rate": verdict_coverage_rate,
         "overall_ground_truth_accuracy": overall_accuracy,
         "accuracy_fully_clean_cases": valid_accuracy,
         "fully_clean_case_count": len(valid_cases),
+        "predicted_supported_count": pred_supp_count,
+        "predicted_contradicted_count": pred_cont_count,
+        "predicted_unverified_count": pred_unv_count,
+        "predicted_supported_rate": round((pred_supp_count / total_cases) * 100, 2),
+        "predicted_contradicted_rate": round((pred_cont_count / total_cases) * 100, 2),
+        "predicted_unverified_rate": round((pred_unv_count / total_cases) * 100, 2),
         "unverified_rate": unverified_rate,
         "false_positive_rate": false_positive_rate,
         "false_negative_rate": false_negative_rate,
@@ -179,13 +205,17 @@ def compute_aggregate_metrics(case_results: List[Dict[str, Any]], eval_mode_titl
         "precision_supported": p_supp,
         "recall_supported": r_supp,
         "f1_supported": f1_supp,
+        "support_supported": support_supp,
         "precision_contradicted": p_cont,
         "recall_contradicted": r_cont,
         "f1_contradicted": f1_cont,
+        "support_contradicted": support_cont,
         "precision_unverified": p_unv,
         "recall_unverified": r_unv,
         "f1_unverified": f1_unv,
+        "support_unverified": support_unv,
         "macro_f1_score": macro_f1,
+        "weighted_f1_score": weighted_f1,
         "avg_latency_ms": avg_latency,
         "median_latency_ms": median_latency,
         "p95_latency_ms": p95_latency,
