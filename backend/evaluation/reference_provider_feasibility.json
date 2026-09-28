@@ -1,0 +1,395 @@
+{
+  "experiment": "STAGE_34A_GENERAL_REFERENCE_FEASIBILITY",
+  "timestamp": "2026-09-28T13:40:00Z",
+  "provider_tested": "Wikipedia / MediaWiki REST API",
+  "total_cases_tested": 12,
+  "summary_metrics": {
+    "cases_with_candidate_pages": 11,
+    "cases_with_directly_relevant_evidence": 8,
+    "cases_with_related_context_only": 1,
+    "cases_unrelated_pages": 2,
+    "cases_no_useful_page": 1,
+    "usable_for_semantic_verification_count": 8,
+    "usable_for_semantic_verification_rate": 66.67,
+    "avg_latency_ms": 2423.96
+  },
+  "test_cases": [
+    {
+      "case_id": "real_02",
+      "category": "A. Known true / historically established claims",
+      "ground_truth": "SUPPORTED",
+      "claim_text": "James Webb Space Telescope Unveils Deepest Infrared Image of Universe",
+      "query": "James Webb Space Telescope Unveils Deepest Infrared Image",
+      "candidate_pages": [
+        {
+          "title": "James Webb Space Telescope",
+          "url": "https://en.wikipedia.org/wiki/James_Webb_Space_Telescope",
+          "snippet": "The <span class=\"searchmatch\">James</span> <span class=\"searchmatch\">Webb</span> <span class=\"searchmatch\">Space</span> <span class=\"searchmatch\">Telescope</span> (JWST) is a <span class=\"searchmatch\">space</span> <span class=\"searchmatch\">telescope</span> designed to conduct <span class=\"searchmatch\">infrared</span> astronomy. It is the largest <span class=\"searchmatch\">telescope</span> in <span class=\"searchmatch\">space</span>, and is equipped",
+          "extract": "The James Webb Space Telescope (JWST) is a space telescope designed to conduct infrared astronomy. It is the largest telescope in space, and is equipped with high-resolution and high-sensitivity instruments, allowing it to view objects too old, distant, or faint for the Hubble Space Telescope. This enables investigations across many fields of astronomy and cosmology, such as observation of the first stars and the formation of the first galaxies, and detailed atmospheric characterization of potentially habitable exoplanets."
+        },
+        {
+          "title": "Hubble Space Telescope",
+          "url": "https://en.wikipedia.org/wiki/Hubble_Space_Telescope",
+          "snippet": "<span class=\"searchmatch\">Space</span> <span class=\"searchmatch\">Telescope</span> (which covers the <span class=\"searchmatch\">infrared</span> bands). The mid-IR-to-visible band successors to the Hubble <span class=\"searchmatch\">telescope</span> are the <span class=\"searchmatch\">James</span> <span class=\"searchmatch\">Webb</span> <span class=\"searchmatch\">Space</span> <span class=\"searchmatch\">Telescope</span> (JWST)",
+          "extract": "The Hubble Space Telescope is a space telescope that was launched into low Earth orbit in 1990 and remains in operation. It was not the first space telescope, but it is one of the largest and most versatile, renowned as a vital research tool and as a public relations boon for astronomy. The Hubble Space Telescope is named after astronomer Edwin Hubble and is one of NASA's Great Observatories. The Space Telescope Science Institute (STScI) selects Hubble's targets and processes the resulting data, while the Goddard Space Flight Center (GSFC) controls the spacecraft."
+        },
+        {
+          "title": "SMACS 0723",
+          "url": "https://en.wikipedia.org/wiki/SMACS_0723",
+          "snippet": "Hubble <span class=\"searchmatch\">Space</span> <span class=\"searchmatch\">Telescope</span> and other <span class=\"searchmatch\">telescopes</span> in search of the deep past. It was the target of the first full-color <span class=\"searchmatch\">image</span> to be <span class=\"searchmatch\">unveiled</span> by the <span class=\"searchmatch\">James</span> <span class=\"searchmatch\">Webb</span> Space",
+          "extract": "SMACS J0723.3\u20137327, commonly referred to as SMACS 0723, is a galaxy cluster about 4\u00a0billion light years from Earth, within the southern constellation of Volans. It is a patch of sky visible from the Southern Hemisphere on Earth and often observed by the Hubble Space Telescope and other telescopes in search of the deep past. It was the target of the first full-color image to be unveiled by the James Webb Space Telescope (JWST), imaged using NIRCam, with spectra included, showing objects lensed by the cluster with redshifts implying they are 13.1\u00a0billion years old. The cluster has been previously observed by the Hubble Space Telescope (HST) as part of the Southern MAssive Cluster Survey (SMACS), as well as Planck and Chandra."
+        }
+      ],
+      "relevant_evidence_count": 3,
+      "evidence_quality": "DIRECTLY_RELEVANT",
+      "quality_explanation": "Retrieved page extract provides direct factual premise for proposition.",
+      "usable_for_semantic_verification": true,
+      "response_time_ms": 2629.61,
+      "provider_status": "ok"
+    },
+    {
+      "case_id": "real_05",
+      "category": "A. Known true / historically established claims",
+      "ground_truth": "SUPPORTED",
+      "claim_text": "Water Molecule Chemical Composition Consists of Hydrogen and Oxygen",
+      "query": "Water Molecule Chemical Composition Consists Hydrogen Oxygen",
+      "candidate_pages": [
+        {
+          "title": "Molecule",
+          "url": "https://en.wikipedia.org/wiki/Molecule",
+          "snippet": "atoms in the <span class=\"searchmatch\">oxygen</span> <span class=\"searchmatch\">molecule</span> (O2); or it may be heteronuclear, a <span class=\"searchmatch\">chemical</span> compound composed of more than one element, e.g. <span class=\"searchmatch\">water</span> (two <span class=\"searchmatch\">hydrogen</span> atoms and",
+          "extract": "A molecule is a group of two or more atoms that are held together by attractive forces known as chemical bonds; depending on context, the term may or may not include ions that satisfy this criterion. In quantum physics, organic chemistry, and biochemistry, the distinction from ions is dropped and molecule is often used when referring to polyatomic ions."
+        },
+        {
+          "title": "Properties of water",
+          "url": "https://en.wikipedia.org/wiki/Properties_of_water",
+          "snippet": "other. <span class=\"searchmatch\">Water</span> is the <span class=\"searchmatch\">chemical</span> substance with <span class=\"searchmatch\">chemical</span> formula H 2O; one <span class=\"searchmatch\">molecule</span> of <span class=\"searchmatch\">water</span> has two <span class=\"searchmatch\">hydrogen</span> atoms covalently bonded to a single <span class=\"searchmatch\">oxygen</span> atom",
+          "extract": "\nWater is a polar inorganic compound that is, at room temperature, a tasteless and odorless liquid, which is nearly colorless apart from an inherent hint of blue. It is by far the most studied chemical compound and is described as the \"universal solvent\" and the \"solvent of life\". It is the most abundant substance on the surface of Earth and the only common substance to exist as a solid, liquid, and gas on Earth's surface. It is also the third most abundant molecule in the universe."
+        },
+        {
+          "title": "Hydrogen",
+          "url": "https://en.wikipedia.org/wiki/Hydrogen",
+          "snippet": "mainly <span class=\"searchmatch\">consist</span> of <span class=\"searchmatch\">hydrogen</span> in a plasma state, while on Earth, <span class=\"searchmatch\">hydrogen</span> is found as the gas\u00a0H2 (dihydrogen) and in <span class=\"searchmatch\">molecules</span>, such as in <span class=\"searchmatch\">water</span> and organic",
+          "extract": "Hydrogen is a chemical element; it has the symbol\u00a0H and atomic number\u00a01. It is the lightest and most abundant chemical element in the universe, constituting about 75% of all normal matter. Under standard conditions, hydrogen is a gas of diatomic molecules with the formula\u00a0H2, called dihydrogen, or sometimes hydrogen gas, molecular hydrogen, or simply hydrogen. Dihydrogen is colorless, odorless, non-toxic, and highly combustible. Stars, including the Sun, mainly consist of hydrogen in a plasma state, while on Earth, hydrogen is found as the gas\u00a0H2 (dihydrogen) and in molecules, such as in water and organic compounds. The most common isotope of hydrogen, 1H, consists of one proton, one electron, and no neutrons."
+        }
+      ],
+      "relevant_evidence_count": 3,
+      "evidence_quality": "DIRECTLY_RELEVANT",
+      "quality_explanation": "Retrieved page extract provides direct factual premise for proposition.",
+      "usable_for_semantic_verification": true,
+      "response_time_ms": 2250.98,
+      "provider_status": "ok"
+    },
+    {
+      "case_id": "real_07",
+      "category": "A. Known true / historically established claims",
+      "ground_truth": "SUPPORTED",
+      "claim_text": "Paris Agreement on Climate Change Adopted by International Consensus",
+      "query": "Paris Agreement Climate Change Adopted International Consensus",
+      "candidate_pages": [
+        {
+          "title": "Paris Agreement",
+          "url": "https://en.wikipedia.org/wiki/Paris_Agreement",
+          "snippet": "The <span class=\"searchmatch\">Paris</span> <span class=\"searchmatch\">Agreement</span> (also called the <span class=\"searchmatch\">Paris</span> Accords or <span class=\"searchmatch\">Paris</span> <span class=\"searchmatch\">Climate</span> Accords) is an <span class=\"searchmatch\">international</span> treaty on <span class=\"searchmatch\">climate</span> <span class=\"searchmatch\">change</span> that was signed in 2016. The",
+          "extract": "The Paris Agreement is an international treaty on climate change that was signed in 2016. The treaty covers climate change mitigation, adaptation, and finance. The Paris Agreement was negotiated by 196 parties at the 2015 United Nations Climate Change Conference near Paris, France. As of January 2026, 194 members of the United Nations Framework Convention on Climate Change (UNFCCC) are parties to the agreement. Of the three UNFCCC member states which have not ratified the agreement, the only major emitter is Iran. The United States, the second largest emitter, withdrew from the agreement in 2020, rejoined in 2021, and withdrew again in 2026."
+        },
+        {
+          "title": "Climate change",
+          "url": "https://en.wikipedia.org/wiki/Climate_change",
+          "snippet": "Myers, Teresa A. (20 October 2021). &quot;<span class=\"searchmatch\">Consensus</span> revisited: quantifying scientific <span class=\"searchmatch\">agreement</span> on <span class=\"searchmatch\">climate</span> <span class=\"searchmatch\">change</span> and <span class=\"searchmatch\">climate</span> expertise among Earth scientists",
+          "extract": "Present-day climate change includes both global warming\u2014the ongoing increase in global average temperature\u2014and its wider effects on Earth's climate system. In a broader sense, climate change also includes previous long-term changes to Earth's climate. The modern-day rise in global temperatures is driven by human activities, especially fossil fuel burning since the Industrial Revolution. Fossil fuel use, deforestation, and some agricultural and industrial practices release greenhouse gases. These gases absorb some of the heat that the Earth radiates after it warms from sunlight, warming the lower atmosphere. Earth's atmosphere now has roughly 50% more carbon dioxide, the main gas driving global warming, than it did at the end of the pre-industrial era, reaching levels not seen for millions of years."
+        },
+        {
+          "title": "List of parties to the Paris Agreement",
+          "url": "https://en.wikipedia.org/wiki/List_of_parties_to_the_Paris_Agreement",
+          "snippet": "The <span class=\"searchmatch\">Paris</span> <span class=\"searchmatch\">Agreement</span> is an <span class=\"searchmatch\">agreement</span> within the United Nations Framework Convention on <span class=\"searchmatch\">Climate</span> <span class=\"searchmatch\">Change</span> (UNFCCC) dealing with greenhouse gas emissions mitigation",
+          "extract": "The Paris Agreement is an agreement within the United Nations Framework Convention on Climate Change (UNFCCC) dealing with greenhouse gas emissions mitigation, adaptation and finance starting in the year 2020. The Agreement aims to respond to the global climate change threat by keeping a global temperature rise this century well below 2 degrees Celsius above pre-industrial levels and to pursue efforts to limit the temperature increase even further to 1.5 degrees Celsius."
+        }
+      ],
+      "relevant_evidence_count": 3,
+      "evidence_quality": "DIRECTLY_RELEVANT",
+      "quality_explanation": "Retrieved page extract provides direct factual premise for proposition.",
+      "usable_for_semantic_verification": true,
+      "response_time_ms": 2787.72,
+      "provider_status": "ok"
+    },
+    {
+      "case_id": "false_04",
+      "category": "B. Known false / debunked claims",
+      "ground_truth": "CONTRADICTED",
+      "claim_text": "Earth Is Flat Disk and NASA Edits All Satellite Photographs",
+      "query": "Earth Is Flat Disk NASA Edits All Satellite",
+      "candidate_pages": [
+        {
+          "title": "Modern flat Earth beliefs",
+          "url": "https://en.wikipedia.org/wiki/Modern_flat_Earth_beliefs",
+          "snippet": "Anti-scientific beliefs in a <span class=\"searchmatch\">flat</span> <span class=\"searchmatch\">Earth</span> are promoted by a number of organizations and individuals. The claims of modern <span class=\"searchmatch\">flat</span> <span class=\"searchmatch\">Earth</span> proponents are not based",
+          "extract": "Anti-scientific beliefs in a flat Earth are promoted by a number of organizations and individuals. The claims of modern flat Earth proponents are not based on scientific knowledge and are contrary to over two millennia of scientific consensus based on multiple confirming lines of evidence that Earth is roughly spherical. Flat Earth beliefs are classified by experts in philosophy and physics as a form of science denial."
+        },
+        {
+          "title": "Earth",
+          "url": "https://en.wikipedia.org/wiki/Earth",
+          "snippet": "reflect subsequent <span class=\"searchmatch\">edits</span>. (Audio help\u00a0\u00b7 More spoken articles) <span class=\"searchmatch\">Earth</span>\u00a0\u2013 Profile \u2013 Solar System Exploration \u2013 <span class=\"searchmatch\">NASA</span> <span class=\"searchmatch\">Earth</span> Observatory \u2013 <span class=\"searchmatch\">NASA</span> <span class=\"searchmatch\">Earth</span> \u2013 Videos \u2013 International",
+          "extract": "Earth is the third planet from the Sun and the only astronomical object known to harbor life. This is made possible by Earth being an ocean world, the only one in the Solar System sustaining liquid surface water. Almost all of Earth's water is contained in its ocean, which covers 70.8% of Earth's crust. The remaining 29.2% of Earth's crust is land, which is predominantly located within Earth's land hemisphere in the form of continental landmasses. Most of Earth's land is at least somewhat humid and covered by vegetation, while large ice sheets at Earth's polar deserts retain more water than Earth's groundwater, lakes, rivers, and atmospheric water combined. Earth's crust consists of slowly moving tectonic plates, which interact to produce mountain ranges, volcanoes, and earthquakes. Earth has a liquid outer core that generates a magnetosphere capable of deflecting most of the destructive solar winds and cosmic radiation."
+        },
+        {
+          "title": "Soviet space program",
+          "url": "https://en.wikipedia.org/wiki/Soviet_space_program",
+          "snippet": "&quot;Semyorka&quot;), orbital launch vehicle (Sputnik), artificial <span class=\"searchmatch\">satellite</span> (Sputnik 1), and animal in <span class=\"searchmatch\">Earth</span> orbit (Laika the dog). From 1961, the Vostok and Voskhod",
+          "extract": "The Soviet space program was the state space program of the Soviet Union, active from 1951 until the dissolution of the Soviet Union in 1991. Unlike its Space Race competitor, the United States, which consolidated its space program under NASA, the Soviet space program was divided between several competing design bureaus led by Korolev, Kerimov, Keldysh, Yangel, Glushko, Chelomey, Makeyev, Chertok and Reshetnev, often under the Ministry of General Machine-Building. The program was an important part of the Soviet claim to superpower status."
+        }
+      ],
+      "relevant_evidence_count": 3,
+      "evidence_quality": "DIRECTLY_RELEVANT",
+      "quality_explanation": "Retrieved page extract provides direct factual premise for proposition.",
+      "usable_for_semantic_verification": true,
+      "response_time_ms": 2606.38,
+      "provider_status": "ok"
+    },
+    {
+      "case_id": "false_05",
+      "category": "B. Known false / debunked claims",
+      "ground_truth": "CONTRADICTED",
+      "claim_text": "COVID-19 Vaccines Contain Injectable 5G Microchips for Digital Surveillance",
+      "query": "COVID-19 Vaccines Contain Injectable 5G Microchips Digital Surveillance",
+      "candidate_pages": [
+        {
+          "title": "5G misinformation",
+          "url": "https://en.wikipedia.org/wiki/5G_misinformation",
+          "snippet": "whether they believed that the US government was using the <span class=\"searchmatch\">COVID</span>-<span class=\"searchmatch\">19</span> <span class=\"searchmatch\">vaccine</span> to place <span class=\"searchmatch\">microchips</span> in the American population. 5% of the survey takers said",
+          "extract": "Misinformation related to 5G telecommunications technology was widespread in many countries of the world. False information and conspiracy theories were propagated by the general public and celebrities. In social media, misinformation related to 5G was presented as facts, and circulated extensively. There are no scientifically proven adverse health impacts from the exposure to 5G radio frequency radiation with levels below those suggested by the guidelines of regulating bodies, including the International Commission on Non-Ionizing Radiation Protection (ICNIRP). Furthermore, studies have shown that there is no noticeable increase in the everyday radio-frequency electromagnetic exposure since 2012, despite the increased use of communication devices."
+        },
+        {
+          "title": "COVID-19 vaccine misinformation and hesitancy",
+          "url": "https://en.wikipedia.org/wiki/COVID-19_vaccine_misinformation_and_hesitancy",
+          "snippet": "the immune system works and when and how <span class=\"searchmatch\">COVID</span>-<span class=\"searchmatch\">19</span> <span class=\"searchmatch\">vaccines</span> are made, a story about <span class=\"searchmatch\">COVID</span>-<span class=\"searchmatch\">19</span> being spread by <span class=\"searchmatch\">5G</span>, and other false or distorted information",
+          "extract": "A variety of unfounded conspiracy theories and other misinformation about COVID-19 vaccines have spread based on misunderstood or misrepresented science, religion, and law. These have included exaggerated claims about side effects, misrepresentations about how the immune system works and when and how COVID-19 vaccines are made, a story about COVID-19 being spread by 5G, and other false or distorted information. This misinformation, some created by anti-vaccination activists, has proliferated and may have made many people averse to vaccination."
+        },
+        {
+          "title": "Vaccine misinformation",
+          "url": "https://en.wikipedia.org/wiki/Vaccine_misinformation",
+          "snippet": "vaccines <span class=\"searchmatch\">contain</span> <span class=\"searchmatch\">injectable</span> <span class=\"searchmatch\">microchips</span> to identify and track people: This conspiracy theory started circulating in 2020 claiming the <span class=\"searchmatch\">COVID</span>-<span class=\"searchmatch\">19</span> pandemic",
+          "extract": "Misinformation related to immunization and the use of vaccines circulates in mass media and social media despite the fact that there is no serious hesitancy or debate within mainstream medical and scientific circles about the benefits of vaccination. Unsubstantiated safety concerns related to vaccines are often presented on the Internet as being scientific information. A large proportion of internet sources on the topic are inaccurate which can lead people searching for information to form misconceptions relating to vaccines."
+        }
+      ],
+      "relevant_evidence_count": 3,
+      "evidence_quality": "DIRECTLY_RELEVANT",
+      "quality_explanation": "Retrieved page extract provides direct factual premise for proposition.",
+      "usable_for_semantic_verification": true,
+      "response_time_ms": 2978.11,
+      "provider_status": "ok"
+    },
+    {
+      "case_id": "false_07",
+      "category": "B. Known false / debunked claims",
+      "ground_truth": "CONTRADICTED",
+      "claim_text": "Drinking Household Chemical Disinfectant Safely Cleans Viral Pathogens",
+      "query": "Drinking Household Chemical Disinfectant Safely Cleans Viral Pathogens",
+      "candidate_pages": [
+        {
+          "title": "Hygiene",
+          "url": "https://en.wikipedia.org/wiki/Hygiene",
+          "snippet": "or &quot;kills&quot; <span class=\"searchmatch\">pathogens</span>. Some commercial products, e.g. bleaches, even though they are technically <span class=\"searchmatch\">disinfectants</span>, say that they &quot;kill <span class=\"searchmatch\">pathogens</span>&quot; but are not",
+          "extract": "Hygiene is a set of practices performed to preserve health.\nAccording to the World Health Organization (WHO), \"Hygiene refers to conditions and practices that help to maintain health and prevent the spread of diseases.\" Personal hygiene refers to maintaining the body's cleanliness. Hygiene activities can be grouped into the following: home and everyday hygiene, personal hygiene, medical hygiene, sleep hygiene, and food hygiene. Home and every day hygiene includes hand washing, respiratory hygiene, food hygiene at home, hygiene in the kitchen, hygiene in the bathroom, laundry hygiene, and medical hygiene at home."
+        },
+        {
+          "title": "Sewage",
+          "url": "https://en.wikipedia.org/wiki/Sewage",
+          "snippet": "macro-pollutants in sewage. Sewage contains <span class=\"searchmatch\">pathogens</span> which stem from fecal matter. The following four types of <span class=\"searchmatch\">pathogens</span> are found in sewage: pathogenic bacteria",
+          "extract": "Sewage is a type of wastewater that is produced by a community of people. It is typically transported through a sewer system. Sewage consists of wastewater discharged from residences and from commercial, institutional and public facilities that exist in the locality. Sub-types of sewage are greywater and blackwater. Sewage also contains soaps and detergents. Food waste may be present from dishwashing, and food quantities may be increased where garbage disposal units are used. In regions where toilet paper is used rather than bidets, that paper is also added to the sewage. Sewage contains macro-pollutants and micro-pollutants, and may also incorporate some municipal solid waste and pollutants from industrial wastewater."
+        },
+        {
+          "title": "Antimicrobial",
+          "url": "https://en.wikipedia.org/wiki/Antimicrobial",
+          "snippet": "hand sanitizers, antiseptics, and <span class=\"searchmatch\">disinfectants</span>. Phenol, also known as carbolic acid, was one of the first <span class=\"searchmatch\">chemicals</span> was used as an antimicrobial agent",
+          "extract": "An antimicrobial is an agent that kills microorganisms (microbicide) or stops their growth. Antimicrobial medicines can be grouped according to the microorganisms they are used to treat. For example, antibiotics are used against bacteria, and antifungals are used against fungi. They can also be classified according to their function. Antimicrobial medicines to treat infection are known as antimicrobial chemotherapy, while antimicrobial drugs are used to prevent infection, which known as antimicrobial prophylaxis."
+        }
+      ],
+      "relevant_evidence_count": 0,
+      "evidence_quality": "RELATED_CONTEXTUAL",
+      "quality_explanation": "Retrieved pages discuss broad antimicrobial hygiene, but lack specific claim-debunking premise.",
+      "usable_for_semantic_verification": false,
+      "response_time_ms": 3132.02,
+      "provider_status": "ok"
+    },
+    {
+      "case_id": "false_08",
+      "category": "B. Known false / debunked claims",
+      "ground_truth": "CONTRADICTED",
+      "claim_text": "Sun Revolves Around Stationary Earth Every 24 Hours",
+      "query": "Sun Revolves Around Stationary Earth Every 24 Hours",
+      "candidate_pages": [
+        {
+          "title": "Earth's rotation",
+          "url": "https://en.wikipedia.org/wiki/Earth's_rotation",
+          "snippet": "<span class=\"searchmatch\">Earth&#039;s</span> axis of rotation intersects its surface, in Antarctica. <span class=\"searchmatch\">Earth</span> rotates once in about <span class=\"searchmatch\">24</span> <span class=\"searchmatch\">hours</span> with respect to the <span class=\"searchmatch\">Sun</span>, but once <span class=\"searchmatch\">every</span> 23 <span class=\"searchmatch\">hours</span>",
+          "extract": "Earth's rotation or Earth's spin is the rotation of planet Earth around its own axis, as well as changes in the orientation of the rotation axis in space. Earth rotates eastward, in prograde motion. As viewed from the northern polar star Polaris, Earth turns counterclockwise."
+        },
+        {
+          "title": "Lunar phase",
+          "url": "https://en.wikipedia.org/wiki/Lunar_phase",
+          "snippet": "lunar month as the relative orbital positions of the Moon <span class=\"searchmatch\">around</span> <span class=\"searchmatch\">Earth</span>, and <span class=\"searchmatch\">Earth</span> <span class=\"searchmatch\">around</span> the <span class=\"searchmatch\">Sun</span>, shift. The visible side of the Moon is sunlit to varying",
+          "extract": "A lunar phase or Moon phase is the apparent shape of the Moon's day and night phases of the lunar day as viewed from afar. Because the Moon is tidally locked to Earth, the cycle of phases takes one lunar month and moves across the same side of the Moon, which always faces Earth. In common usage, the four major phases are the new moon, the first quarter, the full moon, and the last quarter. The four minor phases are waxing crescent, waxing gibbous, waning gibbous, and waning crescent. A lunar month is the time between successive recurrences of the same phase: due to the eccentricity of the Moon's orbit, this duration is not perfectly constant but averages about 29.5 days."
+        },
+        {
+          "title": "Copernican heliocentrism",
+          "url": "https://en.wikipedia.org/wiki/Copernican_heliocentrism",
+          "snippet": "as: The <span class=\"searchmatch\">Earth</span> is one of several planets revolving <span class=\"searchmatch\">around</span> a <span class=\"searchmatch\">stationary</span> <span class=\"searchmatch\">sun</span> in a determined order. The <span class=\"searchmatch\">Earth</span> rotates daily on its axis and <span class=\"searchmatch\">revolves</span> annually",
+          "extract": "Copernican heliocentrism is the astronomical model developed by the Renaissance astronomer Nicolaus Copernicus and published in 1543. This model positioned the Sun near the center of the Universe, motionless, with Earth and the other planets orbiting around it in circular paths, modified by epicycles, and at uniform speeds. The Copernican model challenged the geocentric model of Ptolemy that had prevailed for centuries, which had placed Earth at the center of the Universe."
+        }
+      ],
+      "relevant_evidence_count": 3,
+      "evidence_quality": "DIRECTLY_RELEVANT",
+      "quality_explanation": "Retrieved page extract provides direct factual premise for proposition.",
+      "usable_for_semantic_verification": true,
+      "response_time_ms": 2133.9,
+      "provider_status": "ok"
+    },
+    {
+      "case_id": "fc_06",
+      "category": "C. Claims with published fact checks",
+      "ground_truth": "CONTRADICTED",
+      "claim_text": "Eating Carrots Gives Humans Night Vision and Cures Myopia",
+      "query": "Eating Carrots Gives Humans Night Vision Cures Myopia",
+      "candidate_pages": [],
+      "relevant_evidence_count": 0,
+      "evidence_quality": "NO_USEFUL_PAGE",
+      "quality_explanation": "No candidate pages found matching query.",
+      "usable_for_semantic_verification": false,
+      "response_time_ms": 932.01,
+      "provider_status": "ok"
+    },
+    {
+      "case_id": "fc_07",
+      "category": "C. Claims with published fact checks",
+      "ground_truth": "CONTRADICTED",
+      "claim_text": "Sharks Do Not Suffer from Cancer and Shark Cartilage Cures Malignant Tumors",
+      "query": "Sharks Do Not Suffer Cancer Shark Cartilage Cures",
+      "candidate_pages": [
+        {
+          "title": "List of common misconceptions about science, technology, and mathematics",
+          "url": "https://en.wikipedia.org/wiki/List_of_common_misconceptions_about_science%2C_technology%2C_and_mathematics",
+          "snippet": "sell extracts of <span class=\"searchmatch\">shark</span> <span class=\"searchmatch\">cartilage</span> as <span class=\"searchmatch\">cancer</span> prevention treatments. Reports of carcinomas in <span class=\"searchmatch\">sharks</span> exist, and current data <span class=\"searchmatch\">does</span> <span class=\"searchmatch\">not</span> support any conclusions",
+          "extract": "\nEach entry on this list of common misconceptions is worded as a correction; the misconceptions themselves are implied rather than stated. These entries are concise summaries; the main subject articles can be consulted for more detail."
+        },
+        {
+          "title": "Seafood",
+          "url": "https://en.wikipedia.org/wiki/Seafood",
+          "snippet": "microplastics. Species of fish that are high on the food chain, such as <span class=\"searchmatch\">shark</span>, swordfish, king mackerel, albacore tuna, and tilefish contain higher concentrations",
+          "extract": "Seafood is any form of sea life regarded as food by humans, prominently including fish and shellfish. Shellfish include various species of molluscs, crustaceans, and echinoderms. Historically, marine mammals such as cetaceans as well as seals have been eaten as food, though that happens to a lesser extent in modern times. Edible sea plants such as some seaweeds and microalgae are widely eaten as sea vegetables around the world, especially in Asia."
+        },
+        {
+          "title": "List of Equinox episodes",
+          "url": "https://en.wikipedia.org/wiki/List_of_Equinox_episodes",
+          "snippet": "Constanzo was attacked by a 6-metre <span class=\"searchmatch\">shark</span> at Baratti in Tuscany, being the first <span class=\"searchmatch\">shark</span> attack in Italy for 27 years; <span class=\"searchmatch\">sharks</span> had been seen around Favignana",
+          "extract": "A list of Equinox episodes shows the full set of editions of the defunct Channel 4 science documentary series Equinox."
+        }
+      ],
+      "relevant_evidence_count": 3,
+      "evidence_quality": "DIRECTLY_RELEVANT",
+      "quality_explanation": "Retrieved page extract provides direct factual premise for proposition.",
+      "usable_for_semantic_verification": true,
+      "response_time_ms": 2155.36,
+      "provider_status": "ok"
+    },
+    {
+      "case_id": "news_06",
+      "category": "D. Recent/current news claims",
+      "ground_truth": "SUPPORTED",
+      "claim_text": "European Parliament Passed EU Artificial Intelligence Act",
+      "query": "European Parliament Passed EU Artificial Intelligence Act",
+      "candidate_pages": [
+        {
+          "title": "Artificial Intelligence Act",
+          "url": "https://en.wikipedia.org/wiki/Artificial_Intelligence_Act",
+          "snippet": "The <span class=\"searchmatch\">Artificial</span> <span class=\"searchmatch\">Intelligence</span> <span class=\"searchmatch\">Act</span> (AI <span class=\"searchmatch\">Act</span>) is a <span class=\"searchmatch\">European</span> Union regulation concerning <span class=\"searchmatch\">artificial</span> <span class=\"searchmatch\">intelligence</span> (AI). It establishes a common regulatory and",
+          "extract": "The Artificial Intelligence Act is a European Union regulation concerning artificial intelligence (AI). It establishes a common regulatory and legal framework for AI within the European Union (EU). The regulation entered into force on 1 August 2024, with provisions that shall come into operation gradually over the following 6 to 36 months."
+        },
+        {
+          "title": "Regulation of artificial intelligence",
+          "url": "https://en.wikipedia.org/wiki/Regulation_of_artificial_intelligence",
+          "snippet": "Regulation of <span class=\"searchmatch\">artificial</span> <span class=\"searchmatch\">intelligence</span> is the development of public sector policies and laws for promoting and regulating <span class=\"searchmatch\">artificial</span> <span class=\"searchmatch\">intelligence</span> (AI). The",
+          "extract": "Regulation of artificial intelligence is the development of public sector policies and laws for promoting and regulating artificial intelligence (AI). The regulatory and policy landscape for AI is an emerging issue in jurisdictions worldwide, including for international organizations without direct enforcement power like the IEEE or the OECD."
+        },
+        {
+          "title": "Cyber Resilience Act",
+          "url": "https://en.wikipedia.org/wiki/Cyber_Resilience_Act",
+          "snippet": "The Cyber Resilience <span class=\"searchmatch\">Act</span> (CRA) is an <span class=\"searchmatch\">EU</span> regulation for improving cybersecurity and cyber resilience, through common cybersecurity standards for products",
+          "extract": "The Cyber Resilience Act (CRA) is an EU regulation for improving cybersecurity and cyber resilience, through common cybersecurity standards for products that have digital elements. For example, it requires incident reports and automatic security updates. Digital elements are, mainly, hardware and software whose \"intended and foreseeable use includes direct or indirect data connection to a device or network\"."
+        }
+      ],
+      "relevant_evidence_count": 3,
+      "evidence_quality": "DIRECTLY_RELEVANT",
+      "quality_explanation": "Retrieved page extract provides direct factual premise for proposition.",
+      "usable_for_semantic_verification": true,
+      "response_time_ms": 2263.12,
+      "provider_status": "ok"
+    },
+    {
+      "case_id": "synth_01",
+      "category": "E. Realistic synthetic false claims",
+      "ground_truth": "CONTRADICTED",
+      "claim_text": "European Union Passes Emergency Law Mandating RFID Microchip Implants",
+      "query": "European Union Passes Emergency Law Mandating RFID Microchip",
+      "candidate_pages": [
+        {
+          "title": "Microchip implant (animal)",
+          "url": "https://en.wikipedia.org/wiki/Microchip_implant_(animal)",
+          "snippet": "radio-frequency identification (<span class=\"searchmatch\">RFID</span>) technology, and is also known as a PIT (passive integrated transponder) tag. Standard pet <span class=\"searchmatch\">microchips</span> are typically 11\u201313\u00a0mm",
+          "extract": "A microchip implant is an identifying integrated circuit placed under the skin of an animal. The chip, about the size of a large grain of rice, uses passive radio-frequency identification (RFID) technology, and is also known as a PIT tag. Standard pet microchips are typically 11\u201313\u00a0mm long and 2\u00a0mm in diameter."
+        },
+        {
+          "title": "Biometric passport",
+          "url": "https://en.wikipedia.org/wiki/Biometric_passport",
+          "snippet": "of the <span class=\"searchmatch\">European</span> Community, and on the provisional application of certain provisions of the Protocol between the <span class=\"searchmatch\">European</span> <span class=\"searchmatch\">Union</span>, the <span class=\"searchmatch\">European</span> Community",
+          "extract": "A biometric passport is a passport that has an embedded electronic microprocessor chip, which contains biometric information that can be used to authenticate the identity of the passport holder. It uses contactless smart card technology, including a microprocessor chip and antenna embedded in the front or back cover, or centre page, of the passport. The passport's critical information is printed on the data page of the passport, repeated on the machine readable lines and stored in the chip which also acts as authentication data. Public key infrastructure (PKI) is used to authenticate the data stored electronically in the passport chip, making it expensive and difficult to forge when all security mechanisms are fully and correctly implemented."
+        },
+        {
+          "title": "Identity document",
+          "url": "https://en.wikipedia.org/wiki/Identity_document",
+          "snippet": "and current <span class=\"searchmatch\">European</span>/Czech national ID cards and have only a small PDF417 barcode, with a machine readable area, a contactless smart card <span class=\"searchmatch\">RFID</span> chip, and",
+          "extract": "An identity document is a document proving a person's identity."
+        }
+      ],
+      "relevant_evidence_count": 0,
+      "evidence_quality": "UNRELATED",
+      "quality_explanation": "Retrieved pages are off-topic or tangential to the specific proposition.",
+      "usable_for_semantic_verification": false,
+      "response_time_ms": 2715.81,
+      "provider_status": "ok"
+    },
+    {
+      "case_id": "unver_07",
+      "category": "F. Unverified/ambiguous claims",
+      "ground_truth": "UNVERIFIED",
+      "claim_text": "Coin Collector Claims Finding 1923 Silver Dollar Hand-Signed by President Coolidge",
+      "query": "Coin Collector Claims Finding 1923 Silver Dollar Hand-Signed",
+      "candidate_pages": [
+        {
+          "title": "Penny",
+          "url": "https://en.wikipedia.org/wiki/Penny",
+          "snippet": "smallest-denomination modern <span class=\"searchmatch\">coins</span>, such as the euro cent or Chinese fen. The Carolingian penny was originally a 0.940-fine <span class=\"searchmatch\">silver</span> <span class=\"searchmatch\">coin</span>, weighing 1\u2044240 pound",
+          "extract": "A penny is a coin or a unit of currency in various countries. Borrowed from the Carolingian denarius, it is usually the smallest denomination within a currency system. At present, it is the formal name of the British penny unit and the de facto name of the American one-cent coin."
+        },
+        {
+          "title": "List of Pawn Stars episodes",
+          "url": "https://en.wikipedia.org/wiki/List_of_Pawn_Stars_episodes",
+          "snippet": " Nevada, where it chronicles the activities at the World Famous Gold &amp; <span class=\"searchmatch\">Silver</span> Pawn Shop, a 24-hour family business operated by patriarch Richard &quot;Old",
+          "extract": "\n\n\nPawn Stars is an American reality television series that premiered on History on July 19, 2009. The series is filmed in Las Vegas, Nevada, where it chronicles the activities at the World Famous Gold & Silver Pawn Shop, a 24-hour family business operated by patriarch Richard \"Old Man\" Harrison, his son Rick Harrison, Rick's son Corey \"Big Hoss\" Harrison, and Corey's childhood friend, Austin \"Chumlee\" Russell. The descriptions of the items listed in this article reflect those given by their sellers and staff in the episodes, prior to their appraisal by experts as to their authenticity, unless otherwise noted."
+        },
+        {
+          "title": "J. Paul Getty",
+          "url": "https://en.wikipedia.org/wiki/J._Paul_Getty",
+          "snippet": "1973. He had five children and divorced five times. Getty was an avid <span class=\"searchmatch\">collector</span> of art and antiquities. His collection formed the basis of the J. Paul",
+          "extract": "Jean Paul Getty Sr. was an American petroleum industrialist who founded the Getty Oil Company in 1942 and was the longtime patriarch of the Getty family. A native of Minneapolis, Minnesota, he was the son of pioneer oilman George Getty. In 1957, Fortune magazine named J. Paul Getty the wealthiest living American, while the 1966 Guinness Book of Records declared him to be the world's wealthiest private citizen, worth an estimated $1.2 billion. At the time of his death, he was worth more than $6 billion. A book published in 1996 ranked him as the 67th wealthiest American who ever lived."
+        }
+      ],
+      "relevant_evidence_count": 0,
+      "evidence_quality": "UNRELATED",
+      "quality_explanation": "Retrieved pages are off-topic or tangential to the specific proposition.",
+      "usable_for_semantic_verification": false,
+      "response_time_ms": 2502.46,
+      "provider_status": "ok"
+    }
+  ]
+}
