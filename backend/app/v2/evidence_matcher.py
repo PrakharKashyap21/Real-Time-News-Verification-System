@@ -388,6 +388,12 @@ class EvidenceMatcher:
             else:
                 final_stance = StanceType.NEUTRAL
                 stance_explanation = "Live news provides reporting context; stance remains neutral."
+        elif item.source_type == EvidenceSourceType.GENERAL_REFERENCE:
+            final_stance = StanceType.NEUTRAL
+            stance_explanation = "General reference provides encyclopedic background context; stance remains neutral."
+        else:
+            final_stance = StanceType.NEUTRAL
+            stance_explanation = "General source context; stance remains neutral."
 
         return EvidenceMatchResult(
             relevance=RelevanceClassification.RELEVANT,

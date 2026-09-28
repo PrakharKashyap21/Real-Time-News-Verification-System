@@ -87,6 +87,7 @@ class EvidenceAggregator:
         # 2. Separate by source type & stances
         fact_check_evidence: List[EvidenceItem] = []
         live_news_evidence: List[EvidenceItem] = []
+        general_reference_evidence: List[EvidenceItem] = []
         domains_set: Set[str] = set()
 
         supporting_count = 0
@@ -99,6 +100,8 @@ class EvidenceAggregator:
                 fact_check_evidence.append(item)
             elif item.source_type == EvidenceSourceType.LIVE_NEWS_SEARCH:
                 live_news_evidence.append(item)
+            elif item.source_type == EvidenceSourceType.GENERAL_REFERENCE:
+                general_reference_evidence.append(item)
             else:
                 live_news_evidence.append(item)
 
@@ -129,6 +132,7 @@ class EvidenceAggregator:
             total_evidence_count=len(deduped_evidence),
             fact_check_count=len(fact_check_evidence),
             live_news_count=len(live_news_evidence),
+            general_reference_count=len(general_reference_evidence),
             supporting_evidence_count=supporting_count,
             contradicting_evidence_count=contradicting_count,
             neutral_evidence_count=neutral_count,
@@ -138,6 +142,7 @@ class EvidenceAggregator:
             has_conflicting_evidence=has_conflict,
             fact_check_evidence=fact_check_evidence,
             live_news_evidence=live_news_evidence,
+            general_reference_evidence=general_reference_evidence,
             all_evidence=deduped_evidence
         )
 

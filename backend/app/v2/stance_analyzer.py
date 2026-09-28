@@ -187,6 +187,12 @@ class EvidenceStanceAnalyzer:
                 explanation=f"Fact check provider rating ({item.raw_rating}) preserved."
             )
 
+        if item.source_type == EvidenceSourceType.GENERAL_REFERENCE:
+            return StanceAnalysisResult(
+                stance=StanceType.NEUTRAL,
+                explanation="General reference evidence provides background encyclopedic context; stance remains NEUTRAL."
+            )
+
         # 2. Live News / General Evidence Stance Analysis
         claim_text = claim.text
         evidence_text = f"{item.title or ''} {item.snippet or ''}".strip()

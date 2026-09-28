@@ -26,6 +26,15 @@ from backend.app.v2.news_retriever import (
     NewsRetrieverRateLimitError,
     GDELTNewsRetriever
 )
+from backend.app.v2.reference_retriever import (
+    get_reference_retriever,
+    WikipediaReferenceRetriever,
+    ReferenceRetrieverError,
+    ReferenceRetrieverAPIError,
+    ReferenceRetrieverRateLimitError,
+    ReferenceRetrieverTimeoutError,
+    ReferenceRetrieverMalformedResponseError
+)
 from backend.app.v2.evidence_aggregator import get_evidence_aggregator, EvidenceAggregator
 from backend.app.v2.evidence_matcher import get_evidence_matcher, EvidenceMatcher
 from backend.app.v2.stance_analyzer import get_stance_analyzer, EvidenceStanceAnalyzer
@@ -36,7 +45,8 @@ from backend.app.v2.svm_signal import get_svm_signal_provider, SVMSignalProvider
 class VerificationService:
     """Orchestrates V2 verification workflow combining claim extraction, fact-check retrieval,
 
-    live news retrieval (NewsAPI), evidence relevance matching, evidence stance analysis, evidence aggregation, verdict evaluation, and SVM signals.
+    live news retrieval (NewsAPI), general reference retrieval (Wikipedia), evidence relevance matching,
+    evidence stance analysis, evidence aggregation, verdict evaluation, and SVM signals.
     """
 
     def __init__(
@@ -44,6 +54,7 @@ class VerificationService:
         claim_extractor: Optional[ClaimExtractor] = None,
         fc_retriever: Optional[GoogleFactCheckRetriever] = None,
         news_retriever: Optional[Any] = None,
+        reference_retriever: Optional[WikipediaReferenceRetriever] = None,
         evidence_matcher: Optional[EvidenceMatcher] = None,
         stance_analyzer: Optional[EvidenceStanceAnalyzer] = None,
         aggregator: Optional[EvidenceAggregator] = None,
@@ -54,6 +65,7 @@ class VerificationService:
         self.claim_extractor = claim_extractor or get_claim_extractor()
         self.fc_retriever = fc_retriever or get_fact_check_retriever(mock_mode=mock_mode)
         self.news_retriever = news_retriever or get_newsapi_retriever(mock_mode=mock_mode)
+        self.reference_retriever = reference_retriever or get_reference_retriever(mock_mode=mock_mode)
         self.evidence_matcher = evidence_matcher or get_evidence_matcher()
         self.stance_analyzer = stance_analyzer or get_stance_analyzer()
         self.aggregator = aggregator or get_evidence_aggregator()
@@ -80,7 +92,8 @@ class VerificationService:
 
         service_status: Dict[str, str] = {
             "fact_check_api": "ok",
-            "live_news_api": "ok"
+            "live_news_api": "ok",
+            "reference_api": "ok"
         }
 
         claim_details: List[ClaimVerificationDetail] = []
@@ -117,7 +130,22 @@ class VerificationService:
             except Exception:
                 service_status["live_news_api"] = "error"
 
-            combined_evidence = fc_evidence + news_evidence
+            # General-reference evidence retrieval (Wikipedia MediaWiki)
+            ref_evidence = []
+            try:
+                ref_evidence = self.reference_retriever.search_claim_reference(claim)
+            except ReferenceRetrieverRateLimitError:
+                service_status["reference_api"] = "rate_limited"
+            except ReferenceRetrieverTimeoutError:
+                service_status["reference_api"] = "timeout"
+            except ReferenceRetrieverAPIError as ref_err:
+                service_status["reference_api"] = f"error_{ref_err.status_code}"
+            except ReferenceRetrieverMalformedResponseError:
+                service_status["reference_api"] = "malformed_response"
+            except Exception:
+                service_status["reference_api"] = "error"
+
+            combined_evidence = fc_evidence + news_evidence + ref_evidence
 
             # Evidence relevance matching
             matched_evidence = self.evidence_matcher.process_claim_evidence(claim, combined_evidence)

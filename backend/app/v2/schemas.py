@@ -12,6 +12,7 @@ class StanceType(str, Enum):
 class EvidenceSourceType(str, Enum):
     FACT_CHECK_API = "FACT_CHECK_API"
     LIVE_NEWS_SEARCH = "LIVE_NEWS_SEARCH"
+    GENERAL_REFERENCE = "GENERAL_REFERENCE"
 
 
 class ClaimVerdict(str, Enum):
@@ -95,6 +96,7 @@ class ClaimEvidenceSummary(BaseModel):
     total_evidence_count: int = 0
     fact_check_count: int = 0
     live_news_count: int = 0
+    general_reference_count: int = 0
     supporting_evidence_count: int = 0
     contradicting_evidence_count: int = 0
     neutral_evidence_count: int = 0
@@ -104,6 +106,7 @@ class ClaimEvidenceSummary(BaseModel):
     has_conflicting_evidence: bool = False
     fact_check_evidence: List[EvidenceItem] = Field(default_factory=list)
     live_news_evidence: List[EvidenceItem] = Field(default_factory=list)
+    general_reference_evidence: List[EvidenceItem] = Field(default_factory=list)
     all_evidence: List[EvidenceItem] = Field(default_factory=list)
 
 
