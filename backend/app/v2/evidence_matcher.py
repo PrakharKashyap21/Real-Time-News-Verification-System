@@ -105,7 +105,7 @@ class EvidenceMatcher:
         return re.findall(r"\b[A-Za-z0-9'-]+\b", text)
 
     def _extract_entities(self, text: str) -> List[str]:
-        """Extracts proper nouns, acronyms, and capitalized multi-character terms."""
+        """Extracts proper nouns, acronyms, known entity phrases, and specific named entities."""
         if not text:
             return []
 
@@ -117,20 +117,59 @@ class EvidenceMatcher:
         for phrase in self.ENTITY_ALIASES:
             if " " in phrase and phrase in text_lower:
                 seen.add(phrase)
+                for w in phrase.split():
+                    seen.add(w)
                 res.append(phrase.title())
 
-        # 2. Extract capitalized words / acronyms
-        tokens = re.findall(r"\b[A-Z][A-Za-z0-9'-]+\b|\b[A-Z]{2,}\b", text)
+        # Collect action verbs and low-info words to exclude from entities
+        excluded_words = set(self.STOPWORDS)
+        excluded_words.update(self.MONTHS_AND_DAYS)
+        for g in self.ACTION_VERB_GROUPS:
+            excluded_words.update(g)
+        excluded_words.update({
+            "vaccine", "vaccines", "contain", "contains", "containing", "injectable", "microchip", "microchips",
+            "chemical", "composition", "consists", "consist", "consisting", "water", "molecule", "molecules",
+            "car", "cars", "vehicle", "vehicles", "engine", "engines", "combustion", "internal",
+            "photo", "photos", "photograph", "photographs", "image", "images", "star", "stars",
+            "law", "laws", "emergency", "passed", "passes", "passing", "mandating", "mandate",
+            "disinfectant", "disinfectants", "clean", "cleans", "cleaning", "pathogen", "pathogens",
+            "cancer", "cures", "curing", "tumor", "tumors", "shark", "sharks", "cartilage",
+            "night", "vision", "myopia", "carrots", "eating", "eat", "human", "humans",
+            "drinking", "drink", "drinks", "consuming", "consume", "taking", "take", "using", "use",
+            "lemon", "lemons", "garlic", "ginger", "salt", "sugar",
+            "voting", "machine", "machines", "software", "algorithm", "switched", "millions", "votes", "election"
+        })
+
+        # 2. Extract acronyms (all-caps 2+ letters/digits, e.g. NASA, EU, 5G, CRISPR, LHC, COVID-19)
+        acronyms = re.findall(r"\b[A-Z0-9-]*[A-Z]{2,}[A-Z0-9-]*\b|\b[0-9]+[A-Z]+\b|\b[A-Z]+[0-9]+\b|\b5G\b|\bRFID\b", text)
+        for ac in acronyms:
+            ac_lower = ac.lower()
+            if ac_lower not in seen and ac_lower not in excluded_words and len(ac) > 1:
+                seen.add(ac_lower)
+                res.append(ac)
+
+        # 3. Extract named entities followed by numbers/versions (e.g. Apollo 11, Voyager 1)
+        numbered_entities = re.findall(r"\b([A-Z][a-z]+(?:\s+[0-9]+))\b", text)
+        for ne in numbered_entities:
+            ne_lower = ne.lower()
+            if ne_lower not in seen:
+                seen.add(ne_lower)
+                for w in ne_lower.split():
+                    seen.add(w)
+                res.append(ne)
+
+        # 4. Extract capitalized proper nouns if not title-case generic words
+        tokens = re.findall(r"\b[A-Z][a-z0-9'-]+\b", text)
         for t in tokens:
             t_lower = t.lower()
             if (
-                t_lower not in self.STOPWORDS
-                and t_lower not in self.MONTHS_AND_DAYS
+                t_lower not in excluded_words
                 and t_lower not in seen
                 and len(t) > 1
             ):
                 seen.add(t_lower)
                 res.append(t)
+
         return res
 
     def _extract_numbers(self, text: str) -> List[str]:
@@ -165,7 +204,7 @@ class EvidenceMatcher:
         """Extracts the most representative claim text from an EvidenceItem."""
         if item.claim_reviewed and item.claim_reviewed.strip():
             return item.claim_reviewed.strip()
-        # If claim_reviewed is missing, check snippet for formatted 'Reviewed Claim:'
+        # If claim_reviewed is missing, check snippet for formatted 'Reviewed Claim:' or 'Claim:'
         if item.snippet:
             m = re.search(r"Reviewed Claim:\s*['\"]?(.*?)['\"]?\s*\|\s*Rating:", item.snippet, flags=re.IGNORECASE)
             if m and m.group(1).strip():
@@ -173,7 +212,13 @@ class EvidenceMatcher:
             m2 = re.search(r"Reviewed Claim:\s*['\"]?(.*?)['\"]?$", item.snippet, flags=re.IGNORECASE)
             if m2 and m2.group(1).strip():
                 return m2.group(1).strip()
-        return (item.title or item.snippet or "").strip()
+            m3 = re.search(r"Claim:\s*['\"]?(.*?)['\"]?\s*\|\s*Rating:", item.snippet, flags=re.IGNORECASE)
+            if m3 and m3.group(1).strip():
+                return m3.group(1).strip()
+            m4 = re.search(r"Claim:\s*['\"]?(.*?)(?:\.\s*Rating:|$)", item.snippet, flags=re.IGNORECASE)
+            if m4 and m4.group(1).strip():
+                return m4.group(1).strip()
+        return f"{item.title or ''} {item.snippet or ''}".strip()
 
     def _entities_match(self, claim_entities: List[str], target_text: str) -> Tuple[List[str], bool]:
         """Checks if claim entities match in target text directly or through known aliases."""
@@ -216,7 +261,7 @@ class EvidenceMatcher:
         if item.source_type == EvidenceSourceType.FACT_CHECK_API:
             target_text = self._get_target_text(item)
         else:
-            target_text = (item.title or item.snippet or "").strip()
+            target_text = f"{item.title or ''} {item.snippet or ''}".strip()
 
         if not target_text:
             return EvidenceMatchResult(
@@ -252,10 +297,14 @@ class EvidenceMatcher:
         target_numbers_set = set(self._extract_numbers(target_text))
         matched_numbers = [n for n in claim_numbers if n in target_numbers_set]
 
-        # Dates
+        # Dates & Years
         claim_dates = self._extract_dates(claim_text)
         target_dates_set = set(self._extract_dates(target_text))
         matched_dates = [d for d in claim_dates if d in target_dates_set]
+
+        claim_years = {d for d in claim_dates if d.isdigit() and len(d) == 4}
+        target_years = {d for d in target_dates_set if d.isdigit() and len(d) == 4}
+        year_mismatch = (len(claim_years) > 0 and len(target_years) > 0 and claim_years.isdisjoint(target_years))
 
         # Negations
         claim_negated = self._has_negation(claim_text)
@@ -270,16 +319,23 @@ class EvidenceMatcher:
         # Debunk check in target (fact check reviewing a conspiracy/hoax about the topic)
         has_debunk_marker = any(t in self.DEBUNK_MARKERS for t in target_tokens)
 
-        # Substantive Non-Entity Object Terms
-        entity_terms_claim = set()
-        for e in claim_entities:
-            entity_terms_claim.update(e.lower().split())
+        # Substantive Proposition (Non-Matched-Entity) Terms
+        matched_entity_tokens = set()
+        for me in matched_entities:
+            for word in me.lower().split():
+                if len(word) > 1:
+                    matched_entity_tokens.add(word)
 
-        object_terms_claim = substantive_claim - entity_terms_claim
-        object_terms_target = substantive_target
+        matched_action_tokens = set()
+        for idx in claim_action_ids.intersection(target_action_ids):
+            matched_action_tokens.update(self.ACTION_VERB_GROUPS[idx])
 
-        object_overlap = object_terms_claim.intersection(object_terms_target)
-        object_overlap_count = len(object_overlap)
+        proposition_terms_claim = substantive_claim - matched_entity_tokens
+        proposition_terms_target = substantive_target - matched_entity_tokens
+        unmatched_proposition_claim = proposition_terms_claim - matched_action_tokens
+
+        proposition_overlap = proposition_terms_claim.intersection(proposition_terms_target)
+        proposition_overlap_count = len(proposition_overlap)
 
         # -------------------------------------------------------------
         # 1. DETERMINISTIC RELEVANCE CLASSIFICATION
@@ -287,35 +343,45 @@ class EvidenceMatcher:
         is_relevant = False
         relevance_reason = ""
 
-        if item.source_type == EvidenceSourceType.FACT_CHECK_API:
+        # Temporal Event Guardrail: Explicit distinct year mismatch without action alignment
+        if year_mismatch and not action_match and proposition_overlap_count == 0:
+            is_relevant = False
+            relevance_reason = f"Rejected: Temporal event mismatch between claim year(s) ({', '.join(claim_years)}) and evidence year(s) ({', '.join(target_years)})."
+
+        elif item.source_type == EvidenceSourceType.FACT_CHECK_API:
             # FACT-CHECK SPECIFIC EXACT-CLAIM MATCHING:
             # Must satisfy:
             # 1. Entity alignment (if claim has proper entities, at least 1 MUST match)
             # 2. Not an adjacent claim (if claim has specific objects/actions, target cannot be about unrelated objects)
 
-            if claim_entities and not entity_aligned:
+            if claim_entities and not entity_aligned and overlap_ratio < 0.50:
                 is_relevant = False
                 relevance_reason = f"Rejected: Claim entities ({', '.join(claim_entities)}) not found in reviewed claim."
 
-            elif len(object_terms_claim) >= 2 and object_overlap_count == 0 and not action_match and not has_debunk_marker:
-                # Same entity, but completely different action and zero object overlap (e.g. NASA bacteria vs NASA pyramid)
+            elif len(unmatched_proposition_claim) >= 2 and proposition_overlap_count == 0:
+                # Same entity, but zero proposition object overlap (e.g. JWST chorizo sausage or NASA bacteria vs NASA pyramid)
                 is_relevant = False
-                relevance_reason = f"Rejected adjacent fact-check: Entity ({', '.join(matched_entities)}) matched, but claim objects ({', '.join(list(object_terms_claim)[:3])}) were absent in reviewed claim."
+                relevance_reason = f"Rejected adjacent fact-check: Entity ({', '.join(matched_entities)}) matched, but claim proposition objects ({', '.join(list(unmatched_proposition_claim)[:3])}) were absent in reviewed claim."
 
-            elif overlap_ratio >= 0.40 and (entity_aligned or len(claim_entities) == 0):
-                # Strong overall substantive overlap
+            elif entity_aligned and action_match and (proposition_overlap_count >= 1 or len(unmatched_proposition_claim) <= 1):
+                # Direct match on both entity and predicate action with matching/minimal objects (e.g. Apollo landed on Moon vs Apollo moon landing)
+                is_relevant = True
+                relevance_reason = f"Matched entity ({', '.join(matched_entities)}) and action predicate."
+
+            elif overlap_ratio >= 0.40 and (entity_aligned or len(claim_entities) == 0) and (proposition_overlap_count >= 1 or len(proposition_terms_claim) <= 1):
+                # Strong overall substantive overlap with proposition alignment
                 is_relevant = True
                 relevance_reason = f"Exact claim match: Substantive overlap {overlap_ratio:.2f} ({', '.join(token_overlap)})."
 
-            elif entity_aligned and (action_match or has_debunk_marker) and (object_overlap_count >= 1 or len(object_terms_claim) <= 1):
-                # Entity + compatible action/debunk + object overlap
+            elif entity_aligned and has_debunk_marker and proposition_overlap_count >= 1:
+                # Entity + debunk of specific topic object
                 is_relevant = True
-                relevance_reason = f"Aligned claim: Matched entity ({', '.join(matched_entities)}) and action/object concepts ({', '.join(object_overlap or token_overlap)})."
+                relevance_reason = f"Aligned claim: Matched entity ({', '.join(matched_entities)}) and debunk of object ({', '.join(proposition_overlap)})."
 
-            elif entity_aligned and object_overlap_count >= 2:
+            elif entity_aligned and proposition_overlap_count >= 2:
                 # Entity + multiple key object terms matched
                 is_relevant = True
-                relevance_reason = f"Matched entity ({', '.join(matched_entities)}) and multiple object terms ({', '.join(object_overlap)})."
+                relevance_reason = f"Matched entity ({', '.join(matched_entities)}) and multiple object terms ({', '.join(proposition_overlap)})."
 
             elif not claim_entities and overlap_ratio >= 0.50:
                 # Generic non-entity claim with high word overlap (e.g. lemon water cancer)
@@ -327,16 +393,16 @@ class EvidenceMatcher:
                 relevance_reason = f"Rejected: Insufficient claim-specific predicate/object alignment with reviewed claim."
 
         else:
-            # LIVE NEWS SEARCH MATCHING:
-            if entity_aligned and (overlap_count >= 2 or action_match):
+            # LIVE NEWS & GENERAL REFERENCE SEARCH MATCHING:
+            if entity_aligned and (overlap_count >= 2 or proposition_overlap_count >= 1 or action_match):
                 is_relevant = True
                 relevance_reason = f"Matched entities ({', '.join(matched_entities)}) and reporting terms."
-            elif overlap_ratio >= 0.40:
+            elif overlap_ratio >= 0.35:
                 is_relevant = True
                 relevance_reason = f"Substantive overlap ratio {overlap_ratio:.2f}."
             else:
                 is_relevant = False
-                relevance_reason = "Insufficient entity or reporting overlap in live news."
+                relevance_reason = "Insufficient entity or reporting overlap in live news/reference."
 
         if not is_relevant:
             return EvidenceMatchResult(

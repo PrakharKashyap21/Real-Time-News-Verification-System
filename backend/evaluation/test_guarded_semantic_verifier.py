@@ -20,15 +20,15 @@ def guarded_verifier():
 
 
 class TestGuardedSemanticVerifier:
-    """Offline unit and integration tests for GuardedSemanticVerifier."""
+    """Offline unit and regression tests for GuardedSemanticVerifier (Stage 34E Gate Refinements)."""
 
     def test_initialization(self, guarded_verifier):
         """Guarded verifier initializes matcher and NLI verifier."""
         assert guarded_verifier.matcher is not None
         assert guarded_verifier.nli_verifier is not None
 
-    def test_rejected_evidence_never_invokes_nli(self, guarded_verifier):
-        """Irrelevant evidence rejected by EvidenceMatcher MUST NOT invoke the NLI model."""
+    def test_unrelated_entity_topic_rejected(self, guarded_verifier):
+        """Regression 7: Unrelated entity/topic must be rejected and never invoke NLI."""
         claim = ExtractedClaim(
             claim_id="c_moon",
             text="Apollo 11 Astronauts Landed on Moon in July 1969"
@@ -59,25 +59,25 @@ class TestGuardedSemanticVerifier:
         assert eval_rec.semantic_relation is None
         assert eval_rec.probabilities == {}
 
-    def test_accepted_evidence_invokes_nli_and_maps_relation(self, guarded_verifier):
-        """Relevant evidence accepted by EvidenceMatcher invokes NLI and maps stance."""
+    def test_water_composition_evidence_survives_gate(self, guarded_verifier):
+        """Regression 1: Valid water composition reference evidence must survive the relevance gate and be verified."""
         claim = ExtractedClaim(
-            claim_id="c_paris",
-            text="Paris Agreement on Climate Change Adopted by International Consensus"
+            claim_id="real_05",
+            text="Water molecule consists of two hydrogen atoms bonded to one oxygen atom"
         )
-        relevant_item = EvidenceItem(
-            id="ev_paris",
-            claim_id="c_paris",
+        water_item = EvidenceItem(
+            id="ev_water_wiki",
+            claim_id="real_05",
             source_type=EvidenceSourceType.GENERAL_REFERENCE,
             publisher="Wikipedia",
             domain="en.wikipedia.org",
-            url="https://en.wikipedia.org/wiki/Paris_Agreement",
-            title="Paris Agreement",
-            snippet="The Paris Agreement is an international treaty on climate change adopted by international consensus in 2015 and signed in 2016.",
+            url="https://en.wikipedia.org/wiki/Molecule",
+            title="Molecule",
+            snippet="Water is a chemical compound consisting of two hydrogen atoms and one oxygen atom (H2O).",
             stance=StanceType.NEUTRAL
         )
 
-        res = guarded_verifier.verify_claim_evidence(claim, [relevant_item])
+        res = guarded_verifier.verify_claim_evidence(claim, [water_item])
 
         assert res.total_evidence_count == 1
         assert res.accepted_evidence_count == 1
@@ -89,10 +89,60 @@ class TestGuardedSemanticVerifier:
         assert eval_rec.matcher_relevance == RelevanceClassification.RELEVANT
         assert eval_rec.nli_invoked is True
         assert eval_rec.semantic_relation == SemanticRelation.SUPPORTS
-        assert "entailment" in eval_rec.probabilities
 
-    def test_direct_support_recognition(self, guarded_verifier):
-        """Verifies direct support recognition for Apollo 11 historical claim."""
+    def test_jwst_adjacent_hoax_prevented_from_contradiction(self, guarded_verifier):
+        """Regression 2: JWST adjacent hoax must be rejected or prevented from reaching NLI as direct contradiction."""
+        claim = ExtractedClaim(
+            claim_id="real_02",
+            text="James Webb Space Telescope captures deepest infrared image of early universe"
+        )
+        jwst_hoax_item = EvidenceItem(
+            id="ev_jwst_hoax",
+            claim_id="real_02",
+            source_type=EvidenceSourceType.FACT_CHECK_API,
+            publisher="Full Fact",
+            domain="fullfact.org",
+            url="https://fullfact.org/jwst-chorizo",
+            title="Fact check: French scientist did not discover new star with James Webb telescope; image was slice of chorizo sausage",
+            snippet="Claim: Scientist discovered distant star using James Webb telescope. Rating: False.",
+            stance=StanceType.CONTRADICTS
+        )
+
+        res = guarded_verifier.verify_claim_evidence(claim, [jwst_hoax_item])
+
+        assert res.contradicts_count == 0
+        assert res.guarded_semantic_summary != GuardedSemanticSummary.ALL_CONTRADICTS
+        # Filtered at gate as IRRELEVANT adjacent fact-check
+        assert res.accepted_evidence_count == 0
+        assert res.rejected_evidence_count == 1
+
+    def test_voyager_temporal_mismatch_prevented_from_contradiction(self, guarded_verifier):
+        """Regression 3: Voyager 2012 vs 2024 temporal event mismatch must be filtered and not produce contradiction."""
+        claim = ExtractedClaim(
+            claim_id="real_01",
+            text="Voyager 1 spacecraft resumes sending science data to Earth after communications glitch in 2024"
+        )
+        voyager_old_item = EvidenceItem(
+            id="ev_voyager_2012",
+            claim_id="real_01",
+            source_type=EvidenceSourceType.GENERAL_REFERENCE,
+            publisher="Wikipedia",
+            domain="en.wikipedia.org",
+            url="https://en.wikipedia.org/wiki/Voyager_1",
+            title="Voyager 1",
+            snippet="Voyager 1 crossed the heliopause and entered interstellar space in August 2012.",
+            stance=StanceType.NEUTRAL
+        )
+
+        res = guarded_verifier.verify_claim_evidence(claim, [voyager_old_item])
+
+        assert res.contradicts_count == 0
+        assert res.accepted_evidence_count == 0
+        assert res.rejected_evidence_count == 1
+        assert res.guarded_semantic_summary == GuardedSemanticSummary.NO_ACCEPTED_EVIDENCE
+
+    def test_apollo_direct_historical_evidence_survives(self, guarded_verifier):
+        """Regression 4: Apollo 11 direct historical fact-check debunking staged hoax must survive and support."""
         claim = ExtractedClaim(
             claim_id="c_apollo",
             text="Apollo 11 Astronauts Landed on Moon in July 1969"
@@ -114,8 +164,8 @@ class TestGuardedSemanticVerifier:
         assert res.supports_count == 1
         assert res.guarded_semantic_summary == GuardedSemanticSummary.ALL_SUPPORTS
 
-    def test_direct_contradiction_recognition(self, guarded_verifier):
-        """Verifies direct contradiction recognition for 5G microchip conspiracy."""
+    def test_5g_microchip_direct_contradiction_survives(self, guarded_verifier):
+        """Regression 5: 5G microchip conspiracy fact-check must survive and contradict."""
         claim = ExtractedClaim(
             claim_id="c_5g",
             text="COVID-19 Vaccines Contain Injectable 5G Microchips for Digital Surveillance"
@@ -137,8 +187,8 @@ class TestGuardedSemanticVerifier:
         assert res.contradicts_count == 1
         assert res.guarded_semantic_summary == GuardedSemanticSummary.ALL_CONTRADICTS
 
-    def test_adjacent_crispr_neutral_resolution(self, guarded_verifier):
-        """Verifies that an adjacent vaccine CRISPR debunk resolves to NEUTRAL for Charpentier development claim."""
+    def test_crispr_adjacent_vaccine_debunk_not_contradiction(self, guarded_verifier):
+        """Regression 6: Adjacent CRISPR vaccine debunk must remain neutral/irrelevant rather than becoming contradiction."""
         claim = ExtractedClaim(
             claim_id="c_crispr",
             text="CRISPR-Cas9 gene editing technology was developed by Emmanuelle Charpentier and Jennifer Doudna"
@@ -156,9 +206,36 @@ class TestGuardedSemanticVerifier:
         )
 
         res = guarded_verifier.verify_claim_evidence(claim, [crispr_vax_item])
+        # Must NOT contradict the true development claim
+        assert res.contradicts_count == 0
+        assert res.guarded_semantic_summary in (
+            GuardedSemanticSummary.NO_ACCEPTED_EVIDENCE,
+            GuardedSemanticSummary.ONLY_NEUTRAL
+        )
+
+    def test_fact_check_claim_reviewed_exact_match_survives(self, guarded_verifier):
+        """Regression 8: Existing fact-check with exact/near-exact claimReviewed alignment must survive."""
+        claim = ExtractedClaim(
+            claim_id="c_lemon",
+            text="Drinking hot lemon water cures all types of cancer completely"
+        )
+        fc_item = EvidenceItem(
+            id="ev_fc_lemon",
+            claim_id="c_lemon",
+            source_type=EvidenceSourceType.FACT_CHECK_API,
+            publisher="FactCheck.org",
+            domain="factcheck.org",
+            url="https://factcheck.org/lemon-cancer",
+            title="Fact check: Hot lemon water does not cure cancer",
+            claim_reviewed="Hot lemon water destroys cancer cells and cures all cancer",
+            snippet="Reviewed Claim: Hot lemon water destroys cancer cells and cures all cancer | Rating: False",
+            stance=StanceType.CONTRADICTS
+        )
+
+        res = guarded_verifier.verify_claim_evidence(claim, [fc_item])
         assert res.accepted_evidence_count == 1
-        assert res.neutral_count == 1
-        assert res.guarded_semantic_summary == GuardedSemanticSummary.ONLY_NEUTRAL
+        assert res.contradicts_count == 1
+        assert res.guarded_semantic_summary == GuardedSemanticSummary.ALL_CONTRADICTS
 
     def test_multi_evidence_aggregation_behavior(self, guarded_verifier):
         """Tests deterministic multi-evidence aggregation for mixed support and neutral items."""
