@@ -21,7 +21,7 @@ def evaluate_uncertainty(summary: ClaimEvidenceSummary) -> Tuple[EvidenceStrengt
     contra_count = summary.contradicting_evidence_count
     has_conflict = summary.has_conflicting_evidence
 
-    # If evidence items exist, but no explicit supporting or contradicting fact-check stance exists
+    # If evidence items exist, but no explicit supporting or contradicting stance exists
     if supp_count == 0 and contra_count == 0:
         return EvidenceStrength.LIMITED, UncertaintyLevel.HIGH
 
@@ -29,10 +29,10 @@ def evaluate_uncertainty(summary: ClaimEvidenceSummary) -> Tuple[EvidenceStrengt
     if has_conflict:
         return EvidenceStrength.LIMITED, UncertaintyLevel.HIGH
 
-    # Count unique independent fact-check source domains with explicit stances
+    # Count unique independent source domains with explicit supporting/contradicting stances
     explicit_domains = set()
-    if summary.fact_check_evidence:
-        for item in summary.fact_check_evidence:
+    if summary.all_evidence:
+        for item in summary.all_evidence:
             if item.stance in (StanceType.SUPPORTS, StanceType.CONTRADICTS):
                 clean_dom = str(item.domain).strip().lower() if item.domain else ""
                 if clean_dom and clean_dom != "unknown":
@@ -58,6 +58,8 @@ class VerdictEngine:
         supp_count = summary.supporting_evidence_count if summary else 0
         contra_count = summary.contradicting_evidence_count if summary else 0
         neut_count = summary.neutral_evidence_count if summary else 0
+        sem_count = summary.semantic_evidence_count if summary else 0
+        sem_model = summary.semantic_model if summary else "cross-encoder/nli-distilroberta-base"
 
         strength, uncertainty = evaluate_uncertainty(summary)
 
@@ -72,10 +74,13 @@ class VerdictEngine:
                 has_conflicting_evidence=True,
                 reasoning="Supporting and contradicting evidence were both found; the claim is unverified.",
                 evidence_strength=strength,
-                uncertainty_level=uncertainty
+                uncertainty_level=uncertainty,
+                semantic_relation="CONFLICT",
+                semantic_model=sem_model,
+                semantic_evidence_count=sem_count
             )
 
-        # Rule 2: Supporting fact-check evidence exists, no contradicting evidence
+        # Rule 2: Supporting evidence exists, no contradicting evidence
         if supp_count > 0 and contra_count == 0:
             return ClaimVerificationResult(
                 claim_id=claim_id,
@@ -84,12 +89,15 @@ class VerdictEngine:
                 contradicting_evidence_count=contra_count,
                 neutral_evidence_count=neut_count,
                 has_conflicting_evidence=False,
-                reasoning="Supporting fact-check evidence was found with no contradicting evidence.",
+                reasoning="Supporting evidence was found with no contradicting evidence.",
                 evidence_strength=strength,
-                uncertainty_level=uncertainty
+                uncertainty_level=uncertainty,
+                semantic_relation="SUPPORTS",
+                semantic_model=sem_model,
+                semantic_evidence_count=sem_count
             )
 
-        # Rule 3: Contradicting fact-check evidence exists, no supporting evidence
+        # Rule 3: Contradicting evidence exists, no supporting evidence
         if contra_count > 0 and supp_count == 0:
             return ClaimVerificationResult(
                 claim_id=claim_id,
@@ -98,9 +106,12 @@ class VerdictEngine:
                 contradicting_evidence_count=contra_count,
                 neutral_evidence_count=neut_count,
                 has_conflicting_evidence=False,
-                reasoning="Contradicting fact-check evidence was found with no supporting evidence.",
+                reasoning="Contradicting evidence was found with no supporting evidence.",
                 evidence_strength=strength,
-                uncertainty_level=uncertainty
+                uncertainty_level=uncertainty,
+                semantic_relation="CONTRADICTS",
+                semantic_model=sem_model,
+                semantic_evidence_count=sem_count
             )
 
         # Rule 1, 5, 6: No supporting or contradicting evidence found
@@ -113,7 +124,10 @@ class VerdictEngine:
             has_conflicting_evidence=False,
             reasoning="No supporting or contradicting evidence was found.",
             evidence_strength=strength,
-            uncertainty_level=uncertainty
+            uncertainty_level=uncertainty,
+            semantic_relation="NEUTRAL" if neut_count > 0 else "NO_EVIDENCE",
+            semantic_model=sem_model,
+            semantic_evidence_count=sem_count
         )
 
     def verify_claim(

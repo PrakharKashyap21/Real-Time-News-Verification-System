@@ -42,6 +42,8 @@ class EvidenceItem(BaseModel):
     stance: StanceType
     raw_rating: Optional[str] = None
     claim_reviewed: Optional[str] = None
+    semantic_relation: Optional[str] = None
+    semantic_probabilities: Optional[dict] = Field(default_factory=dict)
 
 
 class ExtractedClaim(BaseModel):
@@ -108,6 +110,8 @@ class ClaimEvidenceSummary(BaseModel):
     live_news_evidence: List[EvidenceItem] = Field(default_factory=list)
     general_reference_evidence: List[EvidenceItem] = Field(default_factory=list)
     all_evidence: List[EvidenceItem] = Field(default_factory=list)
+    semantic_model: Optional[str] = "cross-encoder/nli-distilroberta-base"
+    semantic_evidence_count: int = 0
 
 
 class ClaimVerificationDetail(BaseModel):
@@ -125,6 +129,9 @@ class ClaimVerificationDetail(BaseModel):
     evidence_summary: Optional[ClaimEvidenceSummary] = None
     evidence: List[EvidenceItem] = Field(default_factory=list)
     linguistic_signal: Optional[LinguisticSignal] = None
+    semantic_relation: Optional[str] = None
+    semantic_model: Optional[str] = "cross-encoder/nli-distilroberta-base"
+    semantic_evidence_count: int = 0
 
 
 class VerificationResponse(BaseModel):
@@ -151,6 +158,10 @@ class ClaimVerificationResult(BaseModel):
     evidence_strength: EvidenceStrength = EvidenceStrength.NONE
     uncertainty_level: UncertaintyLevel = UncertaintyLevel.HIGH
     linguistic_signal: Optional[LinguisticSignal] = None
+    semantic_relation: Optional[str] = None
+    semantic_model: Optional[str] = "cross-encoder/nli-distilroberta-base"
+    semantic_evidence_count: int = 0
+
 
 
 

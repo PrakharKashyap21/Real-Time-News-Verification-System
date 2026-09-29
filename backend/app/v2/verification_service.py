@@ -38,6 +38,7 @@ from backend.app.v2.reference_retriever import (
 from backend.app.v2.evidence_aggregator import get_evidence_aggregator, EvidenceAggregator
 from backend.app.v2.evidence_matcher import get_evidence_matcher, EvidenceMatcher
 from backend.app.v2.stance_analyzer import get_stance_analyzer, EvidenceStanceAnalyzer
+from backend.app.v2.semantic_verifier import get_semantic_verifier, SemanticVerifier
 from backend.app.v2.verdict_engine import get_verdict_engine, VerdictEngine
 from backend.app.v2.svm_signal import get_svm_signal_provider, SVMSignalProvider, SVMPipelineIntegrator
 
@@ -46,7 +47,7 @@ class VerificationService:
     """Orchestrates V2 verification workflow combining claim extraction, fact-check retrieval,
 
     live news retrieval (NewsAPI), general reference retrieval (Wikipedia), evidence relevance matching,
-    evidence stance analysis, evidence aggregation, verdict evaluation, and SVM signals.
+    semantic verification (NLI), evidence aggregation, verdict evaluation, and SVM signals.
     """
 
     def __init__(
@@ -56,6 +57,7 @@ class VerificationService:
         news_retriever: Optional[Any] = None,
         reference_retriever: Optional[WikipediaReferenceRetriever] = None,
         evidence_matcher: Optional[EvidenceMatcher] = None,
+        semantic_verifier: Optional[SemanticVerifier] = None,
         stance_analyzer: Optional[EvidenceStanceAnalyzer] = None,
         aggregator: Optional[EvidenceAggregator] = None,
         verdict_engine: Optional[VerdictEngine] = None,
@@ -67,6 +69,7 @@ class VerificationService:
         self.news_retriever = news_retriever or get_newsapi_retriever(mock_mode=mock_mode)
         self.reference_retriever = reference_retriever or get_reference_retriever(mock_mode=mock_mode)
         self.evidence_matcher = evidence_matcher or get_evidence_matcher()
+        self.semantic_verifier = semantic_verifier or get_semantic_verifier(mock_mode=mock_mode)
         self.stance_analyzer = stance_analyzer or get_stance_analyzer()
         self.aggregator = aggregator or get_evidence_aggregator()
         self.verdict_engine = verdict_engine or get_verdict_engine()
@@ -147,15 +150,14 @@ class VerificationService:
 
             combined_evidence = fc_evidence + news_evidence + ref_evidence
 
-            # Evidence relevance matching
+            # Evidence relevance matching (deterministic gate)
             matched_evidence = self.evidence_matcher.process_claim_evidence(claim, combined_evidence)
 
-            # Evidence stance analysis
-            analyzed_evidence = self.stance_analyzer.process_claim_evidence_stance(claim, matched_evidence)
+            # Evidence semantic verification (single NLI model on accepted evidence)
+            semantically_verified_evidence = self.semantic_verifier.process_claim_evidence(claim, matched_evidence)
 
             # Evidence aggregation
-            summary = self.aggregator.aggregate_evidence(claim, analyzed_evidence)
-
+            summary = self.aggregator.aggregate_evidence(claim, semantically_verified_evidence)
 
             # Claim verdict evaluation
             base_result = self.verdict_engine.verify_summary(summary)
@@ -178,7 +180,10 @@ class VerificationService:
                     keywords=claim.keywords,
                     evidence_summary=summary,
                     evidence=summary.all_evidence,
-                    linguistic_signal=res_with_svm.linguistic_signal
+                    linguistic_signal=res_with_svm.linguistic_signal,
+                    semantic_relation=res_with_svm.semantic_relation,
+                    semantic_model=res_with_svm.semantic_model,
+                    semantic_evidence_count=res_with_svm.semantic_evidence_count
                 )
             )
 
@@ -226,6 +231,8 @@ _verification_service_instance = None
 
 def get_verification_service(mock_mode: bool = False) -> VerificationService:
     global _verification_service_instance
-    if _verification_service_instance is None or mock_mode:
-        _verification_service_instance = VerificationService(mock_mode=mock_mode)
+    if mock_mode:
+        return VerificationService(mock_mode=True)
+    if _verification_service_instance is None:
+        _verification_service_instance = VerificationService(mock_mode=False)
     return _verification_service_instance

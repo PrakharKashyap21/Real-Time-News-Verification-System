@@ -235,6 +235,8 @@ _reference_retriever_instance: Optional[WikipediaReferenceRetriever] = None
 def get_reference_retriever(mock_mode: bool = False) -> WikipediaReferenceRetriever:
     """Returns singleton instance of WikipediaReferenceRetriever."""
     global _reference_retriever_instance
-    if _reference_retriever_instance is None or mock_mode:
-        _reference_retriever_instance = WikipediaReferenceRetriever(mock_mode=mock_mode)
+    if mock_mode:
+        return WikipediaReferenceRetriever(mock_mode=True)
+    if _reference_retriever_instance is None:
+        _reference_retriever_instance = WikipediaReferenceRetriever(mock_mode=False)
     return _reference_retriever_instance

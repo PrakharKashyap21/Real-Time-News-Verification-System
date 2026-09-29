@@ -143,7 +143,9 @@ class EvidenceAggregator:
             fact_check_evidence=fact_check_evidence,
             live_news_evidence=live_news_evidence,
             general_reference_evidence=general_reference_evidence,
-            all_evidence=deduped_evidence
+            all_evidence=deduped_evidence,
+            semantic_model="cross-encoder/nli-distilroberta-base",
+            semantic_evidence_count=len(deduped_evidence)
         )
 
 

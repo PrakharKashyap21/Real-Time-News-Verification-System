@@ -11,36 +11,8 @@ from backend.app.v2.schemas import (
     EvidenceSourceType,
     StanceType
 )
-from backend.app.v2.fact_check_retriever import extract_domain_from_url
+from backend.app.v2.fact_check_retriever import extract_domain_from_url, load_env_key
 from backend.app.v2.query_builder import get_query_builder, FactCheckQueryBuilder
-
-
-def load_env_key(var_name: str) -> str:
-    """Loads an environment variable from os.environ or backend/.env securely."""
-    val = os.environ.get(var_name, "").strip()
-    if val:
-        return val
-
-    possible_paths = [
-        os.path.join(os.path.dirname(__file__), "..", "..", ".env"),
-        os.path.join(os.getcwd(), "backend", ".env"),
-        os.path.join(os.getcwd(), ".env"),
-    ]
-    for path in possible_paths:
-        if os.path.exists(path):
-            try:
-                with open(path, "r", encoding="utf-8") as f:
-                    for line in f:
-                        line = line.strip()
-                        if not line or line.startswith("#"):
-                            continue
-                        if "=" in line:
-                            k, v = line.split("=", 1)
-                            if k.strip() == var_name:
-                                return v.strip().strip("'\"")
-            except Exception:
-                pass
-    return ""
 
 
 class NewsAPIKeyError(ValueError):
@@ -302,6 +274,8 @@ _newsapi_retriever_instance = None
 
 def get_newsapi_retriever(api_key: Optional[str] = None, mock_mode: bool = False) -> NewsAPIRetriever:
     global _newsapi_retriever_instance
-    if _newsapi_retriever_instance is None or mock_mode:
-        _newsapi_retriever_instance = NewsAPIRetriever(api_key=api_key, mock_mode=mock_mode)
+    if mock_mode:
+        return NewsAPIRetriever(api_key=api_key, mock_mode=True)
+    if _newsapi_retriever_instance is None:
+        _newsapi_retriever_instance = NewsAPIRetriever(api_key=api_key, mock_mode=False)
     return _newsapi_retriever_instance

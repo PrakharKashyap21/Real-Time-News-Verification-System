@@ -65,7 +65,10 @@ class SVMPipelineIntegrator:
             reasoning=result.reasoning,  # Un-modified
             evidence_strength=result.evidence_strength,  # Un-modified
             uncertainty_level=result.uncertainty_level,  # Un-modified
-            linguistic_signal=signal
+            linguistic_signal=signal,
+            semantic_relation=result.semantic_relation,  # Un-modified
+            semantic_model=result.semantic_model,  # Un-modified
+            semantic_evidence_count=result.semantic_evidence_count  # Un-modified
         )
 
 

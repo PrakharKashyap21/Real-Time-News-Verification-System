@@ -87,6 +87,34 @@ def extract_domain_from_url(url: str, fallback_site: Optional[str] = None) -> st
     return "unknown"
 
 
+def load_env_key(var_name: str) -> str:
+    """Loads an environment variable from os.environ or backend/.env securely."""
+    val = os.environ.get(var_name, "").strip()
+    if val:
+        return val
+
+    possible_paths = [
+        os.path.join(os.path.dirname(__file__), "..", "..", ".env"),
+        os.path.join(os.getcwd(), "backend", ".env"),
+        os.path.join(os.getcwd(), ".env"),
+    ]
+    for path in possible_paths:
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line or line.startswith("#"):
+                            continue
+                        if "=" in line:
+                            k, v = line.split("=", 1)
+                            if k.strip() == var_name:
+                                return v.strip().strip("'\"")
+            except Exception:
+                pass
+    return ""
+
+
 class GoogleFactCheckRetriever:
 
     """Adapter/Provider for querying Google Fact Check Tools Claim Search API
@@ -100,10 +128,15 @@ class GoogleFactCheckRetriever:
         self,
         api_key: Optional[str] = None,
         mock_mode: bool = False,
+        timeout: float = 8.0,
         query_builder: Optional[FactCheckQueryBuilder] = None
     ):
-        self.api_key = api_key or os.environ.get("GOOGLE_FACT_CHECK_API_KEY", "")
+        if api_key is not None:
+            self.api_key = api_key
+        else:
+            self.api_key = load_env_key("GOOGLE_FACT_CHECK_API_KEY")
         self.mock_mode = mock_mode
+        self.timeout = timeout
         self.query_builder = query_builder or get_query_builder()
         self.api_call_count = 0  # Track API call count per claim for testing bounds
 
@@ -161,7 +194,7 @@ class GoogleFactCheckRetriever:
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=5.0) as response:
+            with urllib.request.urlopen(req, timeout=self.timeout) as response:
                 body = response.read().decode("utf-8")
                 try:
                     data = json.loads(body)
@@ -334,6 +367,8 @@ _fact_check_retriever_instance = None
 
 def get_fact_check_retriever(api_key: Optional[str] = None, mock_mode: bool = False) -> GoogleFactCheckRetriever:
     global _fact_check_retriever_instance
-    if _fact_check_retriever_instance is None or mock_mode:
-        _fact_check_retriever_instance = GoogleFactCheckRetriever(api_key=api_key, mock_mode=mock_mode)
+    if mock_mode:
+        return GoogleFactCheckRetriever(api_key=api_key, mock_mode=True)
+    if _fact_check_retriever_instance is None:
+        _fact_check_retriever_instance = GoogleFactCheckRetriever(api_key=api_key, mock_mode=False)
     return _fact_check_retriever_instance
