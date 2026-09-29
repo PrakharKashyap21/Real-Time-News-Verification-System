@@ -1,0 +1,2193 @@
+{
+  "timestamp": "2026-09-29T16:45:45.729945+00:00",
+  "stage": "34G",
+  "evaluation_name": "Targeted Real-World Regression Evaluation",
+  "model_name": "cross-encoder/nli-distilroberta-base",
+  "target_case_count": 12,
+  "total_claims": 24,
+  "metrics": {
+    "correct_cases": 3,
+    "incorrect_cases": 9,
+    "target_accuracy": 25.0,
+    "predicted_distribution": {
+      "SUPPORTED": 0,
+      "CONTRADICTED": 7,
+      "UNVERIFIED": 5
+    },
+    "ground_truth_distribution": {
+      "SUPPORTED": 7,
+      "CONTRADICTED": 5,
+      "UNVERIFIED": 0
+    },
+    "fixed_cases_count": 3,
+    "fixed_case_ids": [
+      "fc_05",
+      "false_08",
+      "false_04"
+    ],
+    "improved_evidence_only_count": 7,
+    "improved_evidence_case_ids": [
+      "real_01",
+      "real_02",
+      "real_05",
+      "real_08",
+      "false_05",
+      "real_07",
+      "news_06"
+    ],
+    "unchanged_cases_count": 2,
+    "unchanged_case_ids": [
+      "real_04",
+      "fc_07"
+    ],
+    "regressed_cases_count": 0,
+    "regressed_case_ids": [],
+    "latency_ms": {
+      "average": 8278.48,
+      "median": 7852.65,
+      "p95": 12754.34
+    }
+  },
+  "results": [
+    {
+      "case_id": "real_01",
+      "category": "A. Known true / historically established claims",
+      "title": "NASA Perseverance Rover Discovers Organic Compounds on Mars",
+      "text": "NASA's Perseverance rover detected carbon-based organic molecules inside rock samples at Jezero Crater on Mars.",
+      "ground_truth": "SUPPORTED",
+      "predicted_assessment": "UNVERIFIED",
+      "assessment_summary": "Insufficient conclusive evidence found to verify the claims in this article.",
+      "has_conflict": false,
+      "is_correct": false,
+      "classification": "IMPROVED_EVIDENCE_ONLY",
+      "latency_ms": 8661.05,
+      "service_status": {
+        "fact_check_api": "ok",
+        "live_news_api": "ok",
+        "reference_api": "ok"
+      },
+      "claims_count": 2,
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "NASA Perseverance Rover Discovers Organic Compounds on Mars",
+          "verdict": "UNVERIFIED",
+          "reasoning": "No supporting or contradicting evidence was found.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 3,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "NEUTRAL",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 3,
+          "evidence_strength": "LIMITED",
+          "uncertainty_level": "HIGH",
+          "evidence": [
+            {
+              "id": "ref_c1_1",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Curiosity_(rover)",
+              "title": "Curiosity (rover)",
+              "snippet": "Curiosity is a Mars rover that is exploring Gale crater and Mount Sharp on Mars as part of NASA's Mars Science Laboratory (MSL) mission. Launched in 2011 and landed the following year, the car-sized rover continues to operate more than a decade after its original two-year mission.",
+              "publish_date": "2026-09-23T04:01:15Z",
+              "credibility_score": null,
+              "relevance_score": 0.286,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0937,
+                "entailment": 0.1339,
+                "neutral": 0.7724
+              }
+            },
+            {
+              "id": "ref_c1_2",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Perseverance_(rover)",
+              "title": "Perseverance (rover)",
+              "snippet": "Perseverance is a NASA rover that has been exploring Mars since February 18, 2021, as part of the Mars 2020 mission. Built and managed by the Jet Propulsion Laboratory, the car-sized rover was launched on July 30, 2020, from Cape Canaveral aboard an Atlas V rocket and landed in Jezero Crater, a site chosen for its ancient river delta that may preserve evidence of past microbial life.",
+              "publish_date": "2026-09-28T19:11:57Z",
+              "credibility_score": null,
+              "relevance_score": 0.571,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.1795,
+                "entailment": 0.0192,
+                "neutral": 0.8013
+              }
+            },
+            {
+              "id": "ref_c1_3",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Life_on_Mars",
+              "title": "Life on Mars",
+              "snippet": "The possibility of life on Mars is a subject of interest in astrobiology due to the planet's proximity and similarities to Earth. To date, no conclusive evidence of past or present life has been found on Mars. Cumulative evidence suggests that during the ancient Noachian time period, the surface environment of Mars had liquid water and may have been habitable for microorganisms, but habitable conditions do not necessarily indicate life. Scientific investigations for potential life on Mars began in the 19th century and continue today with telescopes and robotic probes searching for water, chemical biosignatures in the soil and rocks at the planet's surface, and biomarker gases in the atmosphere.",
+              "publish_date": "2026-09-27T15:26:42Z",
+              "credibility_score": null,
+              "relevance_score": 0.143,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.3678,
+                "entailment": 0.0201,
+                "neutral": 0.6122
+              }
+            }
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "NASA's Perseverance rover detected carbon-based organic molecules inside rock samples at Jezero Crater on Mars.",
+          "verdict": "UNVERIFIED",
+          "reasoning": "No supporting or contradicting evidence was found.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 3,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "NEUTRAL",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 3,
+          "evidence_strength": "LIMITED",
+          "uncertainty_level": "HIGH",
+          "evidence": [
+            {
+              "id": "ref_c2_1",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Jezero_(crater)",
+              "title": "Jezero (crater)",
+              "snippet": "Jezero is a crater on Mars in the Syrtis Major quadrangle, about 45.0\u00a0km (28.0\u00a0mi) in diameter. Thought to have once been flooded with water, the crater contains a fan-delta deposit rich in clays. The lake in the crater was present when valley networks were forming on Mars. Besides having a delta, the crater shows point bars and inverted channels. From a study of the delta and channels, it was concluded that the lake inside the crater probably formed during a period in which there was continual surface runoff.",
+              "publish_date": "2026-09-25T12:26:10Z",
+              "credibility_score": null,
+              "relevance_score": 0.308,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0469,
+                "entailment": 0.0039,
+                "neutral": 0.9491
+              }
+            },
+            {
+              "id": "ref_c2_2",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Perseverance_(rover)",
+              "title": "Perseverance (rover)",
+              "snippet": "Perseverance is a NASA rover that has been exploring Mars since February 18, 2021, as part of the Mars 2020 mission. Built and managed by the Jet Propulsion Laboratory, the car-sized rover was launched on July 30, 2020, from Cape Canaveral aboard an Atlas V rocket and landed in Jezero Crater, a site chosen for its ancient river delta that may preserve evidence of past microbial life.",
+              "publish_date": "2026-09-28T19:11:57Z",
+              "credibility_score": null,
+              "relevance_score": 0.385,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0259,
+                "entailment": 0.0047,
+                "neutral": 0.9694
+              }
+            },
+            {
+              "id": "ref_c2_3",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Mars_2020",
+              "title": "Mars 2020",
+              "snippet": "Mars 2020 is a NASA mission that includes the rover Perseverance, the now-grounded small robotic helicopter Ingenuity, and associated delivery systems, as part of the Mars Exploration Program. Mars 2020 was launched on an Atlas V rocket at 11:50:01 UTC on July 30, 2020, and landed in the Martian crater Jezero on February 18, 2021, with confirmation received at 20:55 UTC. On March 5, 2021, NASA named the landing site Octavia E. Butler Landing. As of 28 September 2026, Perseverance has been on Mars for 1993 sols. Ingenuity operated on Mars for 1042 sols before sustaining serious damage to its rotor blades, possibly all four, causing NASA to retire the craft on January 25, 2024.",
+              "publish_date": "2026-09-05T19:20:15Z",
+              "credibility_score": null,
+              "relevance_score": 0.385,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0487,
+                "entailment": 0.0025,
+                "neutral": 0.9488
+              }
+            }
+          ]
+        }
+      ],
+      "total_evidence_count": 6,
+      "fact_check_count": 0,
+      "live_news_count": 0,
+      "general_reference_count": 6,
+      "supporting_evidence_count": 0,
+      "contradicting_evidence_count": 0,
+      "neutral_evidence_count": 6,
+      "baseline_comparison": {
+        "prev_assessment": "CONTRADICTED",
+        "prev_is_correct": false,
+        "prev_total_evidence": 1,
+        "prev_fact_check_count": 1,
+        "prev_live_news_count": 0,
+        "prev_general_reference_count": 0,
+        "prev_failure_classification": "stance_error"
+      },
+      "linguistic_signal": {
+        "label": 1,
+        "prediction": "LIKELY REAL NEWS",
+        "confidence": 46.66
+      }
+    },
+    {
+      "case_id": "real_02",
+      "category": "A. Known true / historically established claims",
+      "title": "James Webb Space Telescope Unveils Deepest Infrared Image of Universe",
+      "text": "NASA and ESA released landmark deep field infrared images captured by the James Webb Space Telescope.",
+      "ground_truth": "SUPPORTED",
+      "predicted_assessment": "CONTRADICTED",
+      "assessment_summary": "One or more claims in this article were contradicted by factual evidence, with no supported claims.",
+      "has_conflict": false,
+      "is_correct": false,
+      "classification": "IMPROVED_EVIDENCE_ONLY",
+      "latency_ms": 7852.65,
+      "service_status": {
+        "fact_check_api": "ok",
+        "live_news_api": "ok",
+        "reference_api": "ok"
+      },
+      "claims_count": 2,
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "James Webb Space Telescope Unveils Deepest Infrared Image of Universe",
+          "verdict": "CONTRADICTED",
+          "reasoning": "Contradicting evidence was found with no supporting evidence.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 1,
+          "neutral_evidence_count": 2,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "CONTRADICTS",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 3,
+          "evidence_strength": "MODERATE",
+          "uncertainty_level": "MEDIUM",
+          "evidence": [
+            {
+              "id": "ref_c1_1",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/James_Webb_Space_Telescope",
+              "title": "James Webb Space Telescope",
+              "snippet": "The James Webb Space Telescope (JWST) is a space telescope designed to conduct infrared astronomy. It is the largest telescope in space, and is equipped with high-resolution and high-sensitivity instruments, allowing it to view objects too old, distant, or faint for the Hubble Space Telescope. This enables investigations across many fields of astronomy and cosmology, such as observation of the first stars and the formation of the first galaxies, and detailed atmospheric characterization of potentially habitable exoplanets.",
+              "publish_date": "2026-09-27T11:08:08Z",
+              "credibility_score": null,
+              "relevance_score": 0.625,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.084,
+                "entailment": 0.0136,
+                "neutral": 0.9023
+              }
+            },
+            {
+              "id": "ref_c1_2",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Hubble_Space_Telescope",
+              "title": "Hubble Space Telescope",
+              "snippet": "The Hubble Space Telescope is a space telescope that was launched into low Earth orbit in 1990 and remains in operation. It was not the first space telescope, but it is one of the largest and most versatile, renowned as a vital research tool and as a public relations boon for astronomy. The Hubble Space Telescope is named after astronomer Edwin Hubble and is one of NASA's Great Observatories. The Space Telescope Science Institute (STScI) selects Hubble's targets and processes the resulting data, while the Goddard Space Flight Center (GSFC) controls the spacecraft.",
+              "publish_date": "2026-09-27T12:12:53Z",
+              "credibility_score": null,
+              "relevance_score": 0.25,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.2195,
+                "entailment": 0.0139,
+                "neutral": 0.7666
+              }
+            },
+            {
+              "id": "ref_c1_3",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Hubble_Deep_Field",
+              "title": "Hubble Deep Field",
+              "snippet": "The Hubble Deep Field (HDF) is an image of a small region in the constellation Ursa Major, constructed from a series of observations by the Hubble Space Telescope. It covers an area about 2.6 arcminutes on a side, about one 24-millionth of the whole sky, which is equivalent in angular size to a tennis ball at a distance of 100\u00a0metres. The image was assembled from 342 separate exposures taken with the Space Telescope's Wide Field and Planetary Camera 2 over ten consecutive days between December 18 and 28, 1995.",
+              "publish_date": "2026-08-23T01:58:54Z",
+              "credibility_score": null,
+              "relevance_score": 0.25,
+              "stance": "CONTRADICTS",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "CONTRADICTS",
+              "semantic_probabilities": {
+                "contradiction": 0.7436,
+                "entailment": 0.0114,
+                "neutral": 0.245
+              }
+            }
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "NASA and ESA released landmark deep field infrared images captured by the James Webb Space Telescope.",
+          "verdict": "UNVERIFIED",
+          "reasoning": "No supporting or contradicting evidence was found.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 6,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "NEUTRAL",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 6,
+          "evidence_strength": "LIMITED",
+          "uncertainty_level": "HIGH",
+          "evidence": [
+            {
+              "id": "fc_c2_1_1",
+              "claim_id": "c2",
+              "source_type": "FACT_CHECK_API",
+              "publisher": "Snopes.com",
+              "domain": "snopes.com",
+              "url": "https://www.snopes.com/fact-check/cosmic-vine-galaxy-chain-james-webb/",
+              "title": "Did scientists release this image allegedly showing 'Cosmic Vine' of ...",
+              "snippet": "Reviewed Claim: 'Scientists released an image showing the \"Cosmic Vine\" discovered through the James Webb Space Telescope as a line of galaxies connected to each other in a helix structure.' | Rating: False",
+              "publish_date": "2026-03-23T04:00:06Z",
+              "credibility_score": null,
+              "relevance_score": 0.385,
+              "stance": "NEUTRAL",
+              "raw_rating": "False",
+              "claim_reviewed": "Scientists released an image showing the \"Cosmic Vine\" discovered through the James Webb Space Telescope as a line of galaxies connected to each other in a helix structure.",
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0128,
+                "entailment": 0.0108,
+                "neutral": 0.9764
+              }
+            },
+            {
+              "id": "fc_c2_2_1",
+              "claim_id": "c2",
+              "source_type": "FACT_CHECK_API",
+              "publisher": "Snopes",
+              "domain": "snopes.com",
+              "url": "https://www.snopes.com/fact-check/viral-solar-eclipse-image/",
+              "title": "Stunning Photograph Shows 2024 Solar Eclipse?",
+              "snippet": "Reviewed Claim: 'A real photo captured by NASA's James Webb Space Telescope (JWST) shows the April 8, 2024, solar eclipse.' | Rating: Miscaptioned",
+              "publish_date": "2024-04-14T16:00:04Z",
+              "credibility_score": null,
+              "relevance_score": 0.385,
+              "stance": "NEUTRAL",
+              "raw_rating": "Miscaptioned",
+              "claim_reviewed": "A real photo captured by NASA's James Webb Space Telescope (JWST) shows the April 8, 2024, solar eclipse.",
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.018,
+                "entailment": 0.0141,
+                "neutral": 0.9679
+              }
+            },
+            {
+              "id": "fc_c2_2_2",
+              "claim_id": "c2",
+              "source_type": "FACT_CHECK_API",
+              "publisher": "Snopes",
+              "domain": "snopes.com",
+              "url": "https://www.snopes.com/fact-check/james-webb-telescope-eclipse/",
+              "title": "Most Stunning Photo of the 'April 2024 Solar Eclipse' Was Taken in ...",
+              "snippet": "Reviewed Claim: 'A real photo captured by NASA's James Webb Space Telescope (JWST) shows the April 8, 2024, solar eclipse.' | Rating: Miscaptioned",
+              "publish_date": "2024-04-09T13:13:14Z",
+              "credibility_score": null,
+              "relevance_score": 0.385,
+              "stance": "NEUTRAL",
+              "raw_rating": "Miscaptioned",
+              "claim_reviewed": "A real photo captured by NASA's James Webb Space Telescope (JWST) shows the April 8, 2024, solar eclipse.",
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0228,
+                "entailment": 0.0233,
+                "neutral": 0.9539
+              }
+            },
+            {
+              "id": "ref_c2_1",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/European_Space_Agency",
+              "title": "European Space Agency",
+              "snippet": "The European Space Agency is a 23-member international organisation devoted to space exploration. It has its headquarters in Paris and a staff of around 3,000 people globally as of 2025. ESA was founded in 1975 in the context of European integration. Its 2026 annual budget was around \u20ac8.3\u00a0billion.",
+              "publish_date": "2026-09-23T11:31:13Z",
+              "credibility_score": null,
+              "relevance_score": 0.154,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.1464,
+                "entailment": 0.0012,
+                "neutral": 0.8524
+              }
+            },
+            {
+              "id": "ref_c2_2",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/NASA",
+              "title": "NASA",
+              "snippet": "The National Aeronautics and Space Administration is an independent agency of the U.S. federal government responsible for the United States' civil space program, as well as research in aeronautics and space. Headquartered in Washington, D.C., NASA operates ten field centers across the US and is organized into three mission directorates: Human Spaceflight, Research and Technology, and Science. Established in 1958 amid the Space Race, NASA succeeded the National Advisory Committee for Aeronautics (NACA) to give the US space program a distinct civilian orientation focused on peaceful applications. Since then, it has led most American spaceflight programs, including Project Mercury, Project Gemini, the Apollo program, Skylab, the Space Shuttle, the International Space Station (ISS), and the ongoing multinational Artemis program.",
+              "publish_date": "2026-09-21T12:12:22Z",
+              "credibility_score": null,
+              "relevance_score": 0.231,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0668,
+                "entailment": 0.0013,
+                "neutral": 0.9319
+              }
+            },
+            {
+              "id": "ref_c2_3",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Hubble_Deep_Field",
+              "title": "Hubble Deep Field",
+              "snippet": "The Hubble Deep Field (HDF) is an image of a small region in the constellation Ursa Major, constructed from a series of observations by the Hubble Space Telescope. It covers an area about 2.6 arcminutes on a side, about one 24-millionth of the whole sky, which is equivalent in angular size to a tennis ball at a distance of 100\u00a0metres. The image was assembled from 342 separate exposures taken with the Space Telescope's Wide Field and Planetary Camera 2 over ten consecutive days between December 18 and 28, 1995.",
+              "publish_date": "2026-08-23T01:58:54Z",
+              "credibility_score": null,
+              "relevance_score": 0.308,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.2887,
+                "entailment": 0.01,
+                "neutral": 0.7013
+              }
+            }
+          ]
+        }
+      ],
+      "total_evidence_count": 9,
+      "fact_check_count": 3,
+      "live_news_count": 0,
+      "general_reference_count": 6,
+      "supporting_evidence_count": 0,
+      "contradicting_evidence_count": 1,
+      "neutral_evidence_count": 8,
+      "baseline_comparison": {
+        "prev_assessment": "UNVERIFIED",
+        "prev_is_correct": false,
+        "prev_total_evidence": 0,
+        "prev_fact_check_count": 0,
+        "prev_live_news_count": 0,
+        "prev_general_reference_count": 0,
+        "prev_failure_classification": "live_news_retrieval_failure"
+      },
+      "linguistic_signal": {
+        "label": 1,
+        "prediction": "LIKELY REAL NEWS",
+        "confidence": 52.38
+      }
+    },
+    {
+      "case_id": "real_04",
+      "category": "A. Known true / historically established claims",
+      "title": "Apollo 11 Astronauts Neil Armstrong and Buzz Aldrin Landed on Moon in 1969",
+      "text": "NASA's Apollo 11 mission successfully landed American astronauts Neil Armstrong and Buzz Aldrin on the lunar surface on July 20, 1969.",
+      "ground_truth": "SUPPORTED",
+      "predicted_assessment": "UNVERIFIED",
+      "assessment_summary": "Some claims in this article were supported, but others remain unverified.",
+      "has_conflict": false,
+      "is_correct": false,
+      "classification": "UNCHANGED",
+      "latency_ms": 7153.36,
+      "service_status": {
+        "fact_check_api": "ok",
+        "live_news_api": "ok",
+        "reference_api": "ok"
+      },
+      "claims_count": 2,
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Apollo 11 Astronauts Neil Armstrong and Buzz Aldrin Landed on Moon in 1969",
+          "verdict": "SUPPORTED",
+          "reasoning": "Supporting evidence was found with no contradicting evidence.",
+          "supporting_evidence_count": 2,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 5,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "SUPPORTS",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 7,
+          "evidence_strength": "MODERATE",
+          "uncertainty_level": "MEDIUM",
+          "evidence": [
+            {
+              "id": "fc_c1_3_1",
+              "claim_id": "c1",
+              "source_type": "FACT_CHECK_API",
+              "publisher": "Snopes.com",
+              "domain": "snopes.com",
+              "url": "https://www.snopes.com/fact-check/photo-moon-mission-nixon-apollo-11/",
+              "title": "Was Pic Taken by Apollo 11 Crew Already on Nixon's Wall When He ...",
+              "snippet": "Reviewed Claim: 'As U.S. President Richard Nixon spoke to Apollo 11 astronauts on the phone after they landed on the moon in 1969, a photograph taken during the same mission was already on the wall in the Oval Office.' | Rating: Miscaptioned",
+              "publish_date": "2023-03-30T10:31:28Z",
+              "credibility_score": null,
+              "relevance_score": 0.5,
+              "stance": "NEUTRAL",
+              "raw_rating": "Miscaptioned",
+              "claim_reviewed": "As U.S. President Richard Nixon spoke to Apollo 11 astronauts on the phone after they landed on the moon in 1969, a photograph taken during the same mission was already on the wall in the Oval Office.",
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.2953,
+                "entailment": 0.0339,
+                "neutral": 0.6708
+              }
+            },
+            {
+              "id": "fc_c1_5_1",
+              "claim_id": "c1",
+              "source_type": "FACT_CHECK_API",
+              "publisher": "Snopes.com",
+              "domain": "snopes.com",
+              "url": "https://www.snopes.com/fact-check/photo-moon-landing-staged/",
+              "title": "No, This Photo Isn't Evidence the Moon Landing Was Staged",
+              "snippet": "Reviewed Claim: 'A photograph of astronauts Neil Armstrong and Buzz Aldrin proves the 1969 moon landing was faked because a ceiling is visible in the background.' | Rating: False",
+              "publish_date": "2022-07-26T04:39:01Z",
+              "credibility_score": null,
+              "relevance_score": 0.75,
+              "stance": "NEUTRAL",
+              "raw_rating": "False",
+              "claim_reviewed": "A photograph of astronauts Neil Armstrong and Buzz Aldrin proves the 1969 moon landing was faked because a ceiling is visible in the background.",
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.1061,
+                "entailment": 0.2228,
+                "neutral": 0.6712
+              }
+            },
+            {
+              "id": "news_c1_1",
+              "claim_id": "c1",
+              "source_type": "LIVE_NEWS_SEARCH",
+              "publisher": "Space Daily",
+              "domain": "spacedaily.com",
+              "url": "https://spacedaily.com/t-apollo11-flag-toppled-eagle-exhaust-lro-shadows/",
+              "title": "Buzz Aldrin saw Apollo 11\u2019s flag topple in Eagle\u2019s exhaust as the crew left the Moon in 1969. It has likely spent 57 years flat in the lunar dust, its nylon bleached or even destroyed by ultraviolet light\u2014while orbital images show three later Apollo flags still casting shadows.",
+              "snippet": "Aldrin's brief glimpse, the missing Tranquility Base shadow and decades of lunar exposure reconstruct the likely fate of Apollo 11's ordinary nylon flag.\nThe post Buzz Aldrin saw Apollo 11\u2019s flag topple in Eagle\u2019s exhaust as the crew left the Moon in 1969. It\u2026 (Source: Space Daily)",
+              "publish_date": "2026-08-31T14:00:11Z",
+              "credibility_score": null,
+              "relevance_score": 0.5,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.3025,
+                "entailment": 0.0943,
+                "neutral": 0.6032
+              }
+            },
+            {
+              "id": "news_c1_2",
+              "claim_id": "c1",
+              "source_type": "LIVE_NEWS_SEARCH",
+              "publisher": "Space Daily",
+              "domain": "spacedaily.com",
+              "url": "https://spacedaily.com/k-the-second-man-to-walk-on-the-moon-later-dug-out-his-old-expense-claim-from-the-trip-and-it-turns-out-buzz-aldrin-was-reimbursed-the-grand-sum-of-33-dollars-and-31-cents-not-for-the-rocket-or-the-sp/",
+              "title": "The second man to walk on the Moon later dug out his old expense claim from the trip, and it turns out Buzz Aldrin was reimbursed the grand sum of 33 dollars and 31 cents, not for the rocket or the spacecraft, but for the ordinary travel expenses of getting himself to and from the launch site like any other business trip.",
+              "snippet": "When NASA spent $150 billion to reach the Moon, its second visitor got back $33.31 in travel reimbursement for driving to the launch site.\nThe post The second man to walk on the Moon later dug out his old expense claim from the trip, and it turns out Buzz Ald\u2026 (Source: Space Daily)",
+              "publish_date": "2026-09-09T15:00:44Z",
+              "credibility_score": null,
+              "relevance_score": 0.375,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.4098,
+                "entailment": 0.0509,
+                "neutral": 0.5393
+              }
+            },
+            {
+              "id": "ref_c1_1",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Apollo_11",
+              "title": "Apollo 11",
+              "snippet": "Apollo 11 was the American spaceflight that first landed humans on the Moon, and the fifth crewed mission of NASA's Apollo program. The mission was crewed by Commander Neil Armstrong, Command Module Pilot Michael Collins, and Lunar Module Pilot Edwin \"Buzz\" Aldrin, all of whom were on their second and final spaceflight.",
+              "publish_date": "2026-08-24T18:22:02Z",
+              "credibility_score": null,
+              "relevance_score": 0.875,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0551,
+                "entailment": 0.0849,
+                "neutral": 0.86
+              }
+            },
+            {
+              "id": "ref_c1_2",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Neil_Armstrong",
+              "title": "Neil Armstrong",
+              "snippet": "Neil Alden Armstrong was an American astronaut and aeronautical engineer who, as the commander of the 1969 Apollo 11 mission, became the first person to walk on the Moon. He was also a naval aviator, test pilot and university professor.",
+              "publish_date": "2026-09-17T05:21:03Z",
+              "credibility_score": null,
+              "relevance_score": 0.5,
+              "stance": "SUPPORTS",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "SUPPORTS",
+              "semantic_probabilities": {
+                "contradiction": 0.3914,
+                "entailment": 0.4093,
+                "neutral": 0.1993
+              }
+            },
+            {
+              "id": "ref_c1_3",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Buzz_Aldrin",
+              "title": "Buzz Aldrin",
+              "snippet": "Buzz Aldrin is an American former astronaut, aeronautical engineer, and fighter pilot. He was the second person to walk on the Moon after mission commander Neil Armstrong. He made three spacewalks as pilot of NASA\u2019s 1966 Gemini 12 mission, and was the Lunar Module Eagle pilot on the 1969 Apollo 11 mission. Following the deaths of Armstrong in 2012 and pilot Michael Collins in 2021, Aldrin is the last surviving Apollo 11 crew member, and the oldest living astronaut.",
+              "publish_date": "2026-09-21T09:03:55Z",
+              "credibility_score": null,
+              "relevance_score": 0.75,
+              "stance": "SUPPORTS",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "SUPPORTS",
+              "semantic_probabilities": {
+                "contradiction": 0.3928,
+                "entailment": 0.4053,
+                "neutral": 0.2019
+              }
+            }
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "NASA's Apollo 11 mission successfully landed American astronauts Neil Armstrong and Buzz Aldrin on the lunar surface on July 20, 1969.",
+          "verdict": "UNVERIFIED",
+          "reasoning": "No supporting or contradicting evidence was found.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 3,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "NEUTRAL",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 3,
+          "evidence_strength": "LIMITED",
+          "uncertainty_level": "HIGH",
+          "evidence": [
+            {
+              "id": "ref_c2_1",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Neil_Armstrong",
+              "title": "Neil Armstrong",
+              "snippet": "Neil Alden Armstrong was an American astronaut and aeronautical engineer who, as the commander of the 1969 Apollo 11 mission, became the first person to walk on the Moon. He was also a naval aviator, test pilot and university professor.",
+              "publish_date": "2026-09-17T05:21:03Z",
+              "credibility_score": null,
+              "relevance_score": 0.385,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0151,
+                "entailment": 0.0043,
+                "neutral": 0.9806
+              }
+            },
+            {
+              "id": "ref_c2_2",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Apollo_11",
+              "title": "Apollo 11",
+              "snippet": "Apollo 11 was the American spaceflight that first landed humans on the Moon, and the fifth crewed mission of NASA's Apollo program. The mission was crewed by Commander Neil Armstrong, Command Module Pilot Michael Collins, and Lunar Module Pilot Edwin \"Buzz\" Aldrin, all of whom were on their second and final spaceflight.",
+              "publish_date": "2026-08-24T18:22:02Z",
+              "credibility_score": null,
+              "relevance_score": 0.769,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0113,
+                "entailment": 0.0028,
+                "neutral": 0.986
+              }
+            },
+            {
+              "id": "ref_c2_3",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Apollo_11_in_popular_culture",
+              "title": "Apollo 11 in popular culture",
+              "snippet": "Apollo 11 was the first human spaceflight to land on the Moon. The 1969 mission's wide effect on popular culture has resulted in numerous portrayals of Apollo 11 and its crew, Neil Armstrong, Buzz Aldrin, and Michael Collins.",
+              "publish_date": "2026-09-22T22:37:58Z",
+              "credibility_score": null,
+              "relevance_score": 0.385,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0303,
+                "entailment": 0.0075,
+                "neutral": 0.9622
+              }
+            }
+          ]
+        }
+      ],
+      "total_evidence_count": 10,
+      "fact_check_count": 2,
+      "live_news_count": 2,
+      "general_reference_count": 6,
+      "supporting_evidence_count": 2,
+      "contradicting_evidence_count": 0,
+      "neutral_evidence_count": 8,
+      "baseline_comparison": {
+        "prev_assessment": "UNVERIFIED",
+        "prev_is_correct": false,
+        "prev_total_evidence": 10,
+        "prev_fact_check_count": 7,
+        "prev_live_news_count": 3,
+        "prev_general_reference_count": 0,
+        "prev_failure_classification": "source_conflict"
+      },
+      "linguistic_signal": {
+        "label": 1,
+        "prediction": "LIKELY REAL NEWS",
+        "confidence": 33.96
+      }
+    },
+    {
+      "case_id": "real_05",
+      "category": "A. Known true / historically established claims",
+      "title": "Water Molecule Chemical Composition Consists of Hydrogen and Oxygen",
+      "text": "Pure water is a chemical compound consisting of two hydrogen atoms bonded to one oxygen atom forming H2O.",
+      "ground_truth": "SUPPORTED",
+      "predicted_assessment": "CONTRADICTED",
+      "assessment_summary": "One or more claims in this article were contradicted by factual evidence, with no supported claims.",
+      "has_conflict": false,
+      "is_correct": false,
+      "classification": "IMPROVED_EVIDENCE_ONLY",
+      "latency_ms": 7674.78,
+      "service_status": {
+        "fact_check_api": "ok",
+        "live_news_api": "ok",
+        "reference_api": "ok"
+      },
+      "claims_count": 2,
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Water Molecule Chemical Composition Consists of Hydrogen and Oxygen",
+          "verdict": "UNVERIFIED",
+          "reasoning": "No supporting or contradicting evidence was found.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 2,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "NEUTRAL",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 2,
+          "evidence_strength": "LIMITED",
+          "uncertainty_level": "HIGH",
+          "evidence": [
+            {
+              "id": "ref_c1_2",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Hydrogen",
+              "title": "Hydrogen",
+              "snippet": "Hydrogen is a chemical element; it has the symbol\u00a0H and atomic number\u00a01. It is the lightest and most abundant chemical element in the universe, constituting about 75% of all normal matter. Under standard conditions, hydrogen is a gas of diatomic molecules with the formula\u00a0H2, called dihydrogen, or sometimes hydrogen gas, molecular hydrogen, or simply hydrogen. Dihydrogen is colorless, odorless, non-toxic, and highly combustible. Stars, including the Sun, mainly consist of hydrogen in a plasma state, while on Earth, hydrogen is found as the gas\u00a0H2 (dihydrogen) and in molecules, such as in water and organic compounds. The most common isotope of hydrogen, 1H, consists of one proton, one electron, and no neutrons.",
+              "publish_date": "2026-09-24T12:29:18Z",
+              "credibility_score": null,
+              "relevance_score": 0.571,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.2184,
+                "entailment": 0.1684,
+                "neutral": 0.6132
+              }
+            },
+            {
+              "id": "ref_c1_3",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Heavy_water",
+              "title": "Heavy water",
+              "snippet": "Heavy water is a form of water in which all hydrogen atoms are hydrogen-2 isotope or deuterium rather than the common hydrogen-1 isotope that makes up most of the hydrogen in normal water. The presence of the heavier isotope gives the water different nuclear properties, and the increase in mass gives it slightly different physical and chemical properties when compared with normal water.",
+              "publish_date": "2026-09-17T18:50:35Z",
+              "credibility_score": null,
+              "relevance_score": 0.429,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.1896,
+                "entailment": 0.1921,
+                "neutral": 0.6183
+              }
+            }
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Pure water is a chemical compound consisting of two hydrogen atoms bonded to one oxygen atom forming H2O.",
+          "verdict": "CONTRADICTED",
+          "reasoning": "Contradicting evidence was found with no supporting evidence.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 1,
+          "neutral_evidence_count": 1,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "CONTRADICTS",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 2,
+          "evidence_strength": "MODERATE",
+          "uncertainty_level": "MEDIUM",
+          "evidence": [
+            {
+              "id": "ref_c2_2",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Chemical_compound",
+              "title": "Chemical compound",
+              "snippet": "A chemical compound is a chemical substance composed of many identical molecules containing atoms from more than one chemical element held together by chemical bonds. A molecule consisting of atoms of only one element is therefore not a compound. A compound can be transformed into a different substance by a chemical reaction, which may involve interactions with other substances. In this process, bonds between atoms may be broken or new bonds formed or both.",
+              "publish_date": "2026-08-21T13:55:12Z",
+              "credibility_score": null,
+              "relevance_score": 0.357,
+              "stance": "CONTRADICTS",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "CONTRADICTS",
+              "semantic_probabilities": {
+                "contradiction": 0.7902,
+                "entailment": 0.0031,
+                "neutral": 0.2067
+              }
+            },
+            {
+              "id": "ref_c2_3",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Substance_(chemistry)",
+              "title": "Substance (chemistry)",
+              "snippet": "In chemistry, a substance is a unique form of matter with constant chemical composition and characteristic properties. Chemical substances may take the form of a single element or chemical compounds. If two or more chemical substances can be combined without reacting, they may form a chemical mixture. If a mixture is separated to isolate one chemical substance to a desired degree, the resulting substance is said to be chemically pure.",
+              "publish_date": "2026-08-21T19:11:15Z",
+              "credibility_score": null,
+              "relevance_score": 0.286,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.2515,
+                "entailment": 0.013,
+                "neutral": 0.7355
+              }
+            }
+          ]
+        }
+      ],
+      "total_evidence_count": 4,
+      "fact_check_count": 0,
+      "live_news_count": 0,
+      "general_reference_count": 4,
+      "supporting_evidence_count": 0,
+      "contradicting_evidence_count": 1,
+      "neutral_evidence_count": 3,
+      "baseline_comparison": {
+        "prev_assessment": "UNVERIFIED",
+        "prev_is_correct": false,
+        "prev_total_evidence": 0,
+        "prev_fact_check_count": 0,
+        "prev_live_news_count": 0,
+        "prev_general_reference_count": 0,
+        "prev_failure_classification": "live_news_retrieval_failure"
+      },
+      "linguistic_signal": {
+        "label": 1,
+        "prediction": "LIKELY REAL NEWS",
+        "confidence": 49.6
+      }
+    },
+    {
+      "case_id": "real_08",
+      "category": "A. Known true / historically established claims",
+      "title": "Human Genome Project Completed Full Sequencing of Human DNA",
+      "text": "The international Human Genome Project completed the first comprehensive mapping and sequencing of the human genome.",
+      "ground_truth": "SUPPORTED",
+      "predicted_assessment": "UNVERIFIED",
+      "assessment_summary": "Insufficient conclusive evidence found to verify the claims in this article.",
+      "has_conflict": false,
+      "is_correct": false,
+      "classification": "IMPROVED_EVIDENCE_ONLY",
+      "latency_ms": 12754.34,
+      "service_status": {
+        "fact_check_api": "ok",
+        "live_news_api": "ok",
+        "reference_api": "ok"
+      },
+      "claims_count": 2,
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Human Genome Project Completed Full Sequencing of Human DNA",
+          "verdict": "UNVERIFIED",
+          "reasoning": "No supporting or contradicting evidence was found.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 4,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "NEUTRAL",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 4,
+          "evidence_strength": "LIMITED",
+          "uncertainty_level": "HIGH",
+          "evidence": [
+            {
+              "id": "news_c1_1",
+              "claim_id": "c1",
+              "source_type": "LIVE_NEWS_SEARCH",
+              "publisher": "Plos.org",
+              "domain": "journals.plos.org",
+              "url": "https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1012309",
+              "title": "Dual contributions of Xrp1 to genome integrity through the DNA damage response and cell competition",
+              "snippet": "Author summary Accurately maintaining somatic cell genomes helps to prevent cancer. This is accomplished in part by a DNA Damage Response that activates repair genes when DNA damage is detected, and can also kill cells where damage is too extensive. A second \u2026 (Source: Plos.org)",
+              "publish_date": "2026-09-18T14:00:00Z",
+              "credibility_score": null,
+              "relevance_score": 0.286,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.2639,
+                "entailment": 0.0105,
+                "neutral": 0.7256
+              }
+            },
+            {
+              "id": "ref_c1_1",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Human_Genome_Project",
+              "title": "Human Genome Project",
+              "snippet": "The Human Genome Project (HGP) was an international scientific research project with the goal of determining the base pairs that make up human DNA, and of identifying, mapping and sequencing all of the genes of the human genome from both a physical and a functional standpoint. It started in 1990 and was completed in 2003. It was the world's largest collaborative biological project. Planning for the project began in 1984 by the US government, and it officially launched in 1990. It was declared complete on 14 April 2003, and included about 92% of the genome. Level \"complete genome\" was achieved in May 2021, with only 0.3% of the bases covered by potential issues. The full gapless sequence containing 22 autosomes and the X chromosome was published in January 2022, making it the first fully sequenced human genome. The full sequence of the Y chromosome was only published in August 2023 due to challenges with sequencing and assembling, caused by its highly repetitive nature.",
+              "publish_date": "2026-09-23T14:07:47Z",
+              "credibility_score": null,
+              "relevance_score": 1.0,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.307,
+                "entailment": 0.0245,
+                "neutral": 0.6685
+              }
+            },
+            {
+              "id": "ref_c1_2",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Human_Genome_Diversity_Project",
+              "title": "Human Genome Diversity Project",
+              "snippet": "The Human Genome Diversity Project (HGDP) was started by Stanford University's Morrison Institute in 1990s along with collaboration of scientists around the world. It is the result of many years of work by Luigi Cavalli-Sforza, one of the most cited scientists in the world, who has published extensively in the use of genetics to understand human migration and evolution. The HGDP data sets have often been cited in papers on such topics as population genetics, anthropology, and heritable disease research.",
+              "publish_date": "2026-09-24T20:33:40Z",
+              "credibility_score": null,
+              "relevance_score": 0.429,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0365,
+                "entailment": 0.0078,
+                "neutral": 0.9557
+              }
+            },
+            {
+              "id": "ref_c1_3",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Whole_genome_sequencing",
+              "title": "Whole genome sequencing",
+              "snippet": "Whole genome sequencing (WGS), also known as full genome sequencing or just genome sequencing, is the process of determining the entirety of the DNA sequence of an organism's genome at a single time. This entails sequencing all of an organism's chromosomal DNA as well as DNA contained in the mitochondria and, for plants, in the chloroplast.",
+              "publish_date": "2026-08-16T02:57:20Z",
+              "credibility_score": null,
+              "relevance_score": 0.571,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0317,
+                "entailment": 0.168,
+                "neutral": 0.8003
+              }
+            }
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "The international Human Genome Project completed the first comprehensive mapping and sequencing of the human genome.",
+          "verdict": "UNVERIFIED",
+          "reasoning": "No supporting or contradicting evidence was found.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 1,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "NEUTRAL",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 1,
+          "evidence_strength": "LIMITED",
+          "uncertainty_level": "HIGH",
+          "evidence": [
+            {
+              "id": "ref_c2_2",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Human_Genome_Project",
+              "title": "Human Genome Project",
+              "snippet": "The Human Genome Project (HGP) was an international scientific research project with the goal of determining the base pairs that make up human DNA, and of identifying, mapping and sequencing all of the genes of the human genome from both a physical and a functional standpoint. It started in 1990 and was completed in 2003. It was the world's largest collaborative biological project. Planning for the project began in 1984 by the US government, and it officially launched in 1990. It was declared complete on 14 April 2003, and included about 92% of the genome. Level \"complete genome\" was achieved in May 2021, with only 0.3% of the bases covered by potential issues. The full gapless sequence containing 22 autosomes and the X chromosome was published in January 2022, making it the first fully sequenced human genome. The full sequence of the Y chromosome was only published in August 2023 due to challenges with sequencing and assembling, caused by its highly repetitive nature.",
+              "publish_date": "2026-09-23T14:07:47Z",
+              "credibility_score": null,
+              "relevance_score": 0.889,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.1652,
+                "entailment": 0.1389,
+                "neutral": 0.6959
+              }
+            }
+          ]
+        }
+      ],
+      "total_evidence_count": 5,
+      "fact_check_count": 0,
+      "live_news_count": 1,
+      "general_reference_count": 4,
+      "supporting_evidence_count": 0,
+      "contradicting_evidence_count": 0,
+      "neutral_evidence_count": 5,
+      "baseline_comparison": {
+        "prev_assessment": "UNVERIFIED",
+        "prev_is_correct": false,
+        "prev_total_evidence": 1,
+        "prev_fact_check_count": 0,
+        "prev_live_news_count": 1,
+        "prev_general_reference_count": 0,
+        "prev_failure_classification": "verdict_logic_error"
+      },
+      "linguistic_signal": {
+        "label": 1,
+        "prediction": "LIKELY REAL NEWS",
+        "confidence": 33.11
+      }
+    },
+    {
+      "case_id": "fc_05",
+      "category": "C. Claims with published fact checks",
+      "title": "Microwave Ovens Destroy All Nutrients in Food and Cause Carcinogenic Radiations",
+      "text": "Cooking food in microwave ovens destroys 99 percent of nutritional value and produces toxic radiation in meals.",
+      "ground_truth": "CONTRADICTED",
+      "predicted_assessment": "CONTRADICTED",
+      "assessment_summary": "One or more claims in this article were contradicted by factual evidence, with no supported claims.",
+      "has_conflict": false,
+      "is_correct": true,
+      "classification": "FIXED",
+      "latency_ms": 7666.44,
+      "service_status": {
+        "fact_check_api": "ok",
+        "live_news_api": "ok",
+        "reference_api": "ok"
+      },
+      "claims_count": 2,
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Microwave Ovens Destroy All Nutrients in Food and Cause Carcinogenic Radiations",
+          "verdict": "CONTRADICTED",
+          "reasoning": "Contradicting evidence was found with no supporting evidence.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 1,
+          "neutral_evidence_count": 2,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "CONTRADICTS",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 3,
+          "evidence_strength": "MODERATE",
+          "uncertainty_level": "MEDIUM",
+          "evidence": [
+            {
+              "id": "fc_c1_1_1",
+              "claim_id": "c1",
+              "source_type": "FACT_CHECK_API",
+              "publisher": "BOOM Fact Check",
+              "domain": "boomlive.in",
+              "url": "https://www.boomlive.in/fact-check/health/japan-microwave-oven-ban-cancer-who-radiation-oncology-15531",
+              "title": "Hoax Message Claims Japan Has Banned Microwaves As They ...",
+              "snippet": "Reviewed Claim: 'Japan bans microwave ovens as they cause cancer' | Rating: False",
+              "publish_date": "2021-11-11T07:58:54Z",
+              "credibility_score": null,
+              "relevance_score": 0.333,
+              "stance": "NEUTRAL",
+              "raw_rating": "False",
+              "claim_reviewed": "Japan bans microwave ovens as they cause cancer",
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0819,
+                "entailment": 0.0104,
+                "neutral": 0.9077
+              }
+            },
+            {
+              "id": "ref_c1_1",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Microwave_oven",
+              "title": "Microwave oven",
+              "snippet": "A microwave oven, or simply microwave, is an electric oven that heats and cooks food by exposing it to electromagnetic radiation in the microwave frequency range. This induces polar molecules in the food to rotate and produce thermal energy (heat) in a process known as dielectric heating. Microwave ovens heat food quickly and efficiently; the heating effect is fairly uniform in the outer 25\u201338 mm (1\u20131.5 inches) of a homogeneous, high-water-content food item.",
+              "publish_date": "2026-09-29T03:14:10Z",
+              "credibility_score": null,
+              "relevance_score": 0.333,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.3569,
+                "entailment": 0.018,
+                "neutral": 0.6251
+              }
+            },
+            {
+              "id": "ref_c1_2",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Cooking",
+              "title": "Cooking",
+              "snippet": "Cooking, also known as cookery, is the art, science and craft of using heat to make food more palatable, digestible, nutritious, or safe. Cooking techniques and ingredients vary widely, from grilling food over an open fire, to using electric stoves, to baking in various types of ovens, to boiling and blanching in water, reflecting local conditions, techniques and traditions. Cooking is an aspect of all human societies and a cultural universal.",
+              "publish_date": "2026-09-04T08:32:34Z",
+              "credibility_score": null,
+              "relevance_score": 0.333,
+              "stance": "CONTRADICTS",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "CONTRADICTS",
+              "semantic_probabilities": {
+                "contradiction": 0.895,
+                "entailment": 0.0034,
+                "neutral": 0.1016
+              }
+            }
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Cooking food in microwave ovens destroys 99 percent of nutritional value and produces toxic radiation in meals.",
+          "verdict": "UNVERIFIED",
+          "reasoning": "No supporting or contradicting evidence was found.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 0,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "NO_EVIDENCE",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 0,
+          "evidence_strength": "NONE",
+          "uncertainty_level": "HIGH",
+          "evidence": []
+        }
+      ],
+      "total_evidence_count": 3,
+      "fact_check_count": 1,
+      "live_news_count": 0,
+      "general_reference_count": 2,
+      "supporting_evidence_count": 0,
+      "contradicting_evidence_count": 1,
+      "neutral_evidence_count": 2,
+      "baseline_comparison": {
+        "prev_assessment": "UNVERIFIED",
+        "prev_is_correct": false,
+        "prev_total_evidence": 1,
+        "prev_fact_check_count": 1,
+        "prev_live_news_count": 0,
+        "prev_general_reference_count": 0,
+        "prev_failure_classification": "stance_error"
+      },
+      "linguistic_signal": {
+        "label": 1,
+        "prediction": "LIKELY REAL NEWS",
+        "confidence": 54.85
+      }
+    },
+    {
+      "case_id": "false_05",
+      "category": "B. Known false / debunked claims",
+      "title": "COVID-19 Vaccines Contain Injectable 5G Microchips for Digital Surveillance",
+      "text": "Investigative reports claim COVID-19 immunization vials contain microscopic 5G receiver chips designed to track human body movements.",
+      "ground_truth": "CONTRADICTED",
+      "predicted_assessment": "UNVERIFIED",
+      "assessment_summary": "Insufficient conclusive evidence found to verify the claims in this article.",
+      "has_conflict": false,
+      "is_correct": false,
+      "classification": "IMPROVED_EVIDENCE_ONLY",
+      "latency_ms": 8119.0,
+      "service_status": {
+        "fact_check_api": "ok",
+        "live_news_api": "ok",
+        "reference_api": "ok"
+      },
+      "claims_count": 2,
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "COVID-19 Vaccines Contain Injectable 5G Microchips for Digital Surveillance",
+          "verdict": "UNVERIFIED",
+          "reasoning": "No supporting or contradicting evidence was found.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 1,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "NEUTRAL",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 1,
+          "evidence_strength": "LIMITED",
+          "uncertainty_level": "HIGH",
+          "evidence": [
+            {
+              "id": "ref_c1_1",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/COVID-19_vaccine_misinformation_and_hesitancy",
+              "title": "COVID-19 vaccine misinformation and hesitancy",
+              "snippet": "A variety of unfounded conspiracy theories and other misinformation about COVID-19 vaccines have spread based on misunderstood or misrepresented science, religion, and law. These have included exaggerated claims about side effects, misrepresentations about how the immune system works and when and how COVID-19 vaccines are made, a story about COVID-19 being spread by 5G, and other false or distorted information. This misinformation, some created by anti-vaccination activists, has proliferated and may have made many people averse to vaccination.",
+              "publish_date": "2026-09-06T21:31:39Z",
+              "credibility_score": null,
+              "relevance_score": 0.286,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.087,
+                "entailment": 0.0306,
+                "neutral": 0.8824
+              }
+            }
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Investigative reports claim COVID-19 immunization vials contain microscopic 5G receiver chips designed to track human body movements.",
+          "verdict": "UNVERIFIED",
+          "reasoning": "No supporting or contradicting evidence was found.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 1,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "NEUTRAL",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 1,
+          "evidence_strength": "LIMITED",
+          "uncertainty_level": "HIGH",
+          "evidence": [
+            {
+              "id": "ref_c2_2",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/COVID-19_vaccine",
+              "title": "COVID-19 vaccine",
+              "snippet": "A COVID\u201119 vaccine is designed to induce immunity against SARS-CoV-2, the virus responsible for coronavirus disease 2019 (COVID-19). COVID-19 vaccines help reduce the risk of severe illness, hospitalization and death from the virus.",
+              "publish_date": "2026-09-13T06:55:23Z",
+              "credibility_score": null,
+              "relevance_score": 0.143,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0612,
+                "entailment": 0.0037,
+                "neutral": 0.9351
+              }
+            }
+          ]
+        }
+      ],
+      "total_evidence_count": 2,
+      "fact_check_count": 0,
+      "live_news_count": 0,
+      "general_reference_count": 2,
+      "supporting_evidence_count": 0,
+      "contradicting_evidence_count": 0,
+      "neutral_evidence_count": 2,
+      "baseline_comparison": {
+        "prev_assessment": "UNVERIFIED",
+        "prev_is_correct": false,
+        "prev_total_evidence": 0,
+        "prev_fact_check_count": 0,
+        "prev_live_news_count": 0,
+        "prev_general_reference_count": 0,
+        "prev_failure_classification": "fact_check_retrieval_failure"
+      },
+      "linguistic_signal": {
+        "label": 1,
+        "prediction": "LIKELY REAL NEWS",
+        "confidence": 57.38
+      }
+    },
+    {
+      "case_id": "false_08",
+      "category": "B. Known false / debunked claims",
+      "title": "Sun Revolves Around Stationary Earth Every 24 Hours",
+      "text": "Astronomical data proves the Sun orbits around a completely stationary Earth every 24 hours.",
+      "ground_truth": "CONTRADICTED",
+      "predicted_assessment": "CONTRADICTED",
+      "assessment_summary": "One or more claims in this article were contradicted by factual evidence, with no supported claims.",
+      "has_conflict": false,
+      "is_correct": true,
+      "classification": "FIXED",
+      "latency_ms": 8671.31,
+      "service_status": {
+        "fact_check_api": "ok",
+        "live_news_api": "ok",
+        "reference_api": "ok"
+      },
+      "claims_count": 2,
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Sun Revolves Around Stationary Earth Every 24 Hours",
+          "verdict": "UNVERIFIED",
+          "reasoning": "No supporting or contradicting evidence was found.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 2,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "NEUTRAL",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 2,
+          "evidence_strength": "LIMITED",
+          "uncertainty_level": "HIGH",
+          "evidence": [
+            {
+              "id": "ref_c1_1",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Earth's_rotation",
+              "title": "Earth's rotation",
+              "snippet": "Earth's rotation or Earth's spin is the rotation of planet Earth around its own axis, as well as changes in the orientation of the rotation axis in space. Earth rotates eastward, in prograde motion. As viewed from the northern polar star Polaris, Earth turns counterclockwise.",
+              "publish_date": "2026-09-07T15:09:36Z",
+              "credibility_score": null,
+              "relevance_score": 0.286,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.4202,
+                "entailment": 0.002,
+                "neutral": 0.5777
+              }
+            },
+            {
+              "id": "ref_c1_3",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Copernican_heliocentrism",
+              "title": "Copernican heliocentrism",
+              "snippet": "Copernican heliocentrism is the astronomical model developed by the Renaissance astronomer Nicolaus Copernicus and published in 1543. This model positioned the Sun near the center of the Universe, motionless, with Earth and the other planets orbiting around it in circular paths, modified by epicycles, and at uniform speeds. The Copernican model challenged the geocentric model of Ptolemy that had prevailed for centuries, which had placed Earth at the center of the Universe.",
+              "publish_date": "2026-09-09T14:29:25Z",
+              "credibility_score": null,
+              "relevance_score": 0.429,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.3038,
+                "entailment": 0.0115,
+                "neutral": 0.6847
+              }
+            }
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Astronomical data proves the Sun orbits around a completely stationary Earth every 24 hours.",
+          "verdict": "CONTRADICTED",
+          "reasoning": "Contradicting evidence was found with no supporting evidence.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 2,
+          "neutral_evidence_count": 0,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "CONTRADICTS",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 2,
+          "evidence_strength": "MODERATE",
+          "uncertainty_level": "MEDIUM",
+          "evidence": [
+            {
+              "id": "ref_c2_1",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Orbit_of_the_Moon",
+              "title": "Orbit of the Moon",
+              "snippet": "The orbit of the Moon is, while stable and known, highly complex, and as such still studied by lunar theory. Most models describe the Moon's orbit geocentrically since the Moon is mainly bound to Earth, but it also orbits together with Earth, as the Earth\u2013Moon system, around their shared barycenter. Furthermore from a heliocentric view its geocentric orbit is the result of Earth perturbing the Moon's orbit around the Sun. It orbits Earth in the prograde direction and completes one revolution relative to the Vernal Equinox and the fixed stars in about 27.3 days, and one revolution relative to the Sun in about 29.5 days.",
+              "publish_date": "2026-09-02T07:56:46Z",
+              "credibility_score": null,
+              "relevance_score": 0.364,
+              "stance": "CONTRADICTS",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "CONTRADICTS",
+              "semantic_probabilities": {
+                "contradiction": 0.9348,
+                "entailment": 0.0057,
+                "neutral": 0.0595
+              }
+            },
+            {
+              "id": "ref_c2_3",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Earth",
+              "title": "Earth",
+              "snippet": "Earth is the third planet from the Sun and the only astronomical object known to harbor life. This is made possible by Earth being an ocean world, the only one in the Solar System sustaining liquid surface water. Almost all of Earth's water is contained in its ocean, which covers 70.8% of Earth's crust. The remaining 29.2% of Earth's crust is land, which is predominantly located within Earth's land hemisphere in the form of continental landmasses. Most of Earth's land is at least somewhat humid and covered by vegetation, while large ice sheets at Earth's polar deserts retain more water than Earth's groundwater, lakes, rivers, and atmospheric water combined. Earth's crust consists of slowly moving tectonic plates, which interact to produce mountain ranges, volcanoes, and earthquakes. Earth has a liquid outer core that generates a magnetosphere capable of deflecting most of the destructive solar winds and cosmic radiation.",
+              "publish_date": "2026-09-29T04:44:36Z",
+              "credibility_score": null,
+              "relevance_score": 0.273,
+              "stance": "CONTRADICTS",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "CONTRADICTS",
+              "semantic_probabilities": {
+                "contradiction": 0.8887,
+                "entailment": 0.0027,
+                "neutral": 0.1086
+              }
+            }
+          ]
+        }
+      ],
+      "total_evidence_count": 4,
+      "fact_check_count": 0,
+      "live_news_count": 0,
+      "general_reference_count": 4,
+      "supporting_evidence_count": 0,
+      "contradicting_evidence_count": 2,
+      "neutral_evidence_count": 2,
+      "baseline_comparison": {
+        "prev_assessment": "UNVERIFIED",
+        "prev_is_correct": false,
+        "prev_total_evidence": 0,
+        "prev_fact_check_count": 0,
+        "prev_live_news_count": 0,
+        "prev_general_reference_count": 0,
+        "prev_failure_classification": "fact_check_retrieval_failure"
+      },
+      "linguistic_signal": {
+        "label": 1,
+        "prediction": "LIKELY REAL NEWS",
+        "confidence": 56.75
+      }
+    },
+    {
+      "case_id": "real_07",
+      "category": "A. Known true / historically established claims",
+      "title": "Paris Agreement on Climate Change Adopted by International Consensus",
+      "text": "Representatives from 196 parties at COP21 in Paris adopted a legally binding international treaty on climate change to limit global warming.",
+      "ground_truth": "SUPPORTED",
+      "predicted_assessment": "CONTRADICTED",
+      "assessment_summary": "One or more claims in this article were contradicted by factual evidence, with no supported claims.",
+      "has_conflict": false,
+      "is_correct": false,
+      "classification": "IMPROVED_EVIDENCE_ONLY",
+      "latency_ms": 8170.32,
+      "service_status": {
+        "fact_check_api": "ok",
+        "live_news_api": "ok",
+        "reference_api": "ok"
+      },
+      "claims_count": 2,
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Paris Agreement on Climate Change Adopted by International Consensus",
+          "verdict": "CONTRADICTED",
+          "reasoning": "Contradicting evidence was found with no supporting evidence.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 1,
+          "neutral_evidence_count": 3,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "CONTRADICTS",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 4,
+          "evidence_strength": "MODERATE",
+          "uncertainty_level": "MEDIUM",
+          "evidence": [
+            {
+              "id": "news_c1_1",
+              "claim_id": "c1",
+              "source_type": "LIVE_NEWS_SEARCH",
+              "publisher": "Yale.edu",
+              "domain": "e360.yale.edu",
+              "url": "https://e360.yale.edu/features/julian-aguon-interview?utm_id=97760_v0_s00_e0_tv4",
+              "title": "From Indigenous Loss, a Potent Legal Argument on Climate",
+              "snippet": "Human rights lawyer Julian Aguon explores how warming threatens not only the survival of small island nations but also the traditions of their Indigenous peoples. He is citing these injuries in legal actions, including in a major victory at the International \u2026 (Source: Yale.edu)",
+              "publish_date": "2026-09-15T12:47:00Z",
+              "credibility_score": null,
+              "relevance_score": 0.286,
+              "stance": "CONTRADICTS",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "CONTRADICTS",
+              "semantic_probabilities": {
+                "contradiction": 0.8352,
+                "entailment": 0.0047,
+                "neutral": 0.1601
+              }
+            },
+            {
+              "id": "ref_c1_1",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Paris_Agreement",
+              "title": "Paris Agreement",
+              "snippet": "The Paris Agreement is an international treaty on climate change that was signed in 2016. The treaty covers climate change mitigation, adaptation, and finance. The Paris Agreement was negotiated by 196 parties at the 2015 United Nations Climate Change Conference near Paris, France. As of January 2026, 194 members of the United Nations Framework Convention on Climate Change (UNFCCC) are parties to the agreement. Of the three UNFCCC member states which have not ratified the agreement, the only major emitter is Iran. The United States, the second largest emitter, withdrew from the agreement in 2020, rejoined in 2021, and withdrew again in 2026.",
+              "publish_date": "2026-09-25T13:48:27Z",
+              "credibility_score": null,
+              "relevance_score": 0.714,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0925,
+                "entailment": 0.1151,
+                "neutral": 0.7924
+              }
+            },
+            {
+              "id": "ref_c1_2",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Climate_change",
+              "title": "Climate change",
+              "snippet": "Present-day climate change includes both global warming\u2014the ongoing increase in global average temperature\u2014and its wider effects on Earth's climate system. In a broader sense, climate change also includes previous long-term changes to Earth's climate. The modern-day rise in global temperatures is driven by human activities, especially fossil fuel burning since the Industrial Revolution. Fossil fuel use, deforestation, and some agricultural and industrial practices release greenhouse gases. These gases absorb some of the heat that the Earth radiates after it warms from sunlight, warming the lower atmosphere. Earth's atmosphere now has roughly 50% more carbon dioxide, the main gas driving global warming, than it did at the end of the pre-industrial era, reaching levels not seen for millions of years.",
+              "publish_date": "2026-09-24T06:53:50Z",
+              "credibility_score": null,
+              "relevance_score": 0.286,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.105,
+                "entailment": 0.0067,
+                "neutral": 0.8883
+              }
+            },
+            {
+              "id": "ref_c1_3",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/List_of_parties_to_the_Paris_Agreement",
+              "title": "List of parties to the Paris Agreement",
+              "snippet": "The Paris Agreement is an agreement within the United Nations Framework Convention on Climate Change (UNFCCC) dealing with greenhouse gas emissions mitigation, adaptation and finance starting in the year 2020. The Agreement aims to respond to the global climate change threat by keeping a global temperature rise this century well below 2 degrees Celsius above pre-industrial levels and to pursue efforts to limit the temperature increase even further to 1.5 degrees Celsius.",
+              "publish_date": "2026-07-03T01:23:50Z",
+              "credibility_score": null,
+              "relevance_score": 0.571,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0451,
+                "entailment": 0.0941,
+                "neutral": 0.8607
+              }
+            }
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Representatives from 196 parties at COP21 in Paris adopted a legally binding international treaty on climate change to limit global warming.",
+          "verdict": "UNVERIFIED",
+          "reasoning": "No supporting or contradicting evidence was found.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 2,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "NEUTRAL",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 2,
+          "evidence_strength": "LIMITED",
+          "uncertainty_level": "HIGH",
+          "evidence": [
+            {
+              "id": "ref_c2_1",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/2015_United_Nations_Climate_Change_Conference",
+              "title": "2015 United Nations Climate Change Conference",
+              "snippet": "The 2015 United Nations Climate Change Conference, COP 21 or CMP 11 was held in Paris, France, from 30 November to 12 December 2015. It was the 21st yearly session of the Conference of the Parties (COP) to the 1992 United Nations Framework Convention on Climate Change (UNFCCC) and the 11th session of the Meeting of the Parties (CMP) to the 1997 Kyoto Protocol.",
+              "publish_date": "2026-06-22T03:22:14Z",
+              "credibility_score": null,
+              "relevance_score": 0.286,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.024,
+                "entailment": 0.0046,
+                "neutral": 0.9713
+              }
+            },
+            {
+              "id": "ref_c2_2",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/United_Nations_Framework_Convention_on_Climate_Change",
+              "title": "United Nations Framework Convention on Climate Change",
+              "snippet": "The United Nations Framework Convention on Climate Change (UNFCCC) is the UN process for negotiating an agreement to limit dangerous climate change. It is an international treaty among countries to combat \"dangerous human interference with the climate system\". The main way to do this is limiting the increase in greenhouse gases in the atmosphere. The Convention established the principle of \"common but differentiated responsibilities,\" which asserts that all countries share responsibility for addressing climate change. However, developed countries are expected to assume a leading role because of their greater historical emissions. It was signed in 1992 by 154 states at the UN Conference on Environment and Development (UNCED), known as the Earth Summit. The treaty entered into force in 1994. \"UNFCCC\" is also the name of the Secretariat charged with supporting the operation of the convention, with offices on the UN Campus in Bonn, Germany.",
+              "publish_date": "2026-08-14T08:52:23Z",
+              "credibility_score": null,
+              "relevance_score": 0.357,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0188,
+                "entailment": 0.0061,
+                "neutral": 0.9751
+              }
+            }
+          ]
+        }
+      ],
+      "total_evidence_count": 6,
+      "fact_check_count": 0,
+      "live_news_count": 1,
+      "general_reference_count": 5,
+      "supporting_evidence_count": 0,
+      "contradicting_evidence_count": 1,
+      "neutral_evidence_count": 5,
+      "baseline_comparison": {
+        "prev_assessment": "UNVERIFIED",
+        "prev_is_correct": false,
+        "prev_total_evidence": 0,
+        "prev_fact_check_count": 0,
+        "prev_live_news_count": 0,
+        "prev_general_reference_count": 0,
+        "prev_failure_classification": "live_news_retrieval_failure"
+      },
+      "linguistic_signal": {
+        "label": 1,
+        "prediction": "LIKELY REAL NEWS",
+        "confidence": 8.52
+      }
+    },
+    {
+      "case_id": "news_06",
+      "category": "D. Recent/current news claims",
+      "title": "European Parliament Passed EU Artificial Intelligence Act",
+      "text": "Members of the European Parliament voted to approve the EU AI Act establishing risk-based regulatory standards for AI systems.",
+      "ground_truth": "SUPPORTED",
+      "predicted_assessment": "CONTRADICTED",
+      "assessment_summary": "One or more claims in this article were contradicted by factual evidence, with no supported claims.",
+      "has_conflict": false,
+      "is_correct": false,
+      "classification": "IMPROVED_EVIDENCE_ONLY",
+      "latency_ms": 7709.41,
+      "service_status": {
+        "fact_check_api": "ok",
+        "live_news_api": "ok",
+        "reference_api": "ok"
+      },
+      "claims_count": 2,
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "European Parliament Passed EU Artificial Intelligence Act",
+          "verdict": "CONTRADICTED",
+          "reasoning": "Contradicting evidence was found with no supporting evidence.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 2,
+          "neutral_evidence_count": 1,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "CONTRADICTS",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 3,
+          "evidence_strength": "STRONG",
+          "uncertainty_level": "LOW",
+          "evidence": [
+            {
+              "id": "news_c1_1",
+              "claim_id": "c1",
+              "source_type": "LIVE_NEWS_SEARCH",
+              "publisher": "IGN",
+              "domain": "ign.com",
+              "url": "https://www.ign.com/articles/eu-kids-act-could-require-gamers-to-prove-their-age-before-playing-certain-games",
+              "title": "EU Kids Act Could Require Gamers to Prove Their Age Before Playing Certain Games",
+              "snippet": "The EU Kids Act will be presented before the European Parliament on Thursday, and if passed, will have a meaningful impact on gamers of all ages if they want access to certain kinds of games. (Source: IGN)",
+              "publish_date": "2026-09-14T22:05:56Z",
+              "credibility_score": null,
+              "relevance_score": 0.667,
+              "stance": "CONTRADICTS",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "CONTRADICTS",
+              "semantic_probabilities": {
+                "contradiction": 0.6723,
+                "entailment": 0.0072,
+                "neutral": 0.3205
+              }
+            },
+            {
+              "id": "ref_c1_1",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Artificial_Intelligence_Act",
+              "title": "Artificial Intelligence Act",
+              "snippet": "The Artificial Intelligence Act is a European Union regulation concerning artificial intelligence (AI). It establishes a common regulatory and legal framework for AI within the European Union (EU). The regulation entered into force on 1 August 2024, with provisions that shall come into operation gradually over the following 6 to 36 months.",
+              "publish_date": "2026-09-07T07:44:40Z",
+              "credibility_score": null,
+              "relevance_score": 0.667,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0807,
+                "entailment": 0.0087,
+                "neutral": 0.9106
+              }
+            },
+            {
+              "id": "ref_c1_2",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Regulation_of_artificial_intelligence",
+              "title": "Regulation of artificial intelligence",
+              "snippet": "Regulation of artificial intelligence is the development of public sector policies and laws for promoting and regulating artificial intelligence (AI). The regulatory and policy landscape for AI is an emerging issue in jurisdictions worldwide, including for international organizations without direct enforcement power like the IEEE or the OECD.",
+              "publish_date": "2026-09-23T21:47:50Z",
+              "credibility_score": null,
+              "relevance_score": 0.333,
+              "stance": "CONTRADICTS",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "CONTRADICTS",
+              "semantic_probabilities": {
+                "contradiction": 0.8861,
+                "entailment": 0.0009,
+                "neutral": 0.113
+              }
+            }
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Members of the European Parliament voted to approve the EU AI Act establishing risk-based regulatory standards for AI systems.",
+          "verdict": "UNVERIFIED",
+          "reasoning": "No supporting or contradicting evidence was found.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 2,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "NEUTRAL",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 2,
+          "evidence_strength": "LIMITED",
+          "uncertainty_level": "HIGH",
+          "evidence": [
+            {
+              "id": "ref_c2_1",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Artificial_Intelligence_Act",
+              "title": "Artificial Intelligence Act",
+              "snippet": "The Artificial Intelligence Act is a European Union regulation concerning artificial intelligence (AI). It establishes a common regulatory and legal framework for AI within the European Union (EU). The regulation entered into force on 1 August 2024, with provisions that shall come into operation gradually over the following 6 to 36 months.",
+              "publish_date": "2026-09-07T07:44:40Z",
+              "credibility_score": null,
+              "relevance_score": 0.273,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0054,
+                "entailment": 0.0025,
+                "neutral": 0.9921
+              }
+            },
+            {
+              "id": "ref_c2_3",
+              "claim_id": "c2",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Digital_Services_Act",
+              "title": "Digital Services Act",
+              "snippet": "The Digital Services Act (DSA) is an EU regulation that entered into force in 2022, establishing a comprehensive legal framework for digital services accountability, content moderation, and platform transparency across the European Union. It significantly updates the Electronic Commerce Directive 2000 in EU law by introducing graduated obligations based on service size and risk levels, and was proposed alongside the Digital Markets Act (DMA).",
+              "publish_date": "2026-09-17T11:49:51Z",
+              "credibility_score": null,
+              "relevance_score": 0.273,
+              "stance": "NEUTRAL",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "NEUTRAL",
+              "semantic_probabilities": {
+                "contradiction": 0.0093,
+                "entailment": 0.0143,
+                "neutral": 0.9765
+              }
+            }
+          ]
+        }
+      ],
+      "total_evidence_count": 5,
+      "fact_check_count": 0,
+      "live_news_count": 1,
+      "general_reference_count": 4,
+      "supporting_evidence_count": 0,
+      "contradicting_evidence_count": 2,
+      "neutral_evidence_count": 3,
+      "baseline_comparison": {
+        "prev_assessment": "UNVERIFIED",
+        "prev_is_correct": false,
+        "prev_total_evidence": 0,
+        "prev_fact_check_count": 0,
+        "prev_live_news_count": 0,
+        "prev_general_reference_count": 0,
+        "prev_failure_classification": "live_news_retrieval_failure"
+      },
+      "linguistic_signal": {
+        "label": 1,
+        "prediction": "LIKELY REAL NEWS",
+        "confidence": 38.31
+      }
+    },
+    {
+      "case_id": "false_04",
+      "category": "B. Known false / debunked claims",
+      "title": "Earth Is Flat Disk and NASA Edits All Satellite Photographs",
+      "text": "Geological evidence shows the Earth is a flat plane surrounded by ice walls, and space agencies edit all images to fake a spherical globe.",
+      "ground_truth": "CONTRADICTED",
+      "predicted_assessment": "CONTRADICTED",
+      "assessment_summary": "One or more claims in this article were contradicted by factual evidence, with no supported claims.",
+      "has_conflict": false,
+      "is_correct": true,
+      "classification": "FIXED",
+      "latency_ms": 7492.12,
+      "service_status": {
+        "fact_check_api": "ok",
+        "live_news_api": "ok",
+        "reference_api": "ok"
+      },
+      "claims_count": 2,
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Earth Is Flat Disk and NASA Edits All Satellite Photographs",
+          "verdict": "CONTRADICTED",
+          "reasoning": "Contradicting evidence was found with no supporting evidence.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 2,
+          "neutral_evidence_count": 0,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "CONTRADICTS",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 2,
+          "evidence_strength": "MODERATE",
+          "uncertainty_level": "MEDIUM",
+          "evidence": [
+            {
+              "id": "ref_c1_1",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Modern_flat_Earth_beliefs",
+              "title": "Modern flat Earth beliefs",
+              "snippet": "Anti-scientific beliefs in a flat Earth are promoted by a number of organizations and individuals. The claims of modern flat Earth proponents are not based on scientific knowledge and are contrary to over two millennia of scientific consensus based on multiple confirming lines of evidence that Earth is roughly spherical. Flat Earth beliefs are classified by experts in philosophy and physics as a form of science denial.",
+              "publish_date": "2026-09-24T18:52:11Z",
+              "credibility_score": null,
+              "relevance_score": 0.25,
+              "stance": "CONTRADICTS",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "CONTRADICTS",
+              "semantic_probabilities": {
+                "contradiction": 0.6855,
+                "entailment": 0.0027,
+                "neutral": 0.3117
+              }
+            },
+            {
+              "id": "ref_c1_2",
+              "claim_id": "c1",
+              "source_type": "GENERAL_REFERENCE",
+              "publisher": "Wikipedia",
+              "domain": "en.wikipedia.org",
+              "url": "https://en.wikipedia.org/wiki/Earth",
+              "title": "Earth",
+              "snippet": "Earth is the third planet from the Sun and the only astronomical object known to harbor life. This is made possible by Earth being an ocean world, the only one in the Solar System sustaining liquid surface water. Almost all of Earth's water is contained in its ocean, which covers 70.8% of Earth's crust. The remaining 29.2% of Earth's crust is land, which is predominantly located within Earth's land hemisphere in the form of continental landmasses. Most of Earth's land is at least somewhat humid and covered by vegetation, while large ice sheets at Earth's polar deserts retain more water than Earth's groundwater, lakes, rivers, and atmospheric water combined. Earth's crust consists of slowly moving tectonic plates, which interact to produce mountain ranges, volcanoes, and earthquakes. Earth has a liquid outer core that generates a magnetosphere capable of deflecting most of the destructive solar winds and cosmic radiation.",
+              "publish_date": "2026-09-29T04:44:36Z",
+              "credibility_score": null,
+              "relevance_score": 0.25,
+              "stance": "CONTRADICTS",
+              "raw_rating": null,
+              "claim_reviewed": null,
+              "semantic_relation": "CONTRADICTS",
+              "semantic_probabilities": {
+                "contradiction": 0.9402,
+                "entailment": 0.002,
+                "neutral": 0.0579
+              }
+            }
+          ]
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Geological evidence shows the Earth is a flat plane surrounded by ice walls, and space agencies edit all images to fake a spherical globe.",
+          "verdict": "UNVERIFIED",
+          "reasoning": "No supporting or contradicting evidence was found.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 0,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "NO_EVIDENCE",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 0,
+          "evidence_strength": "NONE",
+          "uncertainty_level": "HIGH",
+          "evidence": []
+        }
+      ],
+      "total_evidence_count": 2,
+      "fact_check_count": 0,
+      "live_news_count": 0,
+      "general_reference_count": 2,
+      "supporting_evidence_count": 0,
+      "contradicting_evidence_count": 2,
+      "neutral_evidence_count": 0,
+      "baseline_comparison": {
+        "prev_assessment": "UNVERIFIED",
+        "prev_is_correct": false,
+        "prev_total_evidence": 0,
+        "prev_fact_check_count": 0,
+        "prev_live_news_count": 0,
+        "prev_general_reference_count": 0,
+        "prev_failure_classification": "fact_check_retrieval_failure"
+      },
+      "linguistic_signal": {
+        "label": 1,
+        "prediction": "LIKELY REAL NEWS",
+        "confidence": 63.65
+      }
+    },
+    {
+      "case_id": "fc_07",
+      "category": "C. Claims with published fact checks",
+      "title": "Sharks Do Not Suffer from Cancer and Shark Cartilage Cures Malignant Tumors",
+      "text": "Biological research proves sharks are immune to all forms of cancer and consuming ground shark cartilage shrinks human tumors.",
+      "ground_truth": "CONTRADICTED",
+      "predicted_assessment": "UNVERIFIED",
+      "assessment_summary": "Insufficient conclusive evidence found to verify the claims in this article.",
+      "has_conflict": false,
+      "is_correct": false,
+      "classification": "UNCHANGED",
+      "latency_ms": 7416.98,
+      "service_status": {
+        "fact_check_api": "ok",
+        "live_news_api": "ok",
+        "reference_api": "ok"
+      },
+      "claims_count": 2,
+      "claims": [
+        {
+          "claim_id": "c1",
+          "claim_text": "Sharks Do Not Suffer from Cancer and Shark Cartilage Cures Malignant Tumors",
+          "verdict": "UNVERIFIED",
+          "reasoning": "No supporting or contradicting evidence was found.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 0,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "NO_EVIDENCE",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 0,
+          "evidence_strength": "NONE",
+          "uncertainty_level": "HIGH",
+          "evidence": []
+        },
+        {
+          "claim_id": "c2",
+          "claim_text": "Biological research proves sharks are immune to all forms of cancer and consuming ground shark cartilage shrinks human tumors.",
+          "verdict": "UNVERIFIED",
+          "reasoning": "No supporting or contradicting evidence was found.",
+          "supporting_evidence_count": 0,
+          "contradicting_evidence_count": 0,
+          "neutral_evidence_count": 0,
+          "has_conflicting_evidence": false,
+          "semantic_relation": "NO_EVIDENCE",
+          "semantic_model": "cross-encoder/nli-distilroberta-base",
+          "semantic_evidence_count": 0,
+          "evidence_strength": "NONE",
+          "uncertainty_level": "HIGH",
+          "evidence": []
+        }
+      ],
+      "total_evidence_count": 0,
+      "fact_check_count": 0,
+      "live_news_count": 0,
+      "general_reference_count": 0,
+      "supporting_evidence_count": 0,
+      "contradicting_evidence_count": 0,
+      "neutral_evidence_count": 0,
+      "baseline_comparison": {
+        "prev_assessment": "UNVERIFIED",
+        "prev_is_correct": false,
+        "prev_total_evidence": 0,
+        "prev_fact_check_count": 0,
+        "prev_live_news_count": 0,
+        "prev_general_reference_count": 0,
+        "prev_failure_classification": "fact_check_retrieval_failure"
+      },
+      "linguistic_signal": {
+        "label": 1,
+        "prediction": "LIKELY REAL NEWS",
+        "confidence": 54.38
+      }
+    }
+  ]
+}
