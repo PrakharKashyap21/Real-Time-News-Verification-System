@@ -7,7 +7,7 @@ const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 15000,
+  timeout: 30000,
 });
 
 export const predictNews = async (title, text) => {
@@ -28,9 +28,11 @@ export const predictNews = async (title, text) => {
         }
         throw new Error("Validation error: Please enter a headline or article text.");
       }
-      throw new Error(error.response.data?.detail || "Unable to process prediction request.");
+      throw new Error(error.response.data?.detail || "Unable to process prediction request. Please try again later.");
+    } else if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+      throw new Error("Prediction request timed out. Please try again.");
     } else if (error.request) {
-      throw new Error("Unable to connect to the backend server. Please check if the API is running.");
+      throw new Error("Unable to connect to the backend server. Please check if the API server is running on " + API_BASE_URL + ".");
     } else {
       throw new Error("An unexpected error occurred while making the request.");
     }
@@ -53,11 +55,13 @@ export const verifyNewsV2 = async (title, text) => {
         } else if (Array.isArray(detail) && detail.length > 0) {
           throw new Error(detail[0].msg || "Validation error: Please enter valid title or text.");
         }
-        throw new Error("Validation error: At least a title or text is required for verification.");
+        throw new Error("Validation error: At least a title or text of sufficient length is required for verification.");
       }
-      throw new Error(error.response.data?.detail || "Unable to complete real-time news verification.");
+      throw new Error(error.response.data?.detail || "Unable to complete real-time news verification. Please try again.");
+    } else if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+      throw new Error("Verification request timed out. External fact-checking and news retrieval took longer than 30 seconds. Please try again.");
     } else if (error.request) {
-      throw new Error("Unable to connect to the backend verification server. Please check if the API is running.");
+      throw new Error("Unable to connect to the backend verification server. Please check if the API server is running on " + API_BASE_URL + ".");
     } else {
       throw new Error("An unexpected error occurred during verification.");
     }

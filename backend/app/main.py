@@ -43,6 +43,10 @@ def health_check():
         "status": "healthy"
     }
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 @app.post("/predict", response_model=PredictionResponse, tags=["Prediction"])
 def predict_news(payload: PredictionRequest):
     try:
@@ -55,7 +59,8 @@ def predict_news(payload: PredictionRequest):
             detail=str(ve)
         )
     except Exception as e:
+        logger.error("Prediction service error: %s", str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Prediction service error: {str(e)}"
+            detail="Prediction service encountered an unexpected error. Please try again later."
         )

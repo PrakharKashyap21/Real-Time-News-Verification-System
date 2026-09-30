@@ -1,6 +1,9 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from backend.app.v2.schemas import VerificationRequest, VerificationResponse
 from backend.app.v2.verification_service import get_verification_service, VerificationService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/v2", tags=["V2 Verification"])
 
@@ -16,7 +19,8 @@ def verify_news_v2(payload: VerificationRequest, service: VerificationService = 
             detail=str(ve)
         )
     except Exception as e:
+        logger.error("V2 verification service error: %s", str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"V2 verification service error: {str(e)}"
+            detail="The verification service encountered an internal error. Please try again later."
         )

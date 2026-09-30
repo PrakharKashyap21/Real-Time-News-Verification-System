@@ -76,6 +76,8 @@ class VerificationRequest(BaseModel):
         text_str = (self.text or "").strip()
         if not title_str and not text_str:
             raise ValueError("At least one of 'title' or 'text' must be provided for verification.")
+        if len(title_str) + len(text_str) < 10:
+            raise ValueError("Input is too short. Please provide at least 10 characters of content for verification.")
         return self
 
 
