@@ -92,6 +92,75 @@ def strip_html_tags(text: Optional[str]) -> str:
     return clean
 
 
+def extract_relevant_passage(
+    claim: ExtractedClaim,
+    page_title: str,
+    full_extract: str,
+    search_snippet: str = ""
+) -> str:
+    """Selects a concise, claim-specific 1-2 sentence evidence passage from reference text.
+
+    Avoids broad multi-paragraph extracts by scoring candidate sentences against the claim's
+    entities, action predicates, and substantive proposition terms.
+    """
+    if not full_extract:
+        return search_snippet.strip()
+
+    text = full_extract.strip()
+    # Split on sentence boundaries
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+(?=[A-Z0-9\"'])", text) if s.strip()]
+    if not sentences:
+        return search_snippet.strip() or text
+    if len(sentences) == 1:
+        return sentences[0]
+
+    # Tokenize claim for scoring
+    claim_text = (claim.text or "").strip().lower() if claim else ""
+    claim_tokens = set(re.findall(r"\b[a-z0-9'-]{3,}\b", claim_text))
+    common_sw = {
+        "the", "and", "that", "this", "with", "from", "for", "was", "were",
+        "been", "have", "has", "had", "are", "which", "who", "whom", "its"
+    }
+    substantive_claim_tokens = claim_tokens - common_sw
+
+    if not substantive_claim_tokens:
+        return sentences[0]
+
+    candidates = []
+    # Single sentences
+    for i, s in enumerate(sentences):
+        candidates.append((s, [i]))
+    # 2-sentence sliding windows
+    for i in range(len(sentences) - 1):
+        candidates.append((f"{sentences[i]} {sentences[i+1]}", [i, i+1]))
+
+    best_score = -1.0
+    best_passage = sentences[0]
+
+    for cand_text, idxs in candidates:
+        cand_lower = cand_text.lower()
+        cand_tokens = set(re.findall(r"\b[a-z0-9'-]{3,}\b", cand_lower))
+        overlap = substantive_claim_tokens.intersection(cand_tokens)
+        overlap_count = len(overlap)
+
+        # Base score on substantive token coverage (dominant factor)
+        score = overlap_count * 4.0
+
+        # Small density bonus
+        if cand_tokens:
+            density = overlap_count / len(cand_tokens)
+            score += density * 1.5
+
+        # Slight lead sentence preference if tied
+        score += max(0, (3 - min(idxs)) * 0.1)
+
+        if score > best_score:
+            best_score = score
+            best_passage = cand_text
+
+    return best_passage.strip()
+
+
 class WikipediaReferenceRetriever:
     """Public MediaWiki/Wikipedia general reference evidence retriever adapter.
 
@@ -199,7 +268,6 @@ class WikipediaReferenceRetriever:
                 return self.mock_responses[claim.claim_id]
             if query in self.mock_responses:
                 return self.mock_responses[query]
-            # Default deterministic mock responses if mock mode is on
             return []
 
         # 3. MediaWiki Search Query Execution
@@ -257,8 +325,13 @@ class WikipediaReferenceRetriever:
                 if not timestamp and summary_info.get("timestamp"):
                     timestamp = summary_info.get("timestamp")
 
-            # Fallback to search snippet if extract is empty
-            final_snippet = extract_text if extract_text else search_snippet
+            # Extract focused claim-specific passage from the reference text
+            final_snippet = extract_relevant_passage(
+                claim=claim,
+                page_title=page_title,
+                full_extract=extract_text,
+                search_snippet=search_snippet
+            )
             if not final_snippet:
                 continue
 

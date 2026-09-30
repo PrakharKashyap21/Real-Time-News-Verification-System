@@ -109,21 +109,30 @@ class SemanticVerifier:
             if claim_reviewed:
                 parts.append(f"Reviewed Claim: {claim_reviewed}")
             if raw_rating:
-                parts.append(f"Rating: {raw_rating}")
-            if title and title != claim_reviewed:
-                parts.append(title)
-            if snippet:
+                parts.append(f"(Rating: {raw_rating})")
+            if snippet and snippet != claim_reviewed:
                 parts.append(snippet)
-            return ". ".join(parts).strip()
+            elif title and title != claim_reviewed:
+                parts.append(title)
+            return " ".join(parts).strip()
         elif item.source_type == EvidenceSourceType.GENERAL_REFERENCE:
-            if title and snippet:
-                return f"{title}: {snippet}".strip()
-            return f"{title} {snippet}".strip()
+            if not snippet:
+                return title
+            if not title:
+                return snippet
+            # If snippet already starts with or mentions the title cleanly, avoid redundant title prefix
+            if snippet.lower().startswith(title.lower()):
+                return snippet
+            return f"{title}. {snippet}".strip()
         else:
             # LIVE_NEWS_SEARCH
-            if title and snippet:
-                return f"{title}. {snippet}".strip()
-            return f"{title} {snippet}".strip()
+            if not snippet:
+                return title
+            if not title:
+                return snippet
+            if snippet.lower().startswith(title.lower()):
+                return snippet
+            return f"{title}. {snippet}".strip()
 
     def clear_cache(self) -> None:
         """Clears the in-memory prediction cache."""

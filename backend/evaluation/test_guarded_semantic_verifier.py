@@ -262,7 +262,7 @@ class TestGuardedSemanticVerifier:
             domain="en.wikipedia.org",
             url="https://en.wikipedia.org/wiki/European_Union",
             title="European Union",
-            snippet="The European Union is a political and economic union of 27 member states that are located primarily in Europe.",
+            snippet="European Union regulations on cars and transport guide environmental policies across member states.",
             stance=StanceType.NEUTRAL
         )
         irrel_item = EvidenceItem(

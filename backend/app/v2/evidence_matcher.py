@@ -94,7 +94,7 @@ class EvidenceMatcher:
         "human genome project": {"human genome project", "hgp"},
         "covid": {"covid-19", "covid", "coronavirus", "sars-cov-2"},
         "covid-19": {"covid-19", "covid", "coronavirus", "sars-cov-2"},
-        "apollo 11": {"apollo 11", "apollo", "moon landing"},
+        "apollo 11": {"apollo 11", "apollo xi", "apollo-11"},
         "james webb": {"james webb", "jwst", "webb"},
         "jwst": {"james webb", "jwst", "webb"}
     }
@@ -241,7 +241,18 @@ class EvidenceMatcher:
                 if any(re.search(rf"\b{re.escape(alias)}\b", target_lower) or alias in target_lower for alias in aliases):
                     matched.append(entity)
 
+        # If claim contains multiple entities, matching only a secondary single-word generic entity
+        # (like 'Moon' or 'American') when the lead/numbered subject is absent is not aligned.
         is_entity_aligned = len(matched) > 0
+        if is_entity_aligned and len(claim_entities) > 1:
+            lead_entity = claim_entities[0].lower()
+            has_lead_or_numbered = any(
+                e.lower() == lead_entity or any(c.isdigit() for c in e)
+                for e in matched
+            )
+            if not has_lead_or_numbered and not any(len(e.split()) > 1 for e in matched):
+                is_entity_aligned = False
+
         return matched, is_entity_aligned
 
     def match_evidence(self, claim: ExtractedClaim, item: EvidenceItem) -> EvidenceMatchResult:
@@ -343,8 +354,8 @@ class EvidenceMatcher:
         is_relevant = False
         relevance_reason = ""
 
-        # Temporal Event Guardrail: Explicit distinct year mismatch without action alignment
-        if year_mismatch and not action_match and proposition_overlap_count == 0:
+        # Temporal Event Guardrail: Explicit distinct year mismatch
+        if year_mismatch:
             is_relevant = False
             relevance_reason = f"Rejected: Temporal event mismatch between claim year(s) ({', '.join(claim_years)}) and evidence year(s) ({', '.join(target_years)})."
 
@@ -394,12 +405,19 @@ class EvidenceMatcher:
 
         else:
             # LIVE NEWS & GENERAL REFERENCE SEARCH MATCHING:
-            if entity_aligned and (overlap_count >= 2 or proposition_overlap_count >= 1 or action_match):
+            # Guard against topical entity-only matches without proposition or action alignment
+            if claim_entities and not entity_aligned and overlap_ratio < 0.55:
+                is_relevant = False
+                relevance_reason = f"Rejected: Claim entities ({', '.join(claim_entities)}) not found in reference/news."
+            elif claim_entities and entity_aligned and len(unmatched_proposition_claim) >= 2 and proposition_overlap_count == 0 and not action_match:
+                is_relevant = False
+                relevance_reason = f"Rejected topical match: Entity ({', '.join(matched_entities)}) matched, but zero proposition object or action predicate overlap."
+            elif entity_aligned and (proposition_overlap_count >= 1 or action_match or overlap_ratio >= 0.35):
                 is_relevant = True
-                relevance_reason = f"Matched entities ({', '.join(matched_entities)}) and reporting terms."
-            elif overlap_ratio >= 0.35:
+                relevance_reason = f"Matched entities ({', '.join(matched_entities)}) and proposition/action reporting terms."
+            elif not claim_entities and overlap_ratio >= 0.35:
                 is_relevant = True
-                relevance_reason = f"Substantive overlap ratio {overlap_ratio:.2f}."
+                relevance_reason = f"Substantive proposition overlap ratio {overlap_ratio:.2f}."
             else:
                 is_relevant = False
                 relevance_reason = "Insufficient entity or reporting overlap in live news/reference."
