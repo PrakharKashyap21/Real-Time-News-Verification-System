@@ -1,0 +1,110 @@
+{
+  "timestamp": "2026-09-30T18:31:42.003596Z",
+  "evaluation_stage": "Stage 38 \u2014 Post-Stage-37 Real-World Re-Evaluation",
+  "dataset_name": "real_world_dataset.json",
+  "total_cases": 64,
+  "total_claims": 136,
+  "correct_cases": 26,
+  "incorrect_cases": 38,
+  "overall_accuracy": 40.62,
+  "macro_f1": 28.65,
+  "weighted_f1": 32.54,
+  "per_class_metrics": {
+    "SUPPORTED": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 16,
+      "tp": 0,
+      "fp": 0,
+      "fn": 16
+    },
+    "CONTRADICTED": {
+      "precision": 46.15,
+      "recall": 26.09,
+      "f1": 33.33,
+      "support": 23,
+      "tp": 6,
+      "fp": 7,
+      "fn": 17
+    },
+    "UNVERIFIED": {
+      "precision": 39.22,
+      "recall": 80.0,
+      "f1": 52.63,
+      "support": 25,
+      "tp": 20,
+      "fp": 31,
+      "fn": 5
+    }
+  },
+  "confusion_matrix": {
+    "SUPPORTED": {
+      "SUPPORTED": 0,
+      "CONTRADICTED": 2,
+      "UNVERIFIED": 14
+    },
+    "CONTRADICTED": {
+      "SUPPORTED": 0,
+      "CONTRADICTED": 6,
+      "UNVERIFIED": 17
+    },
+    "UNVERIFIED": {
+      "SUPPORTED": 0,
+      "CONTRADICTED": 5,
+      "UNVERIFIED": 20
+    }
+  },
+  "error_rates": {
+    "fpr_supported": 0.0,
+    "fpr_contradicted": 17.07,
+    "fnr_supported": 100.0,
+    "fnr_contradicted": 73.91
+  },
+  "verdict_distribution": {
+    "SUPPORTED": 0,
+    "CONTRADICTED": 13,
+    "UNVERIFIED": 51
+  },
+  "conflict_rate": 0.0,
+  "conflict_count": 1,
+  "accepted_evidence": {
+    "total": 86,
+    "fact_check": 23,
+    "live_news": 5,
+    "general_reference": 58
+  },
+  "semantic_relations": {
+    "supports": 10,
+    "contradicts": 21,
+    "neutral": 55,
+    "total_evaluated": 86
+  },
+  "latencies_ms": {
+    "mean": 2955.24,
+    "median": 2812.87,
+    "p95": 4763.09,
+    "min": 851.45,
+    "max": 8271.35
+  },
+  "request_counts": {
+    "preflight": {
+      "fact_check": 1,
+      "news_api": 1,
+      "reference_api": 1
+    },
+    "benchmark_only": {
+      "fact_check": 4,
+      "news_api": 1,
+      "reference_api": 461
+    }
+  },
+  "failure_taxonomy": {
+    "multi_claim_synthesis": 8,
+    "source_conflict": 1,
+    "semantic_premise_conflict": 3,
+    "insufficient_evidence": 22,
+    "none": 26,
+    "service_failure": 4
+  }
+}
