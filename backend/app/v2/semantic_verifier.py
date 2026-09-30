@@ -1,5 +1,7 @@
 import time
 import re
+import threading
+from collections import OrderedDict
 from enum import Enum
 from typing import Dict, Any, List, Optional, Tuple
 from pydantic import BaseModel, Field
@@ -57,7 +59,8 @@ class SemanticVerifier:
         self,
         model_name: Optional[str] = None,
         device: Optional[str] = None,
-        mock_mode: bool = False
+        mock_mode: bool = False,
+        cache_max_size: int = 256
     ):
         self.model_name = model_name or self.MODEL_NAME
         self.mock_mode = mock_mode
@@ -66,6 +69,9 @@ class SemanticVerifier:
         self.model = None
         self.load_time_ms = 0.0
         self.id2label = {0: "contradiction", 1: "entailment", 2: "neutral"}
+        self._prediction_cache: OrderedDict[Tuple[str, str], SemanticVerificationPrediction] = OrderedDict()
+        self._cache_lock = threading.Lock()
+        self._max_cache_size = cache_max_size
 
         if not self.mock_mode:
             self._load_model()
@@ -119,6 +125,16 @@ class SemanticVerifier:
                 return f"{title}. {snippet}".strip()
             return f"{title} {snippet}".strip()
 
+    def clear_cache(self) -> None:
+        """Clears the in-memory prediction cache."""
+        with self._cache_lock:
+            self._prediction_cache.clear()
+
+    def cache_size(self) -> int:
+        """Returns current number of cached predictions."""
+        with self._cache_lock:
+            return len(self._prediction_cache)
+
     def verify_pair(self, premise: str, hypothesis: str) -> SemanticVerificationPrediction:
         """Verifies semantic relation between premise (evidence text) and hypothesis (claim)."""
         premise_str = (premise or "").strip()
@@ -135,8 +151,16 @@ class SemanticVerifier:
                 latency_ms=0.0
             )
 
+        # Check prediction cache under thread lock
+        cache_key = (premise_str, hypo_str)
+        with self._cache_lock:
+            if cache_key in self._prediction_cache:
+                cached_pred = self._prediction_cache[cache_key]
+                self._prediction_cache.move_to_end(cache_key)
+                return cached_pred.model_copy()
+
         if self.mock_mode or self.model is None:
-            return SemanticVerificationPrediction(
+            pred = SemanticVerificationPrediction(
                 premise=premise_str,
                 hypothesis=hypo_str,
                 raw_label="neutral",
@@ -145,6 +169,12 @@ class SemanticVerifier:
                 probabilities={"contradiction": 0.0, "entailment": 0.0, "neutral": 1.0},
                 latency_ms=0.1
             )
+            with self._cache_lock:
+                self._prediction_cache[cache_key] = pred
+                self._prediction_cache.move_to_end(cache_key)
+                if len(self._prediction_cache) > self._max_cache_size:
+                    self._prediction_cache.popitem(last=False)
+            return pred
 
         start_time = time.time()
 
@@ -183,7 +213,7 @@ class SemanticVerifier:
             for i in range(len(probs))
         }
 
-        return SemanticVerificationPrediction(
+        pred = SemanticVerificationPrediction(
             premise=premise_str,
             hypothesis=hypo_str,
             raw_label=raw_label,
@@ -192,6 +222,14 @@ class SemanticVerifier:
             probabilities=probs_dict,
             latency_ms=round(elapsed_ms, 2)
         )
+
+        with self._cache_lock:
+            self._prediction_cache[cache_key] = pred
+            self._prediction_cache.move_to_end(cache_key)
+            if len(self._prediction_cache) > self._max_cache_size:
+                self._prediction_cache.popitem(last=False)
+
+        return pred
 
     def verify_evidence_item(
         self,

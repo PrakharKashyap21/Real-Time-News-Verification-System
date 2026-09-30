@@ -1,10 +1,13 @@
 import os
 import re
 import json
+import time
+import threading
 import urllib.request
 import urllib.parse
 import urllib.error
-from typing import List, Optional, Dict, Any
+from collections import OrderedDict
+from typing import List, Optional, Dict, Any, Tuple
 from backend.app.v2.schemas import (
     EvidenceItem,
     ExtractedClaim,
@@ -12,6 +15,43 @@ from backend.app.v2.schemas import (
     StanceType
 )
 from backend.app.v2.query_builder import get_query_builder, FactCheckQueryBuilder
+
+
+class ReferenceCache:
+    """Thread-safe bounded in-memory LRU cache with TTL for general reference lookups."""
+
+    def __init__(self, max_size: int = 128, ttl_seconds: float = 600.0):
+        self.max_size = max_size
+        self.ttl_seconds = ttl_seconds
+        self._cache: OrderedDict[str, Tuple[Any, float]] = OrderedDict()
+        self._lock = threading.Lock()
+
+    def get(self, key: str) -> Optional[Any]:
+        with self._lock:
+            if key not in self._cache:
+                return None
+            val, timestamp = self._cache[key]
+            if time.time() - timestamp > self.ttl_seconds:
+                del self._cache[key]
+                return None
+            self._cache.move_to_end(key)
+            return val
+
+    def set(self, key: str, value: Any) -> None:
+        with self._lock:
+            if key in self._cache:
+                self._cache.move_to_end(key)
+            self._cache[key] = (value, time.time())
+            if len(self._cache) > self.max_size:
+                self._cache.popitem(last=False)
+
+    def clear(self) -> None:
+        with self._lock:
+            self._cache.clear()
+
+    def size(self) -> int:
+        with self._lock:
+            return len(self._cache)
 
 
 class ReferenceRetrieverError(RuntimeError):
@@ -69,7 +109,9 @@ class WikipediaReferenceRetriever:
         timeout: float = 6.0,
         max_candidates: int = 3,
         query_builder: Optional[FactCheckQueryBuilder] = None,
-        mock_responses: Optional[Dict[str, Any]] = None
+        mock_responses: Optional[Dict[str, Any]] = None,
+        cache_max_size: int = 128,
+        cache_ttl_seconds: float = 600.0
     ):
         self.mock_mode = mock_mode
         self.timeout = timeout
@@ -77,6 +119,7 @@ class WikipediaReferenceRetriever:
         self.query_builder = query_builder or get_query_builder()
         self.mock_responses = mock_responses or {}
         self.api_call_count = 0
+        self.cache = ReferenceCache(max_size=cache_max_size, ttl_seconds=cache_ttl_seconds)
 
     def _make_http_get(self, url: str) -> Dict[str, Any]:
         """Performs an HTTP GET request with standard headers, timeout, and error handling."""
@@ -116,11 +159,19 @@ class WikipediaReferenceRetriever:
             return None
 
         clean_title = title.strip().replace(" ", "_")
+        cache_key = f"summary:{clean_title.lower()}"
+        cached = self.cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         encoded_title = urllib.parse.quote(clean_title, safe="")
         summary_url = f"{self.REST_SUMMARY_URL}/{encoded_title}"
 
         try:
-            return self._make_http_get(summary_url)
+            res = self._make_http_get(summary_url)
+            if res:
+                self.cache.set(cache_key, res)
+            return res
         except (ReferenceRetrieverAPIError, ReferenceRetrieverRateLimitError, ReferenceRetrieverTimeoutError, ReferenceRetrieverMalformedResponseError):
             return None
         except Exception:
@@ -152,16 +203,22 @@ class WikipediaReferenceRetriever:
             return []
 
         # 3. MediaWiki Search Query Execution
-        params = {
-            "action": "query",
-            "list": "search",
-            "srsearch": query,
-            "format": "json",
-            "srlimit": str(limit)
-        }
-        search_url = f"{self.SEARCH_API_URL}?{urllib.parse.urlencode(params)}"
-
-        search_data = self._make_http_get(search_url)
+        search_cache_key = f"search:{query.lower()}:{limit}"
+        cached_search = self.cache.get(search_cache_key)
+        if cached_search is not None:
+            search_data = cached_search
+        else:
+            params = {
+                "action": "query",
+                "list": "search",
+                "srsearch": query,
+                "format": "json",
+                "srlimit": str(limit)
+            }
+            search_url = f"{self.SEARCH_API_URL}?{urllib.parse.urlencode(params)}"
+            search_data = self._make_http_get(search_url)
+            if search_data and isinstance(search_data, dict):
+                self.cache.set(search_cache_key, search_data)
 
         if not isinstance(search_data, dict):
             raise ReferenceRetrieverMalformedResponseError("Search response must be a JSON object.")
