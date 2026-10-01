@@ -180,3 +180,62 @@ def test_deterministic_evidence_ordering():
     p1 = extract_relevant_passage(claim, "Apollo 11", broad_extract)
     p2 = extract_relevant_passage(claim, "Apollo 11", broad_extract)
     assert p1 == p2
+
+
+def test_adjacent_mission_entity_rejection():
+    """Conflicting numbered mission entities (e.g. Apollo 9 for Apollo 11) are rejected while matching ones are accepted."""
+    matcher = EvidenceMatcher()
+    claim = ExtractedClaim(
+        claim_id="c1",
+        text="Apollo 11 was the American spaceflight that first landed humans on the Moon on July 20, 1969."
+    )
+    adjacent_mission = EvidenceItem(
+        id="e1", claim_id="c1", source_type=EvidenceSourceType.GENERAL_REFERENCE,
+        publisher="Wikipedia", domain="en.wikipedia.org", url="https://en.wikipedia.org/wiki/Apollo_9",
+        title="Apollo 9", snippet="Apollo 9 was the third human spaceflight in NASA Apollo program which tested systems to land on the Moon.",
+        stance=StanceType.NEUTRAL
+    )
+    matching_mission = EvidenceItem(
+        id="e2", claim_id="c1", source_type=EvidenceSourceType.GENERAL_REFERENCE,
+        publisher="Wikipedia", domain="en.wikipedia.org", url="https://en.wikipedia.org/wiki/Apollo_11",
+        title="Apollo 11", snippet="Apollo 11 was the American spaceflight that first landed humans on the Moon on July 20, 1969.",
+        stance=StanceType.NEUTRAL
+    )
+    assert matcher.match_evidence(claim, adjacent_mission).relevance == RelevanceClassification.IRRELEVANT
+    assert matcher.match_evidence(claim, matching_mission).relevance == RelevanceClassification.RELEVANT
+
+
+def test_fact_check_false_rating_preserves_contradicts_stance():
+    """Fact check evaluating a false claim as False maintains CONTRADICTS stance without improper inversion."""
+    matcher = EvidenceMatcher()
+    claim = ExtractedClaim(
+        claim_id="c2",
+        text="5G Radio Frequency Towers Cause and Transmit Viral Coronavirus Infections"
+    )
+    fact_check = EvidenceItem(
+        id="e3", claim_id="c2", source_type=EvidenceSourceType.FACT_CHECK_API,
+        publisher="FactCheckOrg", domain="factcheck.org", url="https://factcheck.org/5g",
+        title="Fact Check: 5G radiation hoax debunked", snippet="Fact Check: 5G radiation hoax debunked",
+        claim_reviewed="5G radiation is the cause behind the second wave of coronavirus pandemic in India",
+        raw_rating="False", stance=StanceType.CONTRADICTS
+    )
+    res = matcher.match_evidence(claim, fact_check)
+    assert res.relevance == RelevanceClassification.RELEVANT
+    assert res.stance == StanceType.CONTRADICTS
+
+
+def test_anaphoric_passage_preserves_subject_context():
+    """extract_relevant_passage prepends preceding sentence if the top-scoring sentence starts with an anaphoric reference."""
+    claim = ExtractedClaim(
+        claim_id="c3",
+        text="James Webb Space Telescope observes the earliest galaxies formed in the universe."
+    )
+    text = (
+        "The James Webb Space Telescope is a premier space observatory. "
+        "It was developed to observe the earliest galaxies formed in the universe."
+    )
+    passage = extract_relevant_passage(claim, "James Webb Space Telescope", text)
+    assert "galaxies" in passage
+    assert "James Webb" in passage
+
+

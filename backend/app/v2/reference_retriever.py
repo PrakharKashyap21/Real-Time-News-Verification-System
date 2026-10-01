@@ -92,6 +92,14 @@ def strip_html_tags(text: Optional[str]) -> str:
     return clean
 
 
+def _stem_token(t: str) -> str:
+    t = t.lower()
+    for suffix in ("ations", "ation", "tions", "tion", "ments", "ment", "ingly", "able", "ible", "ing", "ies", "ied", "ed", "es", "s"):
+        if t.endswith(suffix) and len(t) - len(suffix) >= 3:
+            return t[:-len(suffix)]
+    return t
+
+
 def extract_relevant_passage(
     claim: ExtractedClaim,
     page_title: str,
@@ -122,6 +130,7 @@ def extract_relevant_passage(
         "been", "have", "has", "had", "are", "which", "who", "whom", "its"
     }
     substantive_claim_tokens = claim_tokens - common_sw
+    substantive_claim_stems = {_stem_token(t) for t in substantive_claim_tokens}
 
     if not substantive_claim_tokens:
         return sentences[0]
@@ -136,12 +145,16 @@ def extract_relevant_passage(
 
     best_score = -1.0
     best_passage = sentences[0]
+    best_idxs = [0]
 
     for cand_text, idxs in candidates:
         cand_lower = cand_text.lower()
         cand_tokens = set(re.findall(r"\b[a-z0-9'-]{3,}\b", cand_lower))
+        cand_stems = {_stem_token(t) for t in cand_tokens}
+
         overlap = substantive_claim_tokens.intersection(cand_tokens)
-        overlap_count = len(overlap)
+        stem_overlap = substantive_claim_stems.intersection(cand_stems)
+        overlap_count = max(len(overlap), len(stem_overlap))
 
         # Base score on substantive token coverage (dominant factor)
         score = overlap_count * 4.0
@@ -157,6 +170,14 @@ def extract_relevant_passage(
         if score > best_score:
             best_score = score
             best_passage = cand_text
+            best_idxs = idxs
+
+    # Anaphora check: if a single sentence was chosen and starts with a pronoun/determiner, include previous sentence
+    if len(best_idxs) == 1 and best_idxs[0] > 0:
+        first_word = best_passage.split()[0].lower().strip(".,!?:;\"'")
+        anaphoric_words = {"he", "she", "it", "they", "this", "these", "those", "its", "their", "his", "her", "such"}
+        if first_word in anaphoric_words:
+            best_passage = f"{sentences[best_idxs[0] - 1]} {best_passage}"
 
     return best_passage.strip()
 

@@ -106,14 +106,14 @@ class SemanticVerifier:
 
         if item.source_type == EvidenceSourceType.FACT_CHECK_API:
             parts = []
-            if claim_reviewed:
-                parts.append(f"Reviewed Claim: {claim_reviewed}")
-            if raw_rating:
-                parts.append(f"(Rating: {raw_rating})")
-            if snippet and snippet != claim_reviewed:
-                parts.append(snippet)
-            elif title and title != claim_reviewed:
+            if title:
                 parts.append(title)
+            if claim_reviewed and claim_reviewed.lower() != title.lower():
+                parts.append(f"Reviewed Claim: {claim_reviewed}.")
+            if raw_rating:
+                parts.append(f"Rating: {raw_rating}.")
+            if snippet and snippet.lower() != claim_reviewed.lower() and snippet.lower() != title.lower() and not snippet.startswith("Reviewed Claim:"):
+                parts.append(snippet)
             return " ".join(parts).strip()
         elif item.source_type == EvidenceSourceType.GENERAL_REFERENCE:
             if not snippet:
@@ -251,8 +251,19 @@ class SemanticVerifier:
 
         pred = self.verify_pair(premise=premise, hypothesis=hypothesis)
 
-        # Update EvidenceItem stance to reflect the NLI determination
-        if pred.semantic_relation == SemanticRelation.SUPPORTS:
+        # Update EvidenceItem stance to reflect determination (authoritative fact-check ratings take precedence)
+        if item.source_type == EvidenceSourceType.FACT_CHECK_API and item.raw_rating:
+            from backend.app.v2.fact_check_retriever import determine_stance
+            fc_stance = determine_stance(item.raw_rating)
+            if fc_stance != StanceType.NEUTRAL:
+                item.stance = fc_stance
+            elif pred.semantic_relation == SemanticRelation.SUPPORTS:
+                item.stance = StanceType.SUPPORTS
+            elif pred.semantic_relation == SemanticRelation.CONTRADICTS:
+                item.stance = StanceType.CONTRADICTS
+            else:
+                item.stance = StanceType.NEUTRAL
+        elif pred.semantic_relation == SemanticRelation.SUPPORTS:
             item.stance = StanceType.SUPPORTS
         elif pred.semantic_relation == SemanticRelation.CONTRADICTS:
             item.stance = StanceType.CONTRADICTS
