@@ -74,7 +74,9 @@ class EvidenceMatcher:
         {"sequence", "sequenced", "sequencing", "map", "mapped", "decode", "decoded"},
         {"end", "ended", "ending", "ends", "terminate", "terminated", "conclude", "concluded", "lift", "lifted"},
         {"cure", "cured", "cures", "curing", "treat", "treated", "treats", "heal", "healed"},
-        {"create", "created", "creates", "build", "built", "cause", "caused", "open", "opened"},
+        {"create", "created", "creates", "build", "built", "open", "opened"},
+        {"spread", "spreads", "spreading", "transmit", "transmits", "transmitting", "transmission", "cause", "caused", "causes", "causing", "emit", "emits", "emitting", "induce", "induces", "inducing", "trigger", "triggers", "triggering"},
+        {"infect", "infects", "infecting", "infection", "infections", "contagious", "infectious"},
         {"photograph", "photographed", "photographs", "capture", "captured", "image", "imaged", "picture", "pictured"},
         {"tax", "taxed", "taxes", "taxing", "levy", "levied"},
         {"die", "died", "dies", "kill", "killed", "assassinate", "assassinated"},
@@ -94,9 +96,21 @@ class EvidenceMatcher:
         "human genome project": {"human genome project", "hgp"},
         "covid": {"covid-19", "covid", "coronavirus", "sars-cov-2"},
         "covid-19": {"covid-19", "covid", "coronavirus", "sars-cov-2"},
+        "coronavirus": {"covid-19", "covid", "coronavirus", "sars-cov-2"},
+        "sars-cov-2": {"covid-19", "covid", "coronavirus", "sars-cov-2"},
         "apollo 11": {"apollo 11", "apollo xi", "apollo-11"},
         "james webb": {"james webb", "jwst", "webb"},
         "jwst": {"james webb", "jwst", "webb"}
+    }
+
+    GENERIC_PROPOSITION_TERMS = {
+        "spread", "spreads", "spreading", "transmit", "transmits", "transmission",
+        "cause", "causes", "causing", "caused", "infect", "infects", "infection",
+        "infections", "infectious", "disease", "diseases", "illness", "illnesses",
+        "virus", "viruses", "person", "persons", "people", "human", "humans",
+        "study", "studies", "report", "reports", "claim", "claims", "statement",
+        "saying", "online", "image", "photo", "world", "day", "days", "year",
+        "years", "time", "times", "wave", "second"
     }
 
     def _extract_tokens(self, text: str) -> List[str]:
@@ -113,13 +127,17 @@ class EvidenceMatcher:
         res = []
         seen = set()
 
-        # 1. Check known multi-word aliases first
-        for phrase in self.ENTITY_ALIASES:
-            if " " in phrase and phrase in text_lower:
-                seen.add(phrase)
-                for w in phrase.split():
-                    seen.add(w)
-                res.append(phrase.title())
+        # 1. Check known aliases (multi-word and specific key entities first)
+        for phrase in sorted(self.ENTITY_ALIASES.keys(), key=lambda x: -len(x)):
+            if re.search(rf"\b{re.escape(phrase)}\b", text_lower):
+                if phrase not in seen:
+                    seen.add(phrase)
+                    for w in phrase.split():
+                        seen.add(w)
+                    if len(phrase) <= 6 and " " not in phrase:
+                        res.append(phrase.upper())
+                    else:
+                        res.append(phrase.title())
 
         # Collect action verbs and low-info words to exclude from entities
         excluded_words = set(self.STOPWORDS)
@@ -145,15 +163,15 @@ class EvidenceMatcher:
         })
 
         # 2. Extract acronyms & alphanumeric codes (e.g. NASA, EU, WHO, UNESCO, 5G, CRISPR, LHC, COVID-19, UK, US)
-        acronyms = re.findall(r"\b[A-Z0-9-]*[A-Z]{2,}[A-Z0-9-]*\b|\b[0-9]+[A-Z]+\b|\b[A-Z]+[0-9]+\b|\b5G\b|\bRFID\b|\bUK\b|\bUS\b|\bUSA\b|\bEU\b", text)
+        acronyms = re.findall(r"\b[A-Z0-9-]*[A-Z]{2,}[A-Z0-9-]*\b|\b[0-9]+[A-Za-z]+\b|\b[A-Za-z]+[0-9]+\b|\b[A-Za-z]+-[0-9]+\b|\bUK\b|\bUS\b|\bUSA\b|\bEU\b", text)
         for ac in acronyms:
             ac_lower = ac.lower()
             if ac_lower not in seen and ac_lower not in excluded_words and len(ac) > 1:
                 seen.add(ac_lower)
                 res.append(ac)
 
-        # 3. Specific numbered named entities (e.g. Apollo 11, Voyager 1, Falcon 9, Boeing 737)
-        numbered_entities = re.findall(r"\b((?:Apollo|Voyager|Falcon|Boeing|Covid|SARS-CoV|Hubble|Curiosity|Perseverance)\s*(?:-\s*)?\d*)\b", text, flags=re.IGNORECASE)
+        # 3. Generic numbered named entities (e.g. Apollo 11, Voyager 1, Falcon 9, Boeing 737)
+        numbered_entities = re.findall(r"\b[A-Z][a-z0-9'-]+\s*(?:-\s*)?\d+\b", text)
         for ne in numbered_entities:
             ne_clean = re.sub(r"\s+", " ", ne).strip().title()
             ne_lower = ne_clean.lower()
@@ -358,7 +376,7 @@ class EvidenceMatcher:
             "post", "posts", "article", "articles", "report", "reports", "statement", "statements",
             "page", "pages", "front"
         }
-        specific_proposition_overlap = proposition_overlap - generic_media_terms
+        specific_proposition_overlap = proposition_overlap - generic_media_terms - self.GENERIC_PROPOSITION_TERMS
         specific_proposition_overlap_count = len(specific_proposition_overlap)
 
         # -------------------------------------------------------------
@@ -373,35 +391,77 @@ class EvidenceMatcher:
             relevance_reason = f"Rejected: Temporal event mismatch between claim year(s) ({', '.join(claim_years)}) and evidence year(s) ({', '.join(target_years)})."
 
         elif item.source_type == EvidenceSourceType.FACT_CHECK_API:
-            # FACT-CHECK SPECIFIC EXACT-CLAIM MATCHING:
-            if claim_entities and not entity_aligned and overlap_ratio < 0.40:
+            # FACT-CHECK SPECIFIC EXACT-CLAIM / PROPOSITION MATCHING:
+            # Identify core known entities in claim (from ENTITY_ALIASES, numbered entities, or acronyms)
+            core_known_entities_in_claim = []
+            seen_core = set()
+            for ent in claim_entities:
+                ent_lower = ent.lower()
+                # Find canonical group
+                canon = ent_lower
+                if ent_lower in self.ENTITY_ALIASES:
+                    canon = sorted(list(self.ENTITY_ALIASES[ent_lower]))[0]
+                if (
+                    ent_lower in self.ENTITY_ALIASES
+                    or any(c.isdigit() for c in ent)
+                    or ent.isupper()
+                ):
+                    if canon not in seen_core:
+                        seen_core.add(canon)
+                        core_known_entities_in_claim.append(ent)
+
+            unmatched_core_entities = [
+                ent for ent in core_known_entities_in_claim
+                if ent not in matched_entities
+            ]
+
+            # Specific numbered mission/model entity matched in claim (e.g. Apollo 11, Falcon 9)
+            numbered_matched = any(
+                bool(re.search(r"\b[A-Z][a-z0-9'-]+\s+\d+\b", m))
+                for m in matched_entities
+            )
+
+            # 1. If claim entities exist but none matched: reject
+            if claim_entities and not entity_aligned:
                 is_relevant = False
                 relevance_reason = f"Rejected: Claim entities ({', '.join(claim_entities)}) not found in reviewed claim."
 
-            elif len(unmatched_proposition_claim) >= 2 and specific_proposition_overlap_count == 0:
+            # 2. Multi-core-entity claim where a primary core entity is missing (e.g. 5G in 5G+COVID claim vs COVID-only fact check)
+            elif len(core_known_entities_in_claim) >= 2 and len(unmatched_core_entities) >= 1 and not (numbered_matched and action_match):
+                is_relevant = False
+                relevance_reason = f"Rejected adjacent fact-check: Entity ({', '.join(matched_entities)}) matched, but primary core entity ({', '.join(unmatched_core_entities)}) was absent in reviewed claim."
+
+            # 3. Entity matched, but proposition objects and action predicate are absent
+            elif (
+                len(core_known_entities_in_claim) <= 1
+                and len(unmatched_proposition_claim) >= 2
+                and specific_proposition_overlap_count == 0
+                and not has_debunk_marker
+            ):
                 is_relevant = False
                 relevance_reason = f"Rejected adjacent fact-check: Entity ({', '.join(matched_entities)}) matched, but claim proposition objects ({', '.join(list(unmatched_proposition_claim)[:3])}) were absent in reviewed claim."
 
-            elif len(unmatched_proposition_claim) >= 1 and specific_proposition_overlap_count == 0 and not action_match:
+            elif len(unmatched_proposition_claim) >= 2 and specific_proposition_overlap_count == 0 and not action_match:
                 is_relevant = False
-                relevance_reason = f"Rejected adjacent fact-check: Entity ({', '.join(matched_entities)}) matched, but claim proposition objects ({', '.join(list(unmatched_proposition_claim)[:3])}) were absent in reviewed claim."
+                relevance_reason = f"Rejected adjacent fact-check: Entity ({', '.join(matched_entities)}) matched, but claim proposition objects ({', '.join(list(unmatched_proposition_claim)[:3])}) and action predicate were absent in reviewed claim."
 
-            elif entity_aligned and action_match and (specific_proposition_overlap_count >= 1 or len(unmatched_proposition_claim) == 0):
+            # 4. Proposition-aligned matches:
+            # Action match + entity alignment
+            elif entity_aligned and action_match:
                 is_relevant = True
-                relevance_reason = f"Matched entity ({', '.join(matched_entities)}) and action predicate."
+                relevance_reason = f"Matched entities ({', '.join(matched_entities)}) and action predicate."
 
-            elif entity_aligned and has_debunk_marker and specific_proposition_overlap_count >= 1 and overlap_ratio >= 0.30:
+            # Debunk marker + entity alignment
+            elif entity_aligned and has_debunk_marker and (specific_proposition_overlap_count >= 1 or overlap_ratio >= 0.20):
                 is_relevant = True
-                relevance_reason = f"Aligned claim: Matched entity ({', '.join(matched_entities)}) and debunk of object ({', '.join(specific_proposition_overlap)})."
+                relevance_reason = f"Aligned claim: Matched entity ({', '.join(matched_entities)}) and debunk marker in reviewed claim."
 
+            # Entity + specific proposition objects
             elif entity_aligned and specific_proposition_overlap_count >= 1:
                 is_relevant = True
-                relevance_reason = f"Matched entity ({', '.join(matched_entities)}) and object terms ({', '.join(specific_proposition_overlap)})."
+                relevance_reason = f"Matched entities ({', '.join(matched_entities)}) and object terms ({', '.join(specific_proposition_overlap)})."
 
-            elif overlap_ratio >= 0.35 and (entity_aligned or len(claim_entities) == 0):
-                is_relevant = True
-                relevance_reason = f"Substantive overlap {overlap_ratio:.2f} ({', '.join(token_overlap)})."
-
+            # Claims without core entities but with high substantive token overlap
             elif not claim_entities and overlap_ratio >= 0.35:
                 is_relevant = True
                 relevance_reason = f"Generic claim match: Substantive overlap {overlap_ratio:.2f}."
