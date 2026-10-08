@@ -27,6 +27,17 @@ class OverallAssessment(str, Enum):
     UNVERIFIED = "UNVERIFIED"
 
 
+class ClaimProposition(BaseModel):
+    subjects: List[str] = Field(default_factory=list)
+    predicates: List[str] = Field(default_factory=list)
+    objects: List[str] = Field(default_factory=list)
+    numeric_constraints: List[str] = Field(default_factory=list)
+    temporal_constraints: List[str] = Field(default_factory=list)
+    negated: bool = False
+    modality: Optional[str] = "completed"
+    raw_text: Optional[str] = None
+
+
 class EvidenceItem(BaseModel):
     id: str
     claim_id: str
@@ -36,6 +47,7 @@ class EvidenceItem(BaseModel):
     url: str
     title: str
     snippet: str
+    content: Optional[str] = None
     publish_date: Optional[str] = None
     credibility_score: Optional[float] = Field(default=None, ge=0.0, le=1.0)
     relevance_score: Optional[float] = Field(default=None, ge=0.0, le=1.0)
@@ -44,6 +56,8 @@ class EvidenceItem(BaseModel):
     claim_reviewed: Optional[str] = None
     semantic_relation: Optional[str] = None
     semantic_probabilities: Optional[dict] = Field(default_factory=dict)
+    proposition: Optional[ClaimProposition] = None
+    proposition_diagnostic: Optional[dict] = Field(default_factory=dict)
 
 
 class ExtractedClaim(BaseModel):
@@ -55,6 +69,7 @@ class ExtractedClaim(BaseModel):
     keywords: List[str] = Field(default_factory=list)
     evidence: List[EvidenceItem] = Field(default_factory=list)
     explanation: str = "Insufficient external evidence available to independently verify this claim."
+    proposition: Optional[ClaimProposition] = None
 
 
 class LinguisticSignal(BaseModel):

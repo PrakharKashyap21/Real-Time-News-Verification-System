@@ -41,7 +41,6 @@ from backend.app.v2.reference_retriever import (
 )
 from backend.app.v2.evidence_aggregator import get_evidence_aggregator, EvidenceAggregator
 from backend.app.v2.evidence_matcher import get_evidence_matcher, EvidenceMatcher
-from backend.app.v2.stance_analyzer import get_stance_analyzer, EvidenceStanceAnalyzer
 from backend.app.v2.semantic_verifier import get_semantic_verifier, SemanticVerifier
 from backend.app.v2.verdict_engine import get_verdict_engine, VerdictEngine
 from backend.app.v2.svm_signal import get_svm_signal_provider, SVMSignalProvider, SVMPipelineIntegrator
@@ -64,19 +63,19 @@ class VerificationService:
         reference_retriever: Optional[WikipediaReferenceRetriever] = None,
         evidence_matcher: Optional[EvidenceMatcher] = None,
         semantic_verifier: Optional[SemanticVerifier] = None,
-        stance_analyzer: Optional[EvidenceStanceAnalyzer] = None,
         aggregator: Optional[EvidenceAggregator] = None,
         verdict_engine: Optional[VerdictEngine] = None,
         svm_provider: Optional[SVMSignalProvider] = None,
+        gdelt_retriever: Optional[Any] = None,
         mock_mode: bool = False
     ):
         self.claim_extractor = claim_extractor or get_claim_extractor()
         self.fc_retriever = fc_retriever or get_fact_check_retriever(mock_mode=mock_mode)
         self.news_retriever = news_retriever or get_newsapi_retriever(mock_mode=mock_mode)
+        self.gdelt_retriever = gdelt_retriever
         self.reference_retriever = reference_retriever or get_reference_retriever(mock_mode=mock_mode)
         self.evidence_matcher = evidence_matcher or get_evidence_matcher()
         self.semantic_verifier = semantic_verifier or get_semantic_verifier(mock_mode=mock_mode)
-        self.stance_analyzer = stance_analyzer or get_stance_analyzer()
         self.aggregator = aggregator or get_evidence_aggregator()
         self.verdict_engine = verdict_engine or get_verdict_engine()
         self.svm_provider = svm_provider or get_svm_signal_provider()
@@ -95,25 +94,38 @@ class VerificationService:
             return [], "error"
 
     def _fetch_news_evidence(self, claim: ExtractedClaim) -> Tuple[List[EvidenceItem], str]:
-        """Safely queries Live News API for a claim with error status mapping."""
+        """Safely queries Live News API (primary NewsAPI, with automatic GDELT fallback)."""
+        primary_status = "ok"
         try:
             evidence = self.news_retriever.search_claim_news(claim)
-            return evidence, "ok"
+            if evidence:
+                return evidence, "ok"
         except (NewsAPIKeyError, FactCheckAPIKeyError):
-            return [], "missing_api_key"
+            primary_status = "missing_api_key"
         except (NewsAPIRateLimitError, NewsRetrieverRateLimitError):
-            return [], "rate_limited"
+            primary_status = "rate_limited"
         except (NewsAPIError, NewsRetrieverAPIError) as news_err:
             if news_err.status_code == 429:
-                return [], "rate_limited"
+                primary_status = "rate_limited"
             elif news_err.status_code == 401:
-                return [], "error_401"
+                primary_status = "error_401"
             elif news_err.status_code == 504:
-                return [], "error_504"
+                primary_status = "error_504"
             else:
-                return [], f"error_{news_err.status_code}"
+                primary_status = f"error_{news_err.status_code}"
         except Exception:
-            return [], "error"
+            primary_status = "error"
+
+        # Fallback to GDELT when NewsAPI is rate limited, errors, times out, or returns zero usable evidence
+        if self.gdelt_retriever:
+            try:
+                gdelt_evidence = self.gdelt_retriever.search_claim_news(claim)
+                if gdelt_evidence:
+                    return gdelt_evidence, primary_status
+            except Exception:
+                pass
+
+        return [], primary_status
 
     def _fetch_ref_evidence(self, claim: ExtractedClaim) -> Tuple[List[EvidenceItem], str]:
         """Safely queries Wikipedia Reference API for a claim with error status mapping."""

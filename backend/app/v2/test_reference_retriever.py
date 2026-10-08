@@ -21,7 +21,6 @@ from backend.app.v2.reference_retriever import (
 )
 from backend.app.v2.verification_service import VerificationService
 from backend.app.v2.evidence_matcher import get_evidence_matcher
-from backend.app.v2.stance_analyzer import get_stance_analyzer
 from backend.app.v2.evidence_aggregator import get_evidence_aggregator
 from backend.app.v2.verdict_engine import get_verdict_engine
 

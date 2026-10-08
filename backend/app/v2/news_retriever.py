@@ -73,6 +73,12 @@ class GDELTNewsRetriever(BaseNewsRetriever):
         if not claim:
             return ""
 
+        from backend.app.v2.query_builder import get_query_builder
+        qb = get_query_builder()
+        news_q = getattr(qb, "build_news_primary_query", qb.build_primary_query)(claim)
+        if news_q:
+            return news_q
+
         # 1. Use keywords if available (unquoted, top 4 terms)
         if claim.keywords:
             clean_kws = []

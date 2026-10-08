@@ -83,9 +83,9 @@ class NewsAPIRetriever:
                 "Set NEWS_API_KEY in backend/.env or enable mock_mode=True for offline testing."
             )
 
-        query = self.query_builder.build_primary_query(claim)
+        query = getattr(self.query_builder, "build_news_primary_query", self.query_builder.build_primary_query)(claim)
         if not query:
-            query = self.query_builder.build_fallback_query(claim)
+            query = getattr(self.query_builder, "build_news_fallback_query", self.query_builder.build_fallback_query)(claim)
         if not query:
             return []
 

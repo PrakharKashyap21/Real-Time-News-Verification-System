@@ -106,33 +106,31 @@ class SemanticVerifier:
 
         if item.source_type == EvidenceSourceType.FACT_CHECK_API:
             parts = []
-            if title:
-                parts.append(title)
-            if claim_reviewed and claim_reviewed.lower() != title.lower():
+            if claim_reviewed:
                 parts.append(f"Reviewed Claim: {claim_reviewed}.")
+            elif title:
+                parts.append(title)
             if raw_rating:
                 parts.append(f"Rating: {raw_rating}.")
-            if snippet and snippet.lower() != claim_reviewed.lower() and snippet.lower() != title.lower() and not snippet.startswith("Reviewed Claim:"):
-                parts.append(snippet)
+            if snippet and snippet.lower() not in (claim_reviewed.lower(), title.lower()) and not snippet.startswith("Reviewed Claim:"):
+                parts.append(snippet[:300])
             return " ".join(parts).strip()
         elif item.source_type == EvidenceSourceType.GENERAL_REFERENCE:
-            if not snippet:
-                return title
-            if not title:
-                return snippet
-            # If snippet already starts with or mentions the title cleanly, avoid redundant title prefix
-            if snippet.lower().startswith(title.lower()):
-                return snippet
-            return f"{title}. {snippet}".strip()
+            if snippet:
+                return snippet[:400].strip()
+            return title
         else:
-            # LIVE_NEWS_SEARCH
-            if not snippet:
-                return title
-            if not title:
-                return snippet
-            if snippet.lower().startswith(title.lower()):
-                return snippet
-            return f"{title}. {snippet}".strip()
+            # LIVE_NEWS_SEARCH: focused title + description/snippet + useful content
+            parts = []
+            if title:
+                parts.append(title)
+            if snippet and snippet.lower() != title.lower():
+                parts.append(snippet)
+            if item.content and item.content.strip():
+                clean_c = item.content.strip()
+                if clean_c.lower() not in (title.lower(), snippet.lower()):
+                    parts.append(clean_c[:400])
+            return " ".join(parts).strip() if parts else title or snippet or ""
 
     def clear_cache(self) -> None:
         """Clears the in-memory prediction cache."""
@@ -251,30 +249,80 @@ class SemanticVerifier:
 
         pred = self.verify_pair(premise=premise, hypothesis=hypothesis)
 
-        # Update EvidenceItem stance to reflect determination (authoritative fact-check ratings take precedence)
+        diag = getattr(item, "proposition_diagnostic", None)
+        if not diag:
+            from backend.app.v2.evidence_matcher import get_evidence_matcher
+            match_res = get_evidence_matcher().match_evidence(claim, item)
+            diag = match_res.diagnostic
+            item.proposition_diagnostic = diag
+
+        # 1. FACT_CHECK_API: Authoritative rating takes precedence once aligned
         if item.source_type == EvidenceSourceType.FACT_CHECK_API and item.raw_rating:
             from backend.app.v2.fact_check_retriever import determine_stance
             fc_stance = determine_stance(item.raw_rating)
             if fc_stance != StanceType.NEUTRAL:
                 item.stance = fc_stance
-            elif pred.semantic_relation == SemanticRelation.SUPPORTS:
+            elif pred.semantic_relation == SemanticRelation.SUPPORTS and diag.get("proposition_compatible", True):
                 item.stance = StanceType.SUPPORTS
             elif pred.semantic_relation == SemanticRelation.CONTRADICTS:
                 item.stance = StanceType.CONTRADICTS
             else:
                 item.stance = StanceType.NEUTRAL
-        elif pred.semantic_relation == SemanticRelation.SUPPORTS:
-            item.stance = StanceType.SUPPORTS
-        elif pred.semantic_relation == SemanticRelation.CONTRADICTS:
-            item.stance = StanceType.CONTRADICTS
-        else:
-            item.stance = StanceType.NEUTRAL
+        elif item.source_type == EvidenceSourceType.FACT_CHECK_API:
+            if pred.semantic_relation == SemanticRelation.SUPPORTS and diag.get("proposition_compatible", True):
+                item.stance = StanceType.SUPPORTS
+            elif pred.semantic_relation == SemanticRelation.CONTRADICTS:
+                item.stance = StanceType.CONTRADICTS
+            else:
+                item.stance = StanceType.NEUTRAL
 
-        # Attach semantic diagnostic metadata
+        # 2. GENERAL_REFERENCE: Contextual only unless strong direct proposition match exists.
+        elif item.source_type == EvidenceSourceType.GENERAL_REFERENCE:
+            if diag.get("proposition_conflict", False) or item.stance == StanceType.CONTRADICTS or pred.semantic_relation == SemanticRelation.CONTRADICTS:
+                item.stance = StanceType.CONTRADICTS
+            elif pred.semantic_relation == SemanticRelation.SUPPORTS and diag.get("strong_direct_match", False):
+                item.stance = StanceType.SUPPORTS
+            else:
+                item.stance = StanceType.NEUTRAL
+
+        # 3. LIVE_NEWS_SEARCH:
+        # - Modality conflict (future intent vs completed) => NEUTRAL
+        # - Explicit structural contradiction => CONTRADICTS
+        # - Incompatible proposition => NEUTRAL
+        # - Compatible + NLI CONTRADICTS => CONTRADICTS
+        # - Compatible + NLI SUPPORTS => SUPPORTS
+        # - Compatible + NLI NEUTRAL => SUPPORTS if strong_direct_match else NEUTRAL
+        else:
+            is_modality_conflict = diag.get("modality_conflict", False)
+            is_conflict = diag.get("proposition_conflict", False) or item.stance == StanceType.CONTRADICTS
+            is_compatible = diag.get("proposition_compatible", False)
+            is_strong_direct = diag.get("strong_direct_match", False)
+
+            if is_modality_conflict:
+                item.stance = StanceType.NEUTRAL
+            elif is_conflict:
+                item.stance = StanceType.CONTRADICTS
+            elif not is_compatible:
+                item.stance = StanceType.NEUTRAL
+            elif pred.semantic_relation == SemanticRelation.CONTRADICTS:
+                item.stance = StanceType.CONTRADICTS
+            elif pred.semantic_relation == SemanticRelation.SUPPORTS:
+                item.stance = StanceType.SUPPORTS
+            else:
+                # NLI NEUTRAL on compatible proposition
+                if is_strong_direct:
+                    item.stance = StanceType.SUPPORTS
+                else:
+                    item.stance = StanceType.NEUTRAL
+
+        # Attach diagnostic metadata
         if hasattr(item, "semantic_relation"):
             item.semantic_relation = pred.semantic_relation.value
         if hasattr(item, "semantic_probabilities"):
             item.semantic_probabilities = pred.probabilities
+        if item.proposition_diagnostic is not None:
+            item.proposition_diagnostic["nli_result"] = pred.semantic_relation.value
+            item.proposition_diagnostic["final_stance"] = item.stance.value
 
         return pred
 

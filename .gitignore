@@ -38,7 +38,11 @@ backend/models/*.joblib
 # Environment files
 .env
 .env.*
+backend/.env
 frontend/.env
+
+# Scratch scripts
+scratch/
 
 # Frontend artifacts
 frontend/node_modules/

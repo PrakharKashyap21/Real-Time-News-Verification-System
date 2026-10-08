@@ -174,6 +174,146 @@ class FactCheckQueryBuilder:
 
         return query.strip()
 
+    DEMONYMS = {
+        "indian", "american", "british", "french", "german", "chinese",
+        "russian", "japanese", "canadian", "australian", "european", "asian"
+    }
+
+    GENERIC_ROLE_DESCRIPTORS = {
+        "retailer", "retailers", "company", "companies", "firm", "firms",
+        "official", "officials", "quarter", "quarters", "year", "years",
+        "month", "months", "study", "studies", "report", "reports", "reported",
+        "reporting", "post", "posts", "posted", "statement", "statements",
+        "say", "says", "said", "according", "year-on-year", "yoy",
+        "period", "periods", "financial", "record", "results", "result"
+    }
+
+    def _get_proposition(self, claim: ExtractedClaim):
+        if claim and hasattr(claim, "proposition") and claim.proposition:
+            return claim.proposition
+        from backend.app.v2.evidence_matcher import get_evidence_matcher
+        matcher = get_evidence_matcher()
+        return matcher.parse_proposition(claim.text if claim and claim.text else "")
+
+    def build_news_primary_query(self, claim: ExtractedClaim) -> str:
+        """Constructs a high-recall, compact proposition-driven query for Live News (NewsAPI/GDELT).
+        Focuses on: primary subject/entity + core domain object + meaningful predicate.
+        Excludes numbers, verbose dates, and generic role/demonym descriptors.
+        """
+        if not claim or not claim.text:
+            return ""
+
+        clean_text = self._clean_scaffolding(claim.text.strip())
+        clean_text_lower = clean_text.lower()
+        prop = self._get_proposition(claim)
+
+        # 1. Subject extraction (clean named entities, excluding demonyms & generic roles)
+        clean_subjects = []
+        raw_subjects = prop.subjects if prop and prop.subjects else []
+        for s in raw_subjects:
+            s_clean = s.strip().rstrip("-")
+            s_low = s_clean.lower()
+            # Preserve uppercase acronyms (e.g. WHO, NASA, EU, FDA)
+            is_acronym = s_clean.isupper() and len(s_clean) >= 2
+            if (
+                (is_acronym or (s_low not in self.DEMONYMS and s_low not in self.GENERIC_ROLE_DESCRIPTORS and s_low not in self.LOW_INFO_WORDS))
+                and not any(m in s_low for m in [
+                    "january", "february", "march", "april", "may", "june",
+                    "july", "august", "september", "october", "november", "december"
+                ])
+                and not re.search(r"\b(?:19\d\d|20\d\d)\b", s_clean)
+                and len(s_clean) > 1
+            ):
+                if s_clean not in clean_subjects and not any(s_clean.lower() == cs.lower() for cs in clean_subjects):
+                    clean_subjects.append(s_clean)
+
+        # If clean_subjects is empty, extract capitalized proper words
+        if not clean_subjects:
+            words = re.findall(r"\b[A-Z][a-z0-9'-]+\b", clean_text)
+            for w in words:
+                w_low = w.lower()
+                if (
+                    w_low not in self.DEMONYMS
+                    and w_low not in self.GENERIC_ROLE_DESCRIPTORS
+                    and w_low not in self.LOW_INFO_WORDS
+                    and len(w) > 1
+                ):
+                    clean_subjects.append(w)
+                    break
+
+        # 2. Core domain object extraction (excluding numbers, dates, descriptors)
+        clean_objects = []
+        raw_objects = prop.objects if prop and prop.objects else []
+        for obj in raw_objects:
+            obj_clean = obj.strip().lower()
+            if (
+                obj_clean not in self.GENERIC_ROLE_DESCRIPTORS
+                and obj_clean not in self.LOW_INFO_WORDS
+                and obj_clean not in [cs.lower() for cs in clean_subjects]
+                and not obj_clean.isdigit()
+                and not any(m in obj_clean for m in [
+                    "january", "february", "march", "april", "may", "june",
+                    "july", "august", "september", "october", "november", "december",
+                    "july-september"
+                ])
+                and len(obj_clean) > 2
+            ):
+                clean_objects.append(obj_clean)
+
+        # Sort objects by position of occurrence in text to preserve primary domain focus
+        def _obj_pos(o: str) -> int:
+            p = clean_text_lower.find(o)
+            return p if p != -1 else 9999
+        clean_objects = sorted(clean_objects, key=_obj_pos)
+
+        # 3. Meaningful predicate / action extraction
+        predicate_word = ""
+        ACTION_SEARCH_WORDS = [
+            "revenue", "profit", "profits", "merger", "acquired", "acquisition", "landed",
+            "landing", "launch", "launched", "spread", "spreading", "discovered",
+            "discovery", "won", "awarded", "rise", "rose", "growth", "fall", "dropped",
+            "approved", "cleared", "banned", "tested"
+        ]
+        tokens_low = [t.lower() for t in re.findall(r"\b[A-Za-z0-9'-]+\b", clean_text)]
+        for act in ACTION_SEARCH_WORDS:
+            if act in tokens_low and act not in [cs.lower() for cs in clean_subjects] and act not in clean_objects:
+                predicate_word = act
+                break
+
+        # Assemble compact query
+        query_terms = []
+        # Add up to 2 distinct subjects
+        for s in clean_subjects[:2]:
+            query_terms.append(s)
+
+        # Add top 1-2 core objects
+        for o in clean_objects[:2]:
+            if o.lower() not in [t.lower() for t in query_terms]:
+                query_terms.append(o)
+
+        # Add predicate word if not already present
+        if predicate_word and predicate_word.lower() not in [t.lower() for t in query_terms]:
+            query_terms.append(predicate_word)
+
+        # Priority Fallback: If sparse, fall back to high-salience tokens
+        if not query_terms:
+            substantive = [t for t in re.findall(r"\b[A-Za-z0-9'-]+\b", clean_text) if len(t) > 2 and t.lower() not in self.LOW_INFO_WORDS and not t.isdigit()]
+            query_terms = substantive[:3]
+
+        query = " ".join(query_terms[:4])
+        if len(query) > 60:
+            query = query[:60].rsplit(" ", 1)[0]
+
+        return query.strip()
+
+    def build_news_fallback_query(self, claim: ExtractedClaim) -> str:
+        """Constructs a compact secondary fallback query for Live News."""
+        primary_q = self.build_news_primary_query(claim)
+        tokens = primary_q.split()
+        if len(tokens) > 2:
+            return " ".join(tokens[:2])
+        return primary_q
+
     def filter_relevant_evidence(
         self, claim: ExtractedClaim, evidence_items: List[EvidenceItem]
     ) -> List[EvidenceItem]:
