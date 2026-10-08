@@ -10,7 +10,6 @@ const V2VerificationResult = ({ result }) => {
     assessment_summary,
     has_conflict,
     claims,
-    linguistic_signal,
     service_status,
     disclaimer
   } = result;
@@ -161,18 +160,6 @@ ${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: 
           ))
         )}
       </div>
-
-      {/* V1 Linguistic Signal (Optional Badge) */}
-      {linguistic_signal && (
-        <div className="linguistic-signal-card">
-          <div className="signal-header">
-            <span className="signal-icon">📊</span>
-            <span className="signal-title">V1 Linguistic Text-Style Indicator:</span>
-            <strong className="signal-badge">{linguistic_signal.prediction}</strong>
-          </div>
-          <p className="signal-message">{linguistic_signal.message}</p>
-        </div>
-      )}
 
       {/* Disclaimer */}
       <div className="disclaimer-footer-card">
