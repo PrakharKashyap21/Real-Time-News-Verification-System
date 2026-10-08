@@ -67,8 +67,11 @@ class VerificationService:
         verdict_engine: Optional[VerdictEngine] = None,
         svm_provider: Optional[SVMSignalProvider] = None,
         gdelt_retriever: Optional[Any] = None,
-        mock_mode: bool = False
+        mock_mode: bool = False,
+        use_rag: bool = False
     ):
+        self.mock_mode = mock_mode
+        self.use_rag = use_rag
         self.claim_extractor = claim_extractor or get_claim_extractor()
         self.fc_retriever = fc_retriever or get_fact_check_retriever(mock_mode=mock_mode)
         self.news_retriever = news_retriever or get_newsapi_retriever(mock_mode=mock_mode)
@@ -149,7 +152,24 @@ class VerificationService:
         text = (request.text or "").strip()
         max_claims = request.max_claims or 5
 
-        # 1. Claim extraction
+        # If RAG is enabled and Gemini API is ready, execute Gemini RAG verifier
+        if self.use_rag:
+            from backend.app.v2.rag_verifier import get_rag_verifier
+            rag_verifier = get_rag_verifier()
+            if rag_verifier.client:
+                try:
+                    rag_res = rag_verifier.verify_request(request)
+                    # Attach linguistic signal if requested
+                    if request.include_linguistic_signal and not rag_res.linguistic_signal:
+                        try:
+                            rag_res.linguistic_signal = self.svm_provider.get_signal(title=title, text=text)
+                        except Exception:
+                            pass
+                    return rag_res
+                except Exception as e:
+                    logger.warning("RAG verifier exception, falling back to heuristic pipeline: %s", e)
+
+        # 1. Claim extraction (Fallback Heuristic Pipeline)
         t_ext_start = time.perf_counter()
         extracted_claims = self.claim_extractor.extract_claims(title=title, text=text, max_claims=max_claims)
         t_ext_ms = (time.perf_counter() - t_ext_start) * 1000

@@ -3,6 +3,8 @@ import React, { useState } from "react";
 const V2VerificationResult = ({ result }) => {
   if (!result) return null;
 
+  const [copied, setCopied] = useState(false);
+
   const {
     overall_assessment,
     assessment_summary,
@@ -14,170 +16,137 @@ const V2VerificationResult = ({ result }) => {
   } = result;
 
   const getVerdictClass = (verdict) => {
-    switch (verdict) {
+    switch (verdict?.toUpperCase()) {
       case "SUPPORTED":
-        return "badge-supported";
+        return "verdict-supported";
       case "CONTRADICTED":
-        return "badge-contradicted";
+        return "verdict-contradicted";
+      case "MISLEADING":
+        return "verdict-misleading";
       case "UNVERIFIED":
       default:
-        return "badge-unverified";
+        return "verdict-unverified";
     }
   };
 
-  const getVerdictExplanation = (verdict) => {
-    switch (verdict) {
+  const getVerdictIcon = (verdict) => {
+    switch (verdict?.toUpperCase()) {
       case "SUPPORTED":
-        return "All extracted claims in this article were corroborated by external fact-checks, live news reporting, or reference sources.";
+        return "✅";
       case "CONTRADICTED":
-        return "One or more extracted claims were directly contradicted or debunked by external fact-checks or reporting.";
+        return "❌";
+      case "MISLEADING":
+        return "⚠️";
       case "UNVERIFIED":
       default:
-        return "Available external evidence is insufficient or inconclusive to confirm or refute the claims. Note: UNVERIFIED does NOT mean the article is false; it indicates an absence of matched external reporting.";
+        return "❓";
     }
   };
 
-  const getStrengthClass = (strength) => {
-    switch (strength) {
-      case "STRONG":
-        return "strength-strong";
-      case "MODERATE":
-        return "strength-moderate";
-      case "LIMITED":
-        return "strength-limited";
-      case "NONE":
+  const getVerdictDescription = (verdict) => {
+    switch (verdict?.toUpperCase()) {
+      case "SUPPORTED":
+        return "All core factual statements in this news claim were directly confirmed by live journalism and credible reporting.";
+      case "CONTRADICTED":
+        return "Credible external news reports or official sources refute or debunk one or more key assertions in this claim.";
+      case "MISLEADING":
+        return "This claim mixes verified facts with false, distorted, or unconfirmed claims.";
+      case "UNVERIFIED":
       default:
-        return "strength-none";
-    }
-  };
-
-  const getUncertaintyClass = (level) => {
-    switch (level) {
-      case "LOW":
-        return "uncertainty-low";
-      case "MEDIUM":
-        return "uncertainty-medium";
-      case "HIGH":
-      default:
-        return "uncertainty-high";
+        return "No sufficient indexed news coverage or fact-check records were found. Note: UNVERIFIED indicates a lack of external reporting, not necessarily falsehood.";
     }
   };
 
   const getStanceBadge = (stance) => {
-    switch (stance) {
+    switch (stance?.toUpperCase()) {
       case "SUPPORTS":
-        return <span className="stance-badge stance-supports">Supports</span>;
+        return <span className="stance-chip stance-supports">✓ Corroborates</span>;
       case "CONTRADICTS":
-        return <span className="stance-badge stance-contradicts">Contradicts</span>;
+        return <span className="stance-chip stance-contradicts">✗ Refutes</span>;
       case "NEUTRAL":
       default:
-        return <span className="stance-badge stance-neutral">Neutral</span>;
+        return <span className="stance-chip stance-neutral">○ Context</span>;
     }
   };
 
-  // Check if article has mixed claim outcomes
-  const verdicts = claims ? claims.map((c) => c.verdict) : [];
-  const uniqueVerdicts = Array.from(new Set(verdicts));
-  const isMultiClaimMixed = uniqueVerdicts.length > 1;
+  const handleCopyReport = () => {
+    const reportText = `[News Verification Report]
+Overall Verdict: ${overall_assessment}
+Summary: ${assessment_summary}
 
-  // Check service status alerts
-  const hasServiceIssue =
-    service_status &&
-    (service_status.fact_check_api !== "ok" ||
-      service_status.live_news_api !== "ok" ||
-      service_status.reference_api !== "ok");
+Claims Evaluated:
+${(claims || []).map((c, i) => `\n${i + 1}. "${c.text}" -> ${c.verdict}\nReasoning: ${c.reasoning}`).join("\n")}
+
+Sources Consulted:
+${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: ${e.title} (${e.url})`).join("\n") || "No sources"}
+`;
+
+    navigator.clipboard.writeText(reportText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const totalSources = (claims || []).reduce((acc, c) => acc + (c.evidence ? c.evidence.length : 0), 0);
 
   return (
     <div className="v2-verification-container">
-      {/* Overall Assessment Header */}
-      <div className={`overall-card ${getVerdictClass(overall_assessment)}`}>
-        <div className="overall-header">
-          <div className="overall-title-group">
-            <span className="overall-label">Overall Article Assessment</span>
-            <span className={`verdict-pill ${getVerdictClass(overall_assessment)}`}>
-              {overall_assessment}
-            </span>
+      {/* Top Banner with Verdict & Copy Button */}
+      <div className={`hero-verdict-card ${getVerdictClass(overall_assessment)}`}>
+        <div className="hero-verdict-header">
+          <div className="hero-verdict-badge-group">
+            <span className="verdict-emoji">{getVerdictIcon(overall_assessment)}</span>
+            <span className="hero-verdict-title">{overall_assessment}</span>
           </div>
-          {has_conflict && (
-            <span className="conflict-flag-badge">
-              ⚠️ Conflicting Evidence Detected
-            </span>
-          )}
+
+          <button
+            type="button"
+            className="copy-report-btn"
+            onClick={handleCopyReport}
+            title="Copy structured summary to clipboard"
+          >
+            {copied ? "✓ Copied!" : "📋 Copy Report"}
+          </button>
         </div>
 
-        <p className="overall-summary">{assessment_summary}</p>
+        <p className="hero-verdict-summary">{assessment_summary}</p>
 
-        <div className="verdict-explanation-box">
-          <strong>What this means:</strong> {getVerdictExplanation(overall_assessment)}
+        <div className="hero-verdict-footer">
+          <div className="verdict-guide-box">
+            <strong>Analysis Context:</strong> {getVerdictDescription(overall_assessment)}
+          </div>
+          {has_conflict && (
+            <div className="conflict-alert-badge">
+              ⚠️ Conflicting reports found across different publishers
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Multi-claim Mixed Notice */}
-      {isMultiClaimMixed && (
-        <div className="mixed-claims-notice" role="note">
-          <div className="mixed-claims-title">📊 Multi-Claim Article Breakdown</div>
-          <p className="mixed-claims-text">
-            This article contains multiple claims with differing verification outcomes. Review the claim-by-claim breakdown below to see the evidence for each individual assertion.
-          </p>
+      {/* Stats Summary Strip */}
+      <div className="stats-strip">
+        <div className="stat-item">
+          <span className="stat-num">{claims ? claims.length : 0}</span>
+          <span className="stat-label">Claims Extracted</span>
         </div>
-      )}
-
-      {/* Service Status Warning Banners */}
-      {hasServiceIssue && (
-        <div className="service-warning-banner" role="alert">
-          <div className="service-warning-title">⚠️ External Provider Availability Notice</div>
-          <ul>
-            {service_status.fact_check_api === "missing_api_key" && (
-              <li>Google Fact Check API key is not configured on the server. Fact-check evidence retrieval is currently unavailable.</li>
-            )}
-            {service_status.fact_check_api && service_status.fact_check_api.startsWith("error") && (
-              <li>Google Fact Check API encountered an issue ({service_status.fact_check_api}). Fact-check results may be partial.</li>
-            )}
-            {service_status.live_news_api && service_status.live_news_api === "missing_api_key" && (
-              <li>Live News API key is not configured on the server. Live news coverage retrieval is unavailable.</li>
-            )}
-            {service_status.live_news_api && service_status.live_news_api === "rate_limited" && (
-              <li>Live news search provider reached its rate limit. Live news coverage may be partial.</li>
-            )}
-            {service_status.live_news_api && service_status.live_news_api.startsWith("error") && (
-              <li>Live news search encountered an issue ({service_status.live_news_api}). News results may be partial.</li>
-            )}
-            {service_status.reference_api && service_status.reference_api === "rate_limited" && (
-              <li>General reference provider reached its rate limit. Reference encyclopedia results may be partial.</li>
-            )}
-            {service_status.reference_api && service_status.reference_api === "timeout" && (
-              <li>General reference retrieval timed out. Reference encyclopedia results may be partial.</li>
-            )}
-            {service_status.reference_api && service_status.reference_api.startsWith("error") && (
-              <li>General reference provider encountered an issue ({service_status.reference_api}).</li>
-            )}
-          </ul>
+        <div className="stat-item">
+          <span className="stat-num">{totalSources}</span>
+          <span className="stat-label">Verified Sources</span>
         </div>
-      )}
-
-      {/* Article-level Linguistic SVM Signal Banner (Informational Only) */}
-      {linguistic_signal && (
-        <div className="linguistic-signal-card">
-          <div className="linguistic-signal-header">
-            <span className="signal-title">Linguistic Pattern Signal (V1 SVM Baseline)</span>
-            <span className="signal-score">Margin Confidence: {linguistic_signal.confidence.toFixed(1)}%</span>
-          </div>
-          <p className="signal-message">{linguistic_signal.message}</p>
-          <div className="signal-disclaimer">
-            Informational baseline only: The linguistic signal is derived strictly from text style classification (V1 SVM) and does NOT evaluate factual truth or external evidence.
-          </div>
+        <div className="stat-item">
+          <span className="stat-num">
+            {service_status?.gemini_api === "ok" ? "Gemini AI" : "Heuristic"}
+          </span>
+          <span className="stat-label">Reasoning Engine</span>
         </div>
-      )}
+      </div>
 
-      {/* Extracted Claims Section */}
+      {/* Claims Breakdown Section */}
       <div className="claims-section">
-        <h2 className="claims-section-title">
-          Extracted Claims ({claims ? claims.length : 0})
-        </h2>
+        <h3 className="section-heading">Detailed Claim-by-Claim Verification</h3>
 
-        {!claims || claims.length === 0 ? (
-          <div className="empty-claims-card">
-            No distinct factual claims were extracted from the input text. Please provide more detailed news content.
+        {(!claims || claims.length === 0) ? (
+          <div className="empty-state-box">
+            No distinct factual claims were extracted. Try submitting a longer news excerpt.
           </div>
         ) : (
           claims.map((claim, index) => (
@@ -186,166 +155,106 @@ const V2VerificationResult = ({ result }) => {
               claim={claim}
               index={index}
               getVerdictClass={getVerdictClass}
-              getStrengthClass={getStrengthClass}
-              getUncertaintyClass={getUncertaintyClass}
+              getVerdictIcon={getVerdictIcon}
               getStanceBadge={getStanceBadge}
             />
           ))
         )}
       </div>
 
-      {/* System Disclaimer & Limitations */}
-      <div className="v2-disclaimer-card">
-        <div className="disclaimer-title">System Scope & Evidence Limitations</div>
-        <p className="disclaimer-body">
+      {/* V1 Linguistic Signal (Optional Badge) */}
+      {linguistic_signal && (
+        <div className="linguistic-signal-card">
+          <div className="signal-header">
+            <span className="signal-icon">📊</span>
+            <span className="signal-title">V1 Linguistic Text-Style Indicator:</span>
+            <strong className="signal-badge">{linguistic_signal.prediction}</strong>
+          </div>
+          <p className="signal-message">{linguistic_signal.message}</p>
+        </div>
+      )}
+
+      {/* Disclaimer */}
+      <div className="disclaimer-footer-card">
+        <span className="disclaimer-icon">ℹ️</span>
+        <p className="disclaimer-text">
           {disclaimer ||
-            "Verification is based on aggregated live news, fact-check databases, and reference encyclopedias. UNVERIFIED claims do not imply falsity, but rather an absence of conclusive external reporting."}
-        </p>
-        <p className="disclaimer-sub">
-          Evidence availability directly affects verification. The system does not claim to establish absolute objective truth; it reflects the corroboration or refutation found in publicly indexed sources.
+            "Verification is powered by real-time web news retrieval and Google Gemini AI reasoning. UNVERIFIED claims indicate an absence of indexed external reporting rather than proven falsehood."}
         </p>
       </div>
     </div>
   );
 };
 
-const ClaimCard = ({ claim, index, getVerdictClass, getStrengthClass, getUncertaintyClass, getStanceBadge }) => {
+const ClaimCard = ({ claim, index, getVerdictClass, getVerdictIcon, getStanceBadge }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const {
     text,
     verdict,
     reasoning,
-    evidence_strength,
-    uncertainty_level,
-    has_conflicting_evidence,
-    supporting_evidence_count,
-    contradicting_evidence_count,
-    neutral_evidence_count,
-    semantic_relation,
-    evidence,
-    linguistic_signal
+    supporting_evidence_count = 0,
+    contradicting_evidence_count = 0,
+    neutral_evidence_count = 0,
+    evidence = []
   } = claim;
 
-  const fcEvidence = evidence ? evidence.filter((e) => e.source_type === "FACT_CHECK_API") : [];
-  const newsEvidence = evidence ? evidence.filter((e) => e.source_type === "LIVE_NEWS_SEARCH") : [];
-  const refEvidence = evidence ? evidence.filter((e) => e.source_type === "GENERAL_REFERENCE") : [];
-  const totalEvidenceCount = evidence ? evidence.length : 0;
-
   return (
-    <div className="claim-card">
-      <div className="claim-header" onClick={() => setIsExpanded(!isExpanded)} role="button" tabIndex={0}>
-        <div className="claim-title-area">
-          <span className="claim-number">Claim #{index + 1}</span>
-          <p className="claim-text">"{text}"</p>
+    <div className={`claim-card-modern ${getVerdictClass(verdict)}`}>
+      <div
+        className="claim-header-modern"
+        onClick={() => setIsExpanded(!isExpanded)}
+        role="button"
+        tabIndex={0}
+      >
+        <div className="claim-headline-area">
+          <span className="claim-badge-num">Claim #{index + 1}</span>
+          <h4 className="claim-quote-text">"{text}"</h4>
         </div>
 
-        <div className="claim-meta-tags">
-          <span className={`verdict-pill ${getVerdictClass(verdict)}`}>{verdict}</span>
-          {semantic_relation && (
-            <span className="meta-pill semantic-rel-pill">
-              NLI: {semantic_relation}
-            </span>
-          )}
-          <span className={`meta-pill ${getStrengthClass(evidence_strength)}`}>
-            Strength: {evidence_strength}
+        <div className="claim-verdict-pill-area">
+          <span className={`verdict-pill-modern ${getVerdictClass(verdict)}`}>
+            {getVerdictIcon(verdict)} {verdict}
           </span>
-          <span className={`meta-pill ${getUncertaintyClass(uncertainty_level)}`}>
-            Uncertainty: {uncertainty_level}
-          </span>
-          <button type="button" className="expand-toggle-btn" aria-label="Toggle claim details">
+          <button type="button" className="accordion-arrow" aria-label="Toggle details">
             {isExpanded ? "▲" : "▼"}
           </button>
         </div>
       </div>
 
       {isExpanded && (
-        <div className="claim-body">
-          {/* Deterministic Reasoning */}
-          <div className="reasoning-box">
-            <strong>Verification Reasoning:</strong> {reasoning}
+        <div className="claim-content-modern">
+          {/* AI Explanation Box */}
+          <div className="ai-reasoning-card">
+            <div className="reasoning-header">
+              <span className="ai-icon">💡</span>
+              <span className="ai-label">AI Verification Analysis</span>
+            </div>
+            <p className="reasoning-text">{reasoning}</p>
           </div>
 
-          {/* Evidence Counts Pill Breakdown */}
-          {totalEvidenceCount > 0 && (
-            <div className="evidence-counts-row">
-              <span className="count-pill count-supports">
-                Supports: {supporting_evidence_count}
-              </span>
-              <span className="count-pill count-contradicts">
-                Contradicts: {contradicting_evidence_count}
-              </span>
-              <span className="count-pill count-neutral">
-                Neutral: {neutral_evidence_count}
-              </span>
+          {/* Stance Counter */}
+          {evidence.length > 0 && (
+            <div className="stance-counters-bar">
+              <span className="counter-pill sup">✓ {supporting_evidence_count} Supporting</span>
+              <span className="counter-pill con">✗ {contradicting_evidence_count} Refuting</span>
+              <span className="counter-pill neu">○ {neutral_evidence_count} Mentioning</span>
             </div>
           )}
 
-          {/* Special Situation Banners */}
-          {has_conflicting_evidence && (
-            <div className="claim-alert alert-conflict">
-              <strong>⚠️ Conflicting evidence found:</strong> Both supporting and contradicting sources were retrieved for this claim. Review individual evidence items below.
+          {/* Evidence Sources List */}
+          {evidence.length > 0 ? (
+            <div className="sources-container">
+              <h5 className="sources-title">📰 Citations & Verified Sources ({evidence.length})</h5>
+              <div className="sources-grid">
+                {evidence.map((item, idx) => (
+                  <SourceCard key={item.id || idx} item={item} getStanceBadge={getStanceBadge} />
+                ))}
+              </div>
             </div>
-          )}
-
-          {verdict === "UNVERIFIED" && totalEvidenceCount === 0 && (
-            <div className="claim-alert alert-no-evidence">
-              <strong>No sufficiently relevant external evidence found.</strong> No independent fact-checks, live news coverage, or encyclopedia articles were matched for this claim. It remains UNVERIFIED due to evidence absence (which does not mean false).
-            </div>
-          )}
-
-          {/* Per-Claim Linguistic Signal */}
-          {linguistic_signal && (
-            <div className="claim-linguistic-signal">
-              <span className="signal-badge-label">Linguistic Signal (V1 SVM):</span>
-              <span className="signal-badge-val">
-                {linguistic_signal.prediction} ({linguistic_signal.confidence.toFixed(1)}% margin)
-              </span>
-            </div>
-          )}
-
-          {/* Evidence Items Section */}
-          {totalEvidenceCount > 0 && (
-            <div className="evidence-sections-wrapper">
-              <h4 className="evidence-heading">
-                Retrieved Evidence ({totalEvidenceCount} items: {fcEvidence.length} Fact-Checks, {newsEvidence.length} Live News, {refEvidence.length} References)
-              </h4>
-
-              {/* Fact Check Evidence List */}
-              {fcEvidence.length > 0 && (
-                <div className="evidence-group">
-                  <h5 className="group-title">🔍 Fact-Check Reports ({fcEvidence.length})</h5>
-                  <div className="evidence-grid">
-                    {fcEvidence.map((item, idx) => (
-                      <EvidenceCard key={item.id || idx} item={item} getStanceBadge={getStanceBadge} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Live News Evidence List */}
-              {newsEvidence.length > 0 && (
-                <div className="evidence-group">
-                  <h5 className="group-title">📰 Live News Coverage ({newsEvidence.length})</h5>
-                  <div className="evidence-grid">
-                    {newsEvidence.map((item, idx) => (
-                      <EvidenceCard key={item.id || idx} item={item} getStanceBadge={getStanceBadge} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* General Reference Evidence List */}
-              {refEvidence.length > 0 && (
-                <div className="evidence-group">
-                  <h5 className="group-title">📚 Reference Knowledge Base ({refEvidence.length})</h5>
-                  <div className="evidence-grid">
-                    {refEvidence.map((item, idx) => (
-                      <EvidenceCard key={item.id || idx} item={item} getStanceBadge={getStanceBadge} />
-                    ))}
-                  </div>
-                </div>
-              )}
+          ) : (
+            <div className="no-sources-alert">
+              No direct external news articles or fact-checks were retrieved for this specific assertion.
             </div>
           )}
         </div>
@@ -354,59 +263,45 @@ const ClaimCard = ({ claim, index, getVerdictClass, getStrengthClass, getUncerta
   );
 };
 
-const EvidenceCard = ({ item, getStanceBadge }) => {
-  const getSourceTypeLabel = (sourceType) => {
-    switch (sourceType) {
-      case "FACT_CHECK_API":
-        return "Fact Check API";
-      case "LIVE_NEWS_SEARCH":
-        return "Live News Search";
-      case "GENERAL_REFERENCE":
-        return "General Reference (Wikipedia)";
-      default:
-        return sourceType;
-    }
-  };
-
+const SourceCard = ({ item, getStanceBadge }) => {
   return (
-    <div className="evidence-item-card">
-      <div className="evidence-item-header">
-        <div className="publisher-info">
+    <div className="source-citation-card">
+      <div className="source-card-header">
+        <div className="publisher-badge">
+          <span className="publisher-logo-icon">🌐</span>
           <span className="publisher-name">{item.publisher || item.domain}</span>
-          {item.publish_date && <span className="publish-date">• {item.publish_date}</span>}
         </div>
         {getStanceBadge(item.stance)}
       </div>
 
-      <h5 className="evidence-title">
+      <h5 className="source-headline">
         <a
           href={item.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="evidence-link"
+          className="source-external-link"
         >
-          {item.title || "External Source"} ↗
+          {item.title} <span className="external-arrow">↗</span>
         </a>
       </h5>
 
-      {item.snippet && <p className="evidence-snippet">"{item.snippet}"</p>}
+      {item.snippet && (
+        <div className="quote-callout">
+          <span className="quote-mark">“</span>
+          <p className="quote-body">{item.snippet}</p>
+        </div>
+      )}
 
-      <div className="evidence-footer">
-        <span className="source-type-tag">
-          {getSourceTypeLabel(item.source_type)}
-        </span>
-
-        {item.claim_reviewed && (
-          <span className="claim-reviewed-tag">
-            Reviewed: "{item.claim_reviewed}"
-          </span>
-        )}
-
-        {item.raw_rating && (
-          <span className="raw-rating-tag">
-            Rating: <strong>{item.raw_rating}</strong>
-          </span>
-        )}
+      <div className="source-footer">
+        <span className="source-domain-tag">{item.domain}</span>
+        <a
+          href={item.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="read-article-link"
+        >
+          Read Source →
+        </a>
       </div>
     </div>
   );
