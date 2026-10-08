@@ -1,4 +1,4 @@
-# 🛡️ VeriFact AI: Real-Time News & Claim Verification System
+# 🔍 TruthLens AI: Real-Time News & Claim Verification System
 ### *Next-Gen Retrieval-Augmented Generation (RAG) & LLM Fact-Checking Engine*
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
@@ -13,9 +13,9 @@
 
 ## 📌 1. Project Overview
 
-**VeriFact AI** is a production-grade, real-time news verification and fact-checking web application powered by **Retrieval-Augmented Generation (RAG)** and **Google Gemini Large Language Models (LLMs)**. 
+**TruthLens AI** is a production-grade, real-time news verification and fact-checking web application powered by **Retrieval-Augmented Generation (RAG)** and **Google Gemini Large Language Models (LLMs)**. 
 
-Traditional machine learning fact-checkers rely on static datasets or small NLI classifiers that evaluate writing style rather than objective real-world facts. **VeriFact AI** solves this by connecting a live web search retrieval pipeline directly to an advanced generative reasoning engine:
+Traditional machine learning fact-checkers rely on static datasets or small NLI classifiers that evaluate writing style rather than objective real-world facts. **TruthLens AI** solves this by connecting a live web search retrieval pipeline directly to an advanced generative reasoning engine:
 
 1. **Retrieves** real-time breaking news, press releases, and investigative reports across the live internet.
 2. **Extracts** full-text journalistic article paragraphs and context.
@@ -75,7 +75,7 @@ flowchart TD
 
 ## 🔬 4. Why RAG + LLMs Solve Traditional Verification Bottlenecks
 
-| Verification Dimension | Traditional Static ML / Small NLI | 🌟 VeriFact AI (RAG + Gemini Flash) |
+| Verification Dimension | Traditional Static ML / Small NLI | 🌟 TruthLens AI (RAG + Gemini Flash) |
 | :--- | :--- | :--- |
 | **Breaking & Dynamic News** | ❌ Fails (Training cutoff / no live internet access) | ✅ **Real-Time** (Fetches breaking coverage published minutes ago) |
 | **Vocabulary & Nuance** | ❌ Brittle (Confused by synonyms, acronyms, slang) | ✅ **Deep Semantic Understanding** (Recognizes that *"Q2"* is *"July–September"*) |

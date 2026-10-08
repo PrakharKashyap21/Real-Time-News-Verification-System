@@ -52,9 +52,9 @@ function App() {
   return (
     <div className="app-container">
       <header className="header">
-        <h1 className="main-title">Real-Time News Verification System</h1>
+        <h1 className="main-title">TruthLens AI</h1>
         <p className="subtitle">
-          Fact-checking and live news evidence aggregation pipeline.
+          Real-time news verification and fact-checking powered by Agentic RAG & Gemini AI.
         </p>
 
         {/* Mode Navigation Tabs */}

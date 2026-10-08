@@ -12,8 +12,8 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(
-    title="Fake News Detection & Real-Time Verification API",
-    description="NLP and Machine Learning pipeline for fake news classification & V2 evidence verification",
+    title="TruthLens AI: Real-Time News & Claim Verification API",
+    description="Agentic RAG and Large Language Model pipeline for real-time news verification and fact-checking",
     version="2.0.0",
     lifespan=lifespan
 )
