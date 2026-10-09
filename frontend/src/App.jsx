@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import NewsForm from "./components/NewsForm";
+import OmniSearchInput from "./components/OmniSearchInput";
 import V2VerificationResult from "./components/V2VerificationResult";
-import RecentHistory from "./components/RecentHistory";
-import EmptyState from "./components/EmptyState";
+import HistoryDrawer from "./components/HistoryDrawer";
+import ArchitectureSection from "./components/ArchitectureSection";
 import { verifyNewsV2 } from "./api";
 
 const LOCAL_STORAGE_KEY = "truthlens_verification_history_v1";
@@ -10,7 +10,8 @@ const LOCAL_STORAGE_KEY = "truthlens_verification_history_v1";
 function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [verificationResult, setVerificationResult] = useState(null);
-  const [activeHistoryId, setActiveHistoryId] = useState(null);
+  const [activeQuery, setActiveQuery] = useState({ title: "", text: "" });
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [error, setError] = useState("");
   const [validationError, setValidationError] = useState("");
 
@@ -35,8 +36,8 @@ function App() {
   const handleVerify = async ({ title, text, sourceUrl }) => {
     setIsLoading(true);
     setError("");
-    setVerificationResult(null);
-    setActiveHistoryId(null);
+    setValidationError("");
+    setActiveQuery({ title: title || "", text: text || "" });
 
     try {
       const data = await verifyNewsV2(title, text);
@@ -51,8 +52,8 @@ function App() {
         result: data,
       };
 
-      setHistory((prev) => [newItem, ...prev.filter((item) => item.text !== text)].slice(0, 10));
-      setActiveHistoryId(newItem.id);
+      setHistory((prev) => [newItem, ...prev.filter((item) => item.text !== text)].slice(0, 15));
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setError(err.message || "An error occurred while performing real-time verification.");
     } finally {
@@ -62,107 +63,151 @@ function App() {
 
   const handleSelectHistoryItem = (item) => {
     setVerificationResult(item.result);
-    setActiveHistoryId(item.id);
+    setActiveQuery({ title: item.title || "", text: item.text || "" });
     setError("");
     setValidationError("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleClearHistory = () => {
     setHistory([]);
-    if (activeHistoryId) {
-      setActiveHistoryId(null);
-    }
   };
 
   const handleDeleteHistoryItem = (id) => {
     setHistory((prev) => prev.filter((item) => item.id !== id));
-    if (activeHistoryId === id) {
-      setActiveHistoryId(null);
-    }
+  };
+
+  const handleResetHome = () => {
+    setVerificationResult(null);
+    setActiveQuery({ title: "", text: "" });
+    setError("");
+    setValidationError("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    <div className="app-container">
-      {/* Top Header */}
-      <header className="header">
-        <div className="header-badge">
-          <span className="live-pulsar"></span>
-          <span>Agentic RAG Fact Checking</span>
+    <div className="app-layout">
+      {/* Sleek Top Navbar */}
+      <nav className="navbar">
+        <div className="nav-brand" onClick={handleResetHome} role="button" tabIndex={0}>
+          <span className="brand-logo">TruthLens</span>
+          <span className="brand-ai">AI</span>
+          <span className="nav-badge">Agentic RAG</span>
         </div>
-        <h1 className="main-title">TruthLens AI</h1>
-        <p className="subtitle">
-          Autonomous real-time news verification and deep source attribution powered by DuckDuckGo, Trafilatura & Google Gemini AI.
-        </p>
-      </header>
 
-      {/* Main 2-Column Dashboard Layout */}
-      <main className="dashboard-grid">
-        {/* Left Column: Input Form + Recent History */}
-        <section className="left-panel">
-          <div className="card form-card">
-            <NewsForm
-              onSubmit={handleVerify}
-              isLoading={isLoading}
-              validationError={validationError}
-              setValidationError={setValidationError}
-              submitLabel="Verify News"
-            />
-          </div>
-
-          <RecentHistory
-            history={history}
-            onSelectHistoryItem={handleSelectHistoryItem}
-            onClearHistory={handleClearHistory}
-            onDeleteItem={handleDeleteHistoryItem}
-            activeId={activeHistoryId}
-          />
-        </section>
-
-        {/* Right Column: Verification Results / Live Skeleton / Empty Overview */}
-        <section className="right-panel">
-          {error && (
-            <div className="error-card" role="alert">
-              <div className="error-title">⚠️ Verification Error</div>
-              <div className="error-message">{error}</div>
-            </div>
+        <div className="nav-actions">
+          {verificationResult && (
+            <button
+              type="button"
+              className="nav-btn nav-new-btn"
+              onClick={handleResetHome}
+            >
+              + New Search
+            </button>
           )}
 
-          {verificationResult ? (
-            <div className="v2-result-wrapper">
+          <a href="#how-it-works" className="nav-link">
+            Architecture
+          </a>
+
+          <button
+            type="button"
+            className="nav-btn nav-history-btn"
+            onClick={() => setIsDrawerOpen(true)}
+            title="Open Recent Verification History"
+          >
+            <span>🕒 History</span>
+            {history.length > 0 && <span className="nav-history-count">{history.length}</span>}
+          </button>
+        </div>
+      </nav>
+
+      {/* Main Content Area */}
+      <main className="main-viewport">
+        {!verificationResult ? (
+          /* Initial Minimalist Landing State (Perplexity / Grok style) */
+          <div className="hero-landing-container">
+            <div className="hero-center-header">
+              <div className="hero-pill">
+                <span className="live-dot"></span>
+                <span>Real-Time Autonomous Fact-Checking</span>
+              </div>
+              <h1 className="hero-headline">Where claims meet evidence.</h1>
+              <p className="hero-tagline">
+                Verify breaking news, viral statements, and article URLs with real-time web retrieval, deep paragraph extraction, and Google Gemini AI.
+              </p>
+            </div>
+
+            {/* Omni Search AI Box */}
+            <div className="hero-search-area">
+              <OmniSearchInput
+                onSubmit={handleVerify}
+                isLoading={isLoading}
+                validationError={validationError}
+                setValidationError={setValidationError}
+                initialText={activeQuery.text}
+                initialTitle={activeQuery.title}
+                isCompact={false}
+              />
+            </div>
+
+            {error && (
+              <div className="error-card-floating" role="alert">
+                <strong>⚠️ Verification Failed:</strong> {error}
+              </div>
+            )}
+
+            {/* Below-the-fold Architecture Section */}
+            <ArchitectureSection />
+          </div>
+        ) : (
+          /* Active Result State */
+          <div className="result-view-container">
+            {/* Compact Search Bar at Top */}
+            <div className="compact-search-container">
+              <OmniSearchInput
+                onSubmit={handleVerify}
+                isLoading={isLoading}
+                validationError={validationError}
+                setValidationError={setValidationError}
+                initialText=""
+                initialTitle=""
+                isCompact={true}
+              />
+            </div>
+
+            {error && (
+              <div className="error-card-floating" role="alert">
+                <strong>⚠️ Verification Failed:</strong> {error}
+              </div>
+            )}
+
+            {/* Full Width Verification Report */}
+            <div className="result-report-card">
               <V2VerificationResult result={verificationResult} />
             </div>
-          ) : isLoading ? (
-            <div className="card live-analysis-card">
-              <div className="analysis-loading-header">
-                <div className="loading-orbit-spinner"></div>
-                <div>
-                  <h3 className="analysis-loading-title">Autonomous Fact-Checking in Progress</h3>
-                  <p className="analysis-loading-subtitle">
-                    Searching indexed news sources, crawling article paragraphs, and synthesizing claims with Gemini AI...
-                  </p>
-                </div>
-              </div>
-              <div className="skeleton-grid">
-                <div className="skeleton-box skeleton-hero"></div>
-                <div className="skeleton-box skeleton-text"></div>
-                <div className="skeleton-box skeleton-text-short"></div>
-                <div className="skeleton-box skeleton-card"></div>
-              </div>
-            </div>
-          ) : (
-            <EmptyState />
-          )}
-        </section>
+          </div>
+        )}
       </main>
 
-      {/* Footer */}
-      <footer className="footer">
-        <div className="disclaimer-container">
-          <p className="disclaimer-text">
-            <strong>TruthLens AI</strong> searches live breaking news, official archives, and investigative journalism to verify facts with transparent citations.
+      {/* Slide-over Recent History Drawer */}
+      <HistoryDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        history={history}
+        onSelectHistoryItem={handleSelectHistoryItem}
+        onClearHistory={handleClearHistory}
+        onDeleteItem={handleDeleteHistoryItem}
+      />
+
+      {/* Modern Footer */}
+      <footer className="footer-bar">
+        <div className="footer-content">
+          <p className="footer-main-text">
+            <strong>TruthLens AI</strong> searches live news, official archives, and investigative journalism to verify facts with transparent citations.
           </p>
-          <p className="disclaimer-text">
-            Claims marked <em>UNVERIFIED</em> indicate an absence of indexed external reporting rather than proven falsehood.
+          <p className="footer-sub-text">
+            Powered by DuckDuckGo, Trafilatura & Google Gemini AI • Zero Hallucination Attribution
           </p>
         </div>
       </footer>
