@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TruthLens AI</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="header-brand">
+        <span class="brand-name">TruthLens</span>
+        <span class="brand-ai">AI</span>
+      </div>
+      <div class="status-indicator" id="backend-status" title="Backend connection status">
+        <span class="status-dot"></span>
+        <span class="status-label">Checking...</span>
+      </div>
+    </header>
+
+    <!-- Quick Action: Verify Current Tab -->
+    <div class="current-tab-card" id="current-tab-section">
+      <div class="tab-info">
+        <span class="tab-label">Current Page:</span>
+        <p class="tab-title-text" id="active-tab-title">Reading tab title...</p>
+      </div>
+      <button type="button" class="btn-verify-page" id="btn-verify-current-page">
+        📄 Fact-Check This Page
+      </button>
+    </div>
+
+    <!-- Divider -->
+    <div class="popup-divider">
+      <span>or check any claim</span>
+    </div>
+
+    <!-- Claim Input Form -->
+    <div class="claim-input-box">
+      <textarea
+        id="claim-text"
+        placeholder="Type or paste a news headline, viral tweet, or claim..."
+        rows="3"
+      ></textarea>
+
+      <!-- Instant Sample Chips -->
+      <div class="quick-samples">
+        <button type="button" class="sample-chip" data-claim="NASA James Webb telescope detected atmospheric water on exoplanet WASP-96b">
+          🔭 NASA JWST
+        </button>
+        <button type="button" class="sample-chip" data-claim="Boiled garlic water cures Covid-19 infection completely within 24 hours">
+          🧄 Garlic Hoax
+        </button>
+        <button type="button" class="sample-chip" data-claim="Chandrayaan-3 successfully touched down on the lunar south pole">
+          🇮🇳 Chandrayaan-3
+        </button>
+      </div>
+
+      <button type="button" class="btn-submit-verify" id="btn-verify-claim">
+        ⚡ Verify with Agentic RAG
+      </button>
+    </div>
+
+    <!-- Verification Result Section (Hidden initially) -->
+    <div class="result-card hidden" id="result-card">
+      <div class="loading-state hidden" id="result-loading">
+        <div class="spinner"></div>
+        <span>Searching live wires & verifying...</span>
+      </div>
+
+      <div class="result-content hidden" id="result-content">
+        <div class="verdict-banner" id="verdict-badge">
+          <span class="verdict-icon" id="verdict-icon"></span>
+          <span class="verdict-text" id="verdict-label"></span>
+        </div>
+        <p class="result-summary" id="result-summary"></p>
+
+        <div class="result-sources" id="result-sources">
+          <span class="sources-title">Top Evidence Sources:</span>
+          <div class="sources-list" id="sources-container"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="popup-footer">
+      <a href="http://localhost:5173/" target="_blank" class="footer-link" id="footer-open-app">
+        Open Full TruthLens AI App ↗
+      </a>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

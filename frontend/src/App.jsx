@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import OmniSearchInput from "./components/OmniSearchInput";
 import V2VerificationResult from "./components/V2VerificationResult";
 import HistoryDrawer from "./components/HistoryDrawer";
@@ -27,11 +27,21 @@ function App() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [verificationResult, setVerificationResult] = useState(null);
-  const [activeQuery, setActiveQuery] = useState({ title: "", text: "" });
+  const [activeQuery, setActiveQuery] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("q") || params.get("claim") || params.get("text");
+      const title = params.get("title") || "";
+      if (q) return { title, text: q };
+    } catch (e) {
+      // ignore
+    }
+    return { title: "", text: "" };
+  });
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [error, setError] = useState("");
   const [validationError, setValidationError] = useState("");
-
+  const autoVerifiedRef = useRef(false);
 
   const [history, setHistory] = useState(() => {
     try {
@@ -51,9 +61,60 @@ function App() {
     }
   }, [history]);
 
+  const handleVerify = async ({ title, text, sourceUrl }) => {
+    setIsLoading(true);
+    setError("");
+    setValidationError("");
+    setActiveQuery({ title: title || "", text: text || "" });
+
+    try {
+      const data = await verifyNewsV2(title, text);
+      setVerificationResult(data);
+
+      const newItem = {
+        id: `tl_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        timestamp: new Date().toISOString(),
+        title: title || "",
+        text: text || "",
+        sourceUrl: sourceUrl || "",
+        result: data,
+      };
+
+      setHistory((prev) => [newItem, ...prev.filter((item) => item.text !== text)].slice(0, 15));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      setError(err.message || "An error occurred while performing real-time verification.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSelectHistoryItem = (item) => {
+    setVerificationResult(item.result);
+    setActiveQuery({ title: item.title || "", text: item.text || "" });
+    setError("");
+    setValidationError("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleClearHistory = () => {
+    setHistory([]);
+  };
+
+  // URL Query Parameter Auto-Verification & Demo Loader
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
+      const queryParam = params.get("q") || params.get("claim") || params.get("text");
+      const titleParam = params.get("title") || "";
+
+      if (queryParam && !autoVerifiedRef.current) {
+        autoVerifiedRef.current = true;
+        setActiveTab("verify");
+        handleVerify({ title: titleParam, text: queryParam });
+        return;
+      }
+
       if (params.get("demo") === "1" && !verificationResult) {
         if (history.length > 0) {
           handleSelectHistoryItem(history[0]);
@@ -123,46 +184,6 @@ function App() {
       // ignore
     }
   }, []);
-
-  const handleVerify = async ({ title, text, sourceUrl }) => {
-    setIsLoading(true);
-    setError("");
-    setValidationError("");
-    setActiveQuery({ title: title || "", text: text || "" });
-
-    try {
-      const data = await verifyNewsV2(title, text);
-      setVerificationResult(data);
-
-      const newItem = {
-        id: `tl_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        timestamp: new Date().toISOString(),
-        title: title || "",
-        text: text || "",
-        sourceUrl: sourceUrl || "",
-        result: data,
-      };
-
-      setHistory((prev) => [newItem, ...prev.filter((item) => item.text !== text)].slice(0, 15));
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (err) {
-      setError(err.message || "An error occurred while performing real-time verification.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSelectHistoryItem = (item) => {
-    setVerificationResult(item.result);
-    setActiveQuery({ title: item.title || "", text: item.text || "" });
-    setError("");
-    setValidationError("");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleClearHistory = () => {
-    setHistory([]);
-  };
 
   const handleDeleteHistoryItem = (id) => {
     setHistory((prev) => prev.filter((item) => item.id !== id));
