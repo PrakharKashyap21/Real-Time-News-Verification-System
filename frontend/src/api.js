@@ -127,4 +127,17 @@ export const getAnalyticsData = async (domain = "") => {
   }
 };
 
+export const getRadarFeed = async (category = "") => {
+  try {
+    const params = category && category !== "All" ? { category } : {};
+    const response = await apiClient.get("/v2/radar", { params });
+    return response.data;
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw new Error(error.response.data.detail);
+    }
+    throw new Error(error.message || "Failed to fetch live radar trending feed.");
+  }
+};
+
 

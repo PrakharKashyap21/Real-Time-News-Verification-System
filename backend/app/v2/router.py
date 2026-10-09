@@ -9,6 +9,7 @@ from backend.app.v2.schemas import (
     DocumentAuditRequest,
     DocumentAuditResponse,
     AnalyticsResponse,
+    RadarResponse,
 )
 from backend.app.v2.verification_service import get_verification_service, VerificationService
 
@@ -209,5 +210,11 @@ async def audit_uploaded_file(file: UploadFile = File(...)):
 def get_analytics(domain: Optional[str] = None):
     from backend.app.v2.analytics_service import get_analytics_summary
     return get_analytics_summary(query_domain=domain)
+
+
+@router.get("/radar", response_model=RadarResponse)
+def get_radar(category: Optional[str] = None):
+    from backend.app.v2.radar_service import fetch_radar_feed
+    return fetch_radar_feed(category=category)
 
 

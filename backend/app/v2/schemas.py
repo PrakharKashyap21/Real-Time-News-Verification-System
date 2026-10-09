@@ -242,6 +242,25 @@ class AnalyticsResponse(BaseModel):
     total_tracked_domains: int
 
 
+class RadarItem(BaseModel):
+    id: str
+    title: str
+    summary: str
+    category: str
+    velocity: str
+    disputed_flag: bool
+    source_preview: str
+    published_time: str
+    prefilled_query: str
+
+
+class RadarResponse(BaseModel):
+    last_updated: str
+    total_active_stories: int
+    categories: List[str]
+    items: List[RadarItem]
+
+
 
 
 

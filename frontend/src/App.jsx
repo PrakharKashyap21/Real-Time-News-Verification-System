@@ -5,6 +5,7 @@ import HistoryDrawer from "./components/HistoryDrawer";
 import ArchitectureSection from "./components/ArchitectureSection";
 import DocumentAuditView from "./components/DocumentAuditView";
 import AnalyticsView from "./components/AnalyticsView";
+import RadarView from "./components/RadarView";
 import { verifyNewsV2 } from "./api";
 
 const LOCAL_STORAGE_KEY = "truthlens_verification_history_v1";
@@ -14,6 +15,7 @@ function App() {
     try {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get("tab");
+      if (tabParam === "radar" || window.location.hash === "#radar") return "radar";
       if (tabParam === "analytics" || window.location.hash === "#analytics") return "analytics";
       if (tabParam === "doc-audit" || window.location.hash === "#doc-audit") return "doc-audit";
     } catch (e) {
@@ -135,6 +137,13 @@ function App() {
           </button>
           <button
             type="button"
+            className={`nav-tab-link ${activeTab === "radar" ? "active" : ""}`}
+            onClick={() => switchTab("radar")}
+          >
+            ⚡ Radar
+          </button>
+          <button
+            type="button"
             className={`nav-tab-link ${activeTab === "doc-audit" ? "active" : ""}`}
             onClick={() => switchTab("doc-audit")}
           >
@@ -178,7 +187,14 @@ function App() {
 
       {/* Main Content Area */}
       <main className="main-viewport">
-        {activeTab === "analytics" ? (
+        {activeTab === "radar" ? (
+          <RadarView
+            onVerifyStory={(story) => {
+              switchTab("verify");
+              handleVerify({ title: story.title, text: story.text });
+            }}
+          />
+        ) : activeTab === "analytics" ? (
           <AnalyticsView />
         ) : activeTab === "doc-audit" ? (
           <DocumentAuditView />
