@@ -180,6 +180,21 @@ class ClaimVerificationResult(BaseModel):
     semantic_evidence_count: int = 0
 
 
+class URLExtractRequest(BaseModel):
+    url: str
+
+
+class URLExtractResponse(BaseModel):
+    url: str
+    title: str = ""
+    text: str = ""
+    domain: str = ""
+    author: Optional[str] = None
+    success: bool = True
+    error: Optional[str] = None
+
+
+
 
 
 

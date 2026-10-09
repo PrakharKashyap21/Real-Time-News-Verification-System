@@ -1,11 +1,99 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status
-from backend.app.v2.schemas import VerificationRequest, VerificationResponse
+from backend.app.v2.schemas import (
+    VerificationRequest,
+    VerificationResponse,
+    URLExtractRequest,
+    URLExtractResponse,
+)
 from backend.app.v2.verification_service import get_verification_service, VerificationService
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/v2", tags=["V2 Verification"])
+
+
+@router.post("/extract-url", response_model=URLExtractResponse)
+def extract_url_content(payload: URLExtractRequest):
+    url = (payload.url or "").strip()
+    if not url:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="A valid URL is required."
+        )
+    if not (url.startswith("http://") or url.startswith("https://")):
+        url = "https://" + url
+
+    import urllib.parse
+    parsed = urllib.parse.urlparse(url)
+    domain = parsed.netloc or ""
+
+    try:
+        import trafilatura
+        downloaded = trafilatura.fetch_url(url, timeout=6.0)
+        title = ""
+        text = ""
+        author = None
+        
+        if downloaded:
+            extracted_text = trafilatura.extract(
+                downloaded,
+                include_comments=False,
+                include_tables=False,
+                no_fallback=False
+            )
+            meta = trafilatura.extract_metadata(downloaded)
+            if meta:
+                title = meta.title or ""
+                author = meta.author or None
+            if extracted_text:
+                text = extracted_text.strip()
+        
+        if not text:
+            # Fallback using urllib and BeautifulSoup
+            import urllib.request
+            from bs4 import BeautifulSoup
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+            )
+            with urllib.request.urlopen(req, timeout=6.0) as resp:
+                html = resp.read().decode("utf-8", errors="ignore")
+                soup = BeautifulSoup(html, "html.parser")
+                if not title:
+                    og_title = soup.find("meta", property="og:title")
+                    if og_title and og_title.get("content"):
+                        title = og_title["content"].strip()
+                    elif soup.title and soup.title.string:
+                        title = soup.title.string.strip()
+                
+                paras = [p.get_text().strip() for p in soup.find_all("p") if len(p.get_text().strip()) > 30]
+                text = "\n\n".join(paras[:15])
+
+        if not text and not title:
+            return URLExtractResponse(
+                url=url,
+                domain=domain,
+                success=False,
+                error="Could not extract readable article text from this URL."
+            )
+
+        return URLExtractResponse(
+            url=url,
+            title=title or "",
+            text=text or "",
+            domain=domain,
+            author=author,
+            success=True
+        )
+    except Exception as e:
+        logger.warning("URL extraction failed for %s: %s", url, e)
+        return URLExtractResponse(
+            url=url,
+            domain=domain,
+            success=False,
+            error=f"Failed to fetch content from URL: {str(e)}"
+        )
 
 
 @router.post("/verify", response_model=VerificationResponse)
@@ -46,3 +134,4 @@ def verify_news_v2(payload: VerificationRequest, service: VerificationService = 
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="The verification service encountered an internal error. Please try again later."
         )
+

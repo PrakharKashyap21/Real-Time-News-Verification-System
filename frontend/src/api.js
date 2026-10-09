@@ -68,3 +68,15 @@ export const verifyNewsV2 = async (title, text) => {
   }
 };
 
+export const extractArticleFromUrl = async (url) => {
+  try {
+    const response = await apiClient.post("/v2/extract-url", { url });
+    return response.data;
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw new Error(error.response.data.detail);
+    }
+    throw new Error(error.message || "Failed to extract content from the given URL.");
+  }
+};
+

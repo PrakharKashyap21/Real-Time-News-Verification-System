@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { extractArticleFromUrl } from "../api";
 
 const SAMPLE_CLAIMS = [
   {
@@ -23,6 +24,17 @@ const SAMPLE_CLAIMS = [
   }
 ];
 
+const SAMPLE_URLS = [
+  {
+    label: "🌐 NASA Artemis Release",
+    url: "https://www.nasa.gov/news-release/nasa-prepares-for-artemis-ii-mission-to-the-moon/"
+  },
+  {
+    label: "📰 BBC Tech News",
+    url: "https://www.bbc.com/news/technology"
+  }
+];
+
 const LOADING_STEPS = [
   { text: "🔍 Searching live web, breaking news & fact-checks...", delay: 0 },
   { text: "📄 Fetching and reading full article paragraphs...", delay: 3500 },
@@ -31,8 +43,12 @@ const LOADING_STEPS = [
 ];
 
 const NewsForm = ({ onSubmit, isLoading, validationError, setValidationError, submitLabel = "Verify News" }) => {
+  const [inputMode, setInputMode] = useState("text"); // "text" | "url"
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
+  const [url, setUrl] = useState("");
+  const [isExtractingUrl, setIsExtractingUrl] = useState(false);
+  const [urlExtractSuccess, setUrlExtractSuccess] = useState(false);
   const [loadingStepIndex, setLoadingStepIndex] = useState(0);
 
   const totalLength = title.trim().length + text.trim().length;
@@ -57,58 +73,179 @@ const NewsForm = ({ onSubmit, isLoading, validationError, setValidationError, su
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setValidationError("");
+    if (setValidationError) setValidationError("");
 
     const trimmedTitle = title.trim();
     const trimmedText = text.trim();
 
     if (!trimmedTitle && !trimmedText) {
-      setValidationError("Please enter a headline or article text to verify.");
+      if (setValidationError) setValidationError("Please enter a headline or article text to verify.");
       return;
     }
 
     if (trimmedTitle.length + trimmedText.length < 10) {
-      setValidationError("Input text is too short. Please provide at least 10 characters of content.");
+      if (setValidationError) setValidationError("Input text is too short. Please provide at least 10 characters.");
       return;
     }
 
-    onSubmit({ title: trimmedTitle, text: trimmedText });
+    onSubmit({ title: trimmedTitle, text: trimmedText, sourceUrl: url.trim() || undefined });
+  };
+
+  const handleExtractUrl = async (targetUrl = url) => {
+    const rawUrl = (targetUrl || "").trim();
+    if (!rawUrl) {
+      if (setValidationError) setValidationError("Please enter a valid article URL.");
+      return;
+    }
+
+    setIsExtractingUrl(true);
+    setUrlExtractSuccess(false);
+    if (setValidationError) setValidationError("");
+
+    try {
+      const data = await extractArticleFromUrl(rawUrl);
+      if (data && data.success) {
+        if (data.title) setTitle(data.title);
+        if (data.text) setText(data.text);
+        setUrlExtractSuccess(true);
+      } else {
+        if (setValidationError) setValidationError(data?.error || "Could not extract article content from URL.");
+      }
+    } catch (err) {
+      if (setValidationError) setValidationError(err.message || "Failed to extract content from URL.");
+    } finally {
+      setIsExtractingUrl(false);
+    }
   };
 
   const handleSelectSample = (sample) => {
     if (isLoading) return;
+    setInputMode("text");
     setTitle(sample.title);
     setText(sample.text);
+    setUrl("");
+    setUrlExtractSuccess(false);
     if (setValidationError) setValidationError("");
+  };
+
+  const handleSelectSampleUrl = (sample) => {
+    if (isLoading) return;
+    setUrl(sample.url);
+    handleExtractUrl(sample.url);
   };
 
   const handleClear = () => {
     if (isLoading) return;
     setTitle("");
     setText("");
+    setUrl("");
+    setUrlExtractSuccess(false);
     if (setValidationError) setValidationError("");
   };
 
   return (
     <form className="news-form" onSubmit={handleSubmit}>
-      {/* Quick Example Presets */}
-      <div className="presets-container">
-        <span className="presets-label">⚡ Try Quick Examples:</span>
-        <div className="presets-grid">
-          {SAMPLE_CLAIMS.map((sample, idx) => (
-            <button
-              key={idx}
-              type="button"
-              className="preset-chip-btn"
-              onClick={() => handleSelectSample(sample)}
-              disabled={isLoading}
-            >
-              {sample.label}
-            </button>
-          ))}
-        </div>
+      {/* Mode Switcher */}
+      <div className="input-mode-tabs">
+        <button
+          type="button"
+          className={`mode-tab-btn ${inputMode === "text" ? "active" : ""}`}
+          onClick={() => {
+            setInputMode("text");
+            if (setValidationError) setValidationError("");
+          }}
+          disabled={isLoading || isExtractingUrl}
+        >
+          📝 Claim / Text
+        </button>
+        <button
+          type="button"
+          className={`mode-tab-btn ${inputMode === "url" ? "active" : ""}`}
+          onClick={() => {
+            setInputMode("url");
+            if (setValidationError) setValidationError("");
+          }}
+          disabled={isLoading || isExtractingUrl}
+        >
+          🔗 Article URL
+        </button>
       </div>
 
+      {inputMode === "url" ? (
+        <div className="url-input-section">
+          <div className="presets-container">
+            <span className="presets-label">⚡ Try Sample URLs:</span>
+            <div className="presets-grid">
+              {SAMPLE_URLS.map((sample, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className="preset-chip-btn"
+                  onClick={() => handleSelectSampleUrl(sample)}
+                  disabled={isLoading || isExtractingUrl}
+                >
+                  {sample.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="url-input" className="form-label">
+              Article Web Address <span className="label-required">*</span>
+            </label>
+            <div className="url-input-action-row">
+              <input
+                id="url-input"
+                type="url"
+                className="form-input url-input"
+                placeholder="https://news-website.com/article-slug..."
+                value={url}
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  setUrlExtractSuccess(false);
+                  if (setValidationError) setValidationError("");
+                }}
+                disabled={isLoading || isExtractingUrl}
+              />
+              <button
+                type="button"
+                className="extract-url-btn"
+                onClick={() => handleExtractUrl()}
+                disabled={isLoading || isExtractingUrl || !url.trim()}
+              >
+                {isExtractingUrl ? "Extracting..." : "📥 Fetch"}
+              </button>
+            </div>
+          </div>
+
+          {urlExtractSuccess && (
+            <div className="url-success-banner">
+              ✓ Article extracted successfully. Review or edit below before verifying.
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Text / Claim Mode Presets */
+        <div className="presets-container">
+          <span className="presets-label">⚡ Try Quick Examples:</span>
+          <div className="presets-grid">
+            {SAMPLE_CLAIMS.map((sample, idx) => (
+              <button
+                key={idx}
+                type="button"
+                className="preset-chip-btn"
+                onClick={() => handleSelectSample(sample)}
+                disabled={isLoading}
+              >
+                {sample.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Headline / Topic Input */}
       <div className="form-group">
         <label htmlFor="headline-input" className="form-label">
           Headline / Topic <span className="label-optional">(Optional)</span>
@@ -121,16 +258,17 @@ const NewsForm = ({ onSubmit, isLoading, validationError, setValidationError, su
           value={title}
           onChange={(e) => {
             setTitle(e.target.value);
-            if (validationError) setValidationError("");
+            if (setValidationError) setValidationError("");
           }}
-          disabled={isLoading}
+          disabled={isLoading || isExtractingUrl}
         />
       </div>
 
+      {/* Claim / Article Body Input */}
       <div className="form-group">
         <div className="form-label-row">
           <label htmlFor="article-text-input" className="form-label">
-            Claim / News Article Content <span className="label-required">*</span>
+            Claim / News Content <span className="label-required">*</span>
           </label>
           <span className="char-count" aria-live="polite">
             {totalLength} chars {totalLength > 0 && totalLength < 10 ? "(min 10 chars)" : ""}
@@ -140,13 +278,13 @@ const NewsForm = ({ onSubmit, isLoading, validationError, setValidationError, su
           id="article-text-input"
           className="form-textarea"
           rows={5}
-          placeholder="Paste full news story, statement, or tweet/headline to verify..."
+          placeholder="Paste full news story, claim statement, or viral quote..."
           value={text}
           onChange={(e) => {
             setText(e.target.value);
-            if (validationError) setValidationError("");
+            if (setValidationError) setValidationError("");
           }}
-          disabled={isLoading}
+          disabled={isLoading || isExtractingUrl}
         />
       </div>
 
@@ -160,7 +298,7 @@ const NewsForm = ({ onSubmit, isLoading, validationError, setValidationError, su
         <button
           type="submit"
           className={`submit-button ${isLoading ? "loading" : ""}`}
-          disabled={isLoading}
+          disabled={isLoading || isExtractingUrl}
         >
           {isLoading ? (
             <>
@@ -172,7 +310,7 @@ const NewsForm = ({ onSubmit, isLoading, validationError, setValidationError, su
           )}
         </button>
 
-        {(title || text) && !isLoading && (
+        {(title || text || url) && !isLoading && !isExtractingUrl && (
           <button
             type="button"
             className="clear-button"
