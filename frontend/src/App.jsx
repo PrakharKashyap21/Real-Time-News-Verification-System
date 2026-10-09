@@ -4,12 +4,23 @@ import V2VerificationResult from "./components/V2VerificationResult";
 import HistoryDrawer from "./components/HistoryDrawer";
 import ArchitectureSection from "./components/ArchitectureSection";
 import DocumentAuditView from "./components/DocumentAuditView";
+import AnalyticsView from "./components/AnalyticsView";
 import { verifyNewsV2 } from "./api";
 
 const LOCAL_STORAGE_KEY = "truthlens_verification_history_v1";
 
 function App() {
-  const [activeTab, setActiveTab] = useState("verify"); // "verify" | "doc-audit"
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam === "analytics" || window.location.hash === "#analytics") return "analytics";
+      if (tabParam === "doc-audit" || window.location.hash === "#doc-audit") return "doc-audit";
+    } catch (e) {
+      // ignore
+    }
+    return "verify";
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [verificationResult, setVerificationResult] = useState(null);
   const [activeQuery, setActiveQuery] = useState({ title: "", text: "" });
@@ -88,11 +99,26 @@ function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const switchTab = (tab) => {
+    setActiveTab(tab);
+    setError("");
+    setValidationError("");
+    try {
+      const url = tab === "verify" ? window.location.pathname : `?tab=${tab}`;
+      window.history.replaceState(null, "", url);
+    } catch (e) {
+      // ignore
+    }
+    if (tab === "verify") {
+      handleResetHome();
+    }
+  };
+
   return (
     <div className="app-layout">
       {/* Sleek Top Navbar */}
       <nav className="navbar">
-        <div className="nav-brand" onClick={handleResetHome} role="button" tabIndex={0}>
+        <div className="nav-brand" onClick={() => switchTab("verify")} role="button" tabIndex={0}>
           <span className="brand-logo">TruthLens</span>
           <span className="brand-ai">AI</span>
           <span className="nav-badge">Agentic RAG</span>
@@ -103,23 +129,23 @@ function App() {
           <button
             type="button"
             className={`nav-tab-link ${activeTab === "verify" ? "active" : ""}`}
-            onClick={() => {
-              setActiveTab("verify");
-              handleResetHome();
-            }}
+            onClick={() => switchTab("verify")}
           >
             🔍 Live Verify
           </button>
           <button
             type="button"
             className={`nav-tab-link ${activeTab === "doc-audit" ? "active" : ""}`}
-            onClick={() => {
-              setActiveTab("doc-audit");
-              setError("");
-              setValidationError("");
-            }}
+            onClick={() => switchTab("doc-audit")}
           >
             📑 Doc Audit
+          </button>
+          <button
+            type="button"
+            className={`nav-tab-link ${activeTab === "analytics" ? "active" : ""}`}
+            onClick={() => switchTab("analytics")}
+          >
+            📊 Analytics
           </button>
         </div>
 
@@ -152,7 +178,9 @@ function App() {
 
       {/* Main Content Area */}
       <main className="main-viewport">
-        {activeTab === "doc-audit" ? (
+        {activeTab === "analytics" ? (
+          <AnalyticsView />
+        ) : activeTab === "doc-audit" ? (
           <DocumentAuditView />
         ) : !verificationResult ? (
           /* Initial Minimalist Landing State (Perplexity / Grok style) */

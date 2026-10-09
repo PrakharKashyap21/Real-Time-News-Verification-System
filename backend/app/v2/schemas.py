@@ -223,6 +223,26 @@ class DocumentAuditResponse(BaseModel):
     timestamp: Optional[str] = None
 
 
+class DomainTrustProfile(BaseModel):
+    domain: str
+    name: str
+    category: str
+    credibility_score: float
+    tier: str
+    stance_bias: str
+    fact_check_certified: bool
+    description: str
+
+
+class AnalyticsResponse(BaseModel):
+    engine_metrics: dict
+    stance_distribution: dict
+    credibility_tiers: List[dict]
+    domain_catalog: List[DomainTrustProfile]
+    total_tracked_domains: int
+
+
+
 
 
 

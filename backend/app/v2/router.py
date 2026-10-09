@@ -1,3 +1,4 @@
+from typing import Optional
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from backend.app.v2.schemas import (
@@ -7,6 +8,7 @@ from backend.app.v2.schemas import (
     URLExtractResponse,
     DocumentAuditRequest,
     DocumentAuditResponse,
+    AnalyticsResponse,
 )
 from backend.app.v2.verification_service import get_verification_service, VerificationService
 
@@ -201,5 +203,11 @@ async def audit_uploaded_file(file: UploadFile = File(...)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to audit document: {str(e)}"
         )
+
+
+@router.get("/analytics", response_model=AnalyticsResponse)
+def get_analytics(domain: Optional[str] = None):
+    from backend.app.v2.analytics_service import get_analytics_summary
+    return get_analytics_summary(query_domain=domain)
 
 

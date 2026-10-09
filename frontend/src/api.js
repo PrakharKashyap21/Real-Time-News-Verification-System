@@ -114,4 +114,17 @@ export const auditUploadedFile = async (file) => {
   }
 };
 
+export const getAnalyticsData = async (domain = "") => {
+  try {
+    const params = domain ? { domain } : {};
+    const response = await apiClient.get("/v2/analytics", { params });
+    return response.data;
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw new Error(error.response.data.detail);
+    }
+    throw new Error(error.message || "Failed to fetch analytics intelligence data.");
+  }
+};
+
 
