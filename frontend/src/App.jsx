@@ -193,6 +193,13 @@ function App() {
 
   return (
     <div className="app-layout">
+      {/* Ambient Cosmic Aurora Glow */}
+      <div className="ambient-background-glow" aria-hidden="true">
+        <div className="glow-orb glow-orb-primary" />
+        <div className="glow-orb glow-orb-secondary" />
+        <div className="glow-orb glow-orb-accent" />
+      </div>
+
       {/* Sleek Top Navbar */}
       <nav className="navbar">
         <div className="nav-brand" onClick={() => switchTab("verify")} role="button" tabIndex={0}>
@@ -269,89 +276,91 @@ function App() {
 
       {/* Main Content Area */}
       <main className="main-viewport">
-        {activeTab === "image-audit" ? (
-          <ImageAuditView
-            onAuditToLiveVerify={(story) => {
-              switchTab("verify");
-              handleVerify({ title: story.title, text: story.text });
-            }}
-          />
-        ) : activeTab === "radar" ? (
-          <RadarView
-            onVerifyStory={(story) => {
-              switchTab("verify");
-              handleVerify({ title: story.title, text: story.text });
-            }}
-          />
-        ) : activeTab === "analytics" ? (
-          <AnalyticsView />
-        ) : activeTab === "doc-audit" ? (
-          <DocumentAuditView />
-        ) : !verificationResult ? (
-          /* Initial Minimalist Landing State (Perplexity / Grok style) */
-          <div className="hero-landing-container">
-            <div className="hero-center-header">
+        <div key={activeTab + (verificationResult ? "-result" : "-landing")} className="tab-viewport-fade">
+          {activeTab === "image-audit" ? (
+            <ImageAuditView
+              onAuditToLiveVerify={(story) => {
+                switchTab("verify");
+                handleVerify({ title: story.title, text: story.text });
+              }}
+            />
+          ) : activeTab === "radar" ? (
+            <RadarView
+              onVerifyStory={(story) => {
+                switchTab("verify");
+                handleVerify({ title: story.title, text: story.text });
+              }}
+            />
+          ) : activeTab === "analytics" ? (
+            <AnalyticsView />
+          ) : activeTab === "doc-audit" ? (
+            <DocumentAuditView />
+          ) : !verificationResult ? (
+            /* Initial Minimalist Landing State (Perplexity / Grok style) */
+            <div className="hero-landing-container">
+              <div className="hero-center-header">
 
-              <div className="hero-pill">
-                <span className="live-dot"></span>
-                <span>Real-Time Autonomous Fact-Checking</span>
+                <div className="hero-pill">
+                  <span className="live-dot"></span>
+                  <span>Real-Time Autonomous Fact-Checking</span>
+                </div>
+                <h1 className="hero-headline">Where claims meet evidence.</h1>
+                <p className="hero-tagline">
+                  Verify breaking news, viral statements, and article URLs with real-time web retrieval, deep paragraph extraction, and Google Gemini AI.
+                </p>
               </div>
-              <h1 className="hero-headline">Where claims meet evidence.</h1>
-              <p className="hero-tagline">
-                Verify breaking news, viral statements, and article URLs with real-time web retrieval, deep paragraph extraction, and Google Gemini AI.
-              </p>
-            </div>
 
-            {/* Omni Search AI Box */}
-            <div className="hero-search-area">
-              <OmniSearchInput
-                onSubmit={handleVerify}
-                isLoading={isLoading}
-                validationError={validationError}
-                setValidationError={setValidationError}
-                initialText={activeQuery.text}
-                initialTitle={activeQuery.title}
-                isCompact={false}
-              />
-            </div>
-
-            {error && (
-              <div className="error-card-floating" role="alert">
-                <strong>⚠️ Verification Failed:</strong> {error}
+              {/* Omni Search AI Box */}
+              <div className="hero-search-area">
+                <OmniSearchInput
+                  onSubmit={handleVerify}
+                  isLoading={isLoading}
+                  validationError={validationError}
+                  setValidationError={setValidationError}
+                  initialText={activeQuery.text}
+                  initialTitle={activeQuery.title}
+                  isCompact={false}
+                />
               </div>
-            )}
 
-            {/* Below-the-fold Architecture Section */}
-            <ArchitectureSection />
-          </div>
-        ) : (
-          /* Active Result State */
-          <div className="result-view-container">
-            {/* Compact Search Bar at Top */}
-            <div className="compact-search-container">
-              <OmniSearchInput
-                onSubmit={handleVerify}
-                isLoading={isLoading}
-                validationError={validationError}
-                setValidationError={setValidationError}
-                initialText=""
-                initialTitle=""
-                isCompact={true}
-              />
+              {error && (
+                <div className="error-card-floating" role="alert">
+                  <strong>⚠️ Verification Failed:</strong> {error}
+                </div>
+              )}
+
+              {/* Below-the-fold Architecture Section */}
+              <ArchitectureSection />
             </div>
-
-            {error && (
-              <div className="error-card-floating" role="alert">
-                <strong>⚠️ Verification Failed:</strong> {error}
+          ) : (
+            /* Active Result State */
+            <div className="result-view-container">
+              {/* Compact Search Bar at Top */}
+              <div className="compact-search-container">
+                <OmniSearchInput
+                  onSubmit={handleVerify}
+                  isLoading={isLoading}
+                  validationError={validationError}
+                  setValidationError={setValidationError}
+                  initialText=""
+                  initialTitle=""
+                  isCompact={true}
+                />
               </div>
-            )}
 
-            {/* Full Width Verification Report */}
-            <div className="result-report-card">
-              <V2VerificationResult result={verificationResult} />
+              {error && (
+                <div className="error-card-floating" role="alert">
+                  <strong>⚠️ Verification Failed:</strong> {error}
+                </div>
+              )}
+
+              {/* Full Width Verification Report */}
+              <div className="result-report-card">
+                <V2VerificationResult result={verificationResult} />
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </main>
 
       {/* Slide-over Recent History Drawer */}
