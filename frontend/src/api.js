@@ -159,5 +159,68 @@ export const auditUploadedImage = async (file) => {
   }
 };
 
+export const auditUploadedAudio = async (fileOrBlob, filename = "recording.wav", transcriptHint = "") => {
+  try {
+    const formData = new FormData();
+    formData.append("file", fileOrBlob, filename);
+    if (transcriptHint && transcriptHint.trim()) {
+      formData.append("transcript_hint", transcriptHint.trim());
+    }
+    const response = await apiClient.post("/v2/audit-audio", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      timeout: 120000,
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw new Error(error.response.data.detail);
+    }
+    throw new Error(error.message || "Failed to audit audio recording.");
+  }
+};
+
+export const transcribeAudioFast = async (fileOrBlob, filename = "audio.webm") => {
+  try {
+    const formData = new FormData();
+    formData.append("file", fileOrBlob, filename);
+    const response = await apiClient.post("/v2/transcribe-audio", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      timeout: 30000,
+    });
+    return response.data?.transcription || "";
+  } catch (error) {
+    console.warn("Fast transcription failed:", error);
+    return "";
+  }
+};
+
+export const fetchAudioSamples = async () => {
+  try {
+    const response = await apiClient.get("/v2/audio-samples");
+    return response.data?.samples || [];
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw new Error(error.response.data.detail);
+    }
+    throw new Error(error.message || "Failed to fetch preset audio samples.");
+  }
+};
+
+export const auditAudioPreset = async (sampleId) => {
+  try {
+    const response = await apiClient.post(`/v2/audit-audio-preset/${sampleId}`);
+    return response.data;
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw new Error(error.response.data.detail);
+    }
+    throw new Error(error.message || "Failed to audit preset audio sample.");
+  }
+};
+
 
 

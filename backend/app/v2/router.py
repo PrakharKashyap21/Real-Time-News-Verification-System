@@ -1,6 +1,6 @@
 from typing import Optional
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
 from backend.app.v2.schemas import (
     VerificationRequest,
     VerificationResponse,
@@ -11,6 +11,7 @@ from backend.app.v2.schemas import (
     AnalyticsResponse,
     RadarResponse,
     ImageAuditResponse,
+    AudioAuditResponse,
 )
 from backend.app.v2.verification_service import get_verification_service, VerificationService
 
@@ -257,6 +258,89 @@ async def audit_uploaded_image(file: UploadFile = File(...)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to audit image: {str(e)}"
+        )
+
+
+@router.get("/audio-samples")
+def get_audio_samples():
+    from backend.app.v2.audio_auditor import AUDIO_SAMPLES_PRESETS
+    return {"samples": AUDIO_SAMPLES_PRESETS}
+
+
+@router.post("/audit-audio-preset/{sample_id}", response_model=AudioAuditResponse)
+def audit_preset_audio(sample_id: str):
+    from backend.app.v2.audio_auditor import get_audio_auditor
+    auditor = get_audio_auditor()
+    return auditor.audit_preset_sample(sample_id)
+
+
+@router.post("/transcribe-audio")
+async def transcribe_audio_fast(file: UploadFile = File(...)):
+    if not file.filename:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="No audio file uploaded."
+        )
+
+    try:
+        audio_bytes = await file.read()
+        if len(audio_bytes) < 100:
+            return {"transcription": ""}
+
+        mime = file.content_type or "audio/mp3"
+        from backend.app.v2.audio_auditor import get_audio_auditor
+        auditor = get_audio_auditor()
+        return auditor.transcribe_audio_only(audio_bytes=audio_bytes, mime_type=mime, filename=file.filename)
+    except Exception as e:
+        logger.error("Fast transcription error: %s", e)
+        return {"transcription": ""}
+
+
+@router.post("/audit-audio", response_model=AudioAuditResponse)
+async def audit_uploaded_audio(
+    file: UploadFile = File(...),
+    transcript_hint: Optional[str] = Form(None)
+):
+    if not file.filename:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="No audio file uploaded."
+        )
+
+    allowed_exts = (".mp3", ".wav", ".ogg", ".webm", ".m4a", ".aac", ".flac")
+    is_allowed_ext = any(file.filename.lower().endswith(ext) for ext in allowed_exts)
+    is_audio_mime = bool(file.content_type and file.content_type.startswith("audio/"))
+
+    if not is_allowed_ext and not is_audio_mime:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Unsupported audio format. Please upload an audio file (.mp3, .wav, .ogg, .webm, .m4a)."
+        )
+
+    try:
+        audio_bytes = await file.read()
+        if len(audio_bytes) < 100:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Uploaded audio file is empty or too short."
+            )
+
+        mime = file.content_type or "audio/mp3"
+        from backend.app.v2.audio_auditor import get_audio_auditor
+        auditor = get_audio_auditor()
+        return auditor.audit_audio(
+            audio_bytes=audio_bytes,
+            filename=file.filename,
+            mime_type=mime,
+            transcript_hint=transcript_hint
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Audio audit error: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to audit audio: {str(e)}"
         )
 
 

@@ -7,6 +7,7 @@ import DocumentAuditView from "./components/DocumentAuditView";
 import AnalyticsView from "./components/AnalyticsView";
 import RadarView from "./components/RadarView";
 import ImageAuditView from "./components/ImageAuditView";
+import AudioAuditView from "./components/AudioAuditView";
 import { verifyNewsV2 } from "./api";
 
 const LOCAL_STORAGE_KEY = "truthlens_verification_history_v1";
@@ -16,6 +17,7 @@ function App() {
     try {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get("tab");
+      if (tabParam === "audio-audit" || window.location.hash === "#audio-audit") return "audio-audit";
       if (tabParam === "image-audit" || window.location.hash === "#image-audit") return "image-audit";
       if (tabParam === "radar" || window.location.hash === "#radar") return "radar";
       if (tabParam === "analytics" || window.location.hash === "#analytics") return "analytics";
@@ -254,6 +256,13 @@ function App() {
           </button>
           <button
             type="button"
+            className={`nav-tab-link ${activeTab === "audio-audit" ? "active" : ""}`}
+            onClick={() => switchTab("audio-audit")}
+          >
+            🎙️ Audio Audit
+          </button>
+          <button
+            type="button"
             className={`nav-tab-link ${activeTab === "doc-audit" ? "active" : ""}`}
             onClick={() => switchTab("doc-audit")}
           >
@@ -298,7 +307,14 @@ function App() {
       {/* Main Content Area */}
       <main className="main-viewport">
         <div key={activeTab + (verificationResult ? "-result" : "-landing")} className="tab-viewport-fade">
-          {activeTab === "image-audit" ? (
+          {activeTab === "audio-audit" ? (
+            <AudioAuditView
+              onAuditToLiveVerify={(story) => {
+                switchTab("verify");
+                handleVerify({ title: story.title, text: story.text });
+              }}
+            />
+          ) : activeTab === "image-audit" ? (
             <ImageAuditView
               onAuditToLiveVerify={(story) => {
                 switchTab("verify");

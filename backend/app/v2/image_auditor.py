@@ -150,7 +150,12 @@ class ImageClaimAuditor:
             filename=filename
         )
 
-        overall_verdict = doc_audit.overall_status.upper()
+        status_map = {
+            "HIGH_CREDIBILITY": "SUPPORTED",
+            "HIGH_RISK": "CONTRADICTED",
+            "MIXED_CREDIBILITY": "UNVERIFIED"
+        }
+        overall_verdict = status_map.get(doc_audit.overall_status.upper(), doc_audit.overall_status.upper())
         confidence = round(doc_audit.authenticity_score / 100.0, 2)
 
         return ImageAuditResponse(

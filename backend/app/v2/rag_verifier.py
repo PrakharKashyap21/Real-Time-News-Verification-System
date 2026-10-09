@@ -543,11 +543,16 @@ Return strictly a valid JSON array of plain claim strings. Example:
 
             ev_list = res.get("evidence", [])
             top_sources = []
-            for ev in ev_list[:3]:
-                if hasattr(ev, "publisher"):
-                    top_sources.append(ev.publisher)
-                elif isinstance(ev, dict):
-                    top_sources.append(ev.get("publisher") or ev.get("domain") or "News Outlet")
+            source_links = []
+            for ev in ev_list[:4]:
+                pub = getattr(ev, "publisher", None) or (ev.get("publisher") if isinstance(ev, dict) else None)
+                url = getattr(ev, "url", None) or (ev.get("url") if isinstance(ev, dict) else None)
+                dom = getattr(ev, "domain", None) or (ev.get("domain") if isinstance(ev, dict) else None)
+                name = pub or dom or "News Outlet"
+                if name not in top_sources:
+                    top_sources.append(name)
+                    final_url = url or (f"https://{dom}" if dom else f"https://www.google.com/search?q={urllib.parse.quote_plus(name + ' ' + claim_text)}")
+                    source_links.append({"title": name, "url": final_url})
 
             audited_claims.append(DocumentClaimAudit(
                 claim_id=cid,
@@ -556,7 +561,8 @@ Return strictly a valid JSON array of plain claim strings. Example:
                 confidence=0.92 if verdict_str in ["SUPPORTED", "CONTRADICTED"] else 0.65,
                 reasoning=res.get("reasoning", ""),
                 sources_count=len(ev_list),
-                top_sources=top_sources
+                top_sources=top_sources,
+                source_links=source_links
             ))
 
         total = len(audited_claims) or 1

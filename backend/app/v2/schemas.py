@@ -208,6 +208,7 @@ class DocumentClaimAudit(BaseModel):
     reasoning: str
     sources_count: int = 0
     top_sources: List[str] = Field(default_factory=list)
+    source_links: List[dict] = Field(default_factory=list)
 
 
 class DocumentAuditResponse(BaseModel):
@@ -270,6 +271,26 @@ class ImageAuditResponse(BaseModel):
     visual_observations: List[str] = Field(default_factory=list)
     extracted_headline: str = ""
     extracted_text: str = ""
+    core_claim: str = ""
+    overall_verdict: str = "UNVERIFIED"
+    confidence_score: float = 0.8
+    authenticity_summary: str = ""
+    evidence_sources: List[EvidenceItem] = Field(default_factory=list)
+    claims_breakdown: List[DocumentClaimAudit] = Field(default_factory=list)
+    timestamp: Optional[str] = None
+
+
+class AudioAuditResponse(BaseModel):
+    filename: Optional[str] = None
+    audio_format: str = "Unknown"
+    file_size_kb: float = 0.0
+    duration_estimate_sec: Optional[float] = None
+    detected_language: str = "Unknown"
+    acoustic_context: str = "Speech / Audio"
+    synthetic_voice_risk: str = "LOW"
+    acoustic_observations: List[str] = Field(default_factory=list)
+    transcription: str = ""
+    extracted_headline: str = ""
     core_claim: str = ""
     overall_verdict: str = "UNVERIFIED"
     confidence_score: float = 0.8
