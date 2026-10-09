@@ -69,7 +69,7 @@ const V2VerificationResult = ({ result }) => {
   };
 
   const handleCopyReport = () => {
-    const reportText = `[News Verification Report]
+    const reportText = `[TruthLens AI Verification Report]
 Overall Verdict: ${overall_assessment}
 Summary: ${assessment_summary}
 
@@ -85,11 +85,62 @@ ${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: 
     setTimeout(() => setCopied(false), 2500);
   };
 
+  const handleDownloadMarkdown = () => {
+    const timestamp = new Date().toLocaleString();
+    const allSources = (claims || []).flatMap((c) => c.evidence || []);
+
+    let md = `# 🔍 TruthLens AI — Verification Dossier\n\n`;
+    md += `**Overall Assessment:** ${overall_assessment}\n\n`;
+    md += `**Generated:** ${timestamp}\n\n`;
+    md += `**Engine:** Agentic RAG • DuckDuckGo • Trafilatura • Google Gemini AI\n\n`;
+    md += `## Executive Summary\n${assessment_summary}\n\n`;
+    md += `> **Analysis Context:** ${getVerdictDescription(overall_assessment)}\n\n`;
+
+    md += `## Detailed Claims Evaluated (${claims?.length || 0})\n\n`;
+    (claims || []).forEach((c, idx) => {
+      md += `### Claim #${idx + 1}: "${c.text}"\n`;
+      md += `- **Verdict:** ${c.verdict}\n`;
+      md += `- **AI Verification Analysis:** ${c.reasoning}\n`;
+      if (c.evidence && c.evidence.length > 0) {
+        md += `- **Evidence Citations:**\n`;
+        c.evidence.forEach((e) => {
+          md += `  - [${e.publisher}] **${e.title}** (${e.stance})\n`;
+          md += `    URL: ${e.url}\n`;
+          if (e.snippet) {
+            md += `    > "${e.snippet.trim()}"\n`;
+          }
+        });
+      }
+      md += `\n`;
+    });
+
+    md += `## Sources Consulted (${allSources.length})\n\n`;
+    allSources.forEach((e, idx) => {
+      md += `${idx + 1}. **${e.publisher}** — [${e.title}](${e.url}) (${e.domain || "Web"})\n`;
+    });
+
+    md += `\n---\n*TruthLens AI automatically aggregates live news, fact-checking archives, and official statements with transparent attribution. UNVERIFIED indicates absence of indexed external journalism, not proven falsehood.*\n`;
+
+    const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `TruthLens-Dossier-${Date.now()}.md`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportPDF = () => {
+    window.print();
+  };
+
   const totalSources = (claims || []).reduce((acc, c) => acc + (c.evidence ? c.evidence.length : 0), 0);
 
   return (
     <div className="v2-verification-container">
-      {/* Top Banner with Verdict & Copy Button */}
+      {/* Top Banner with Verdict & Export Action Buttons */}
       <div className={`hero-verdict-card ${getVerdictClass(overall_assessment)}`}>
         <div className="hero-verdict-header">
           <div className="hero-verdict-badge-group">
@@ -97,14 +148,34 @@ ${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: 
             <span className="hero-verdict-title">{overall_assessment}</span>
           </div>
 
-          <button
-            type="button"
-            className="copy-report-btn"
-            onClick={handleCopyReport}
-            title="Copy structured summary to clipboard"
-          >
-            {copied ? "✓ Copied!" : "📋 Copy Report"}
-          </button>
+          <div className="hero-verdict-actions">
+            <button
+              type="button"
+              className="verdict-action-btn"
+              onClick={handleCopyReport}
+              title="Copy structured summary to clipboard"
+            >
+              {copied ? "✓ Copied" : "📋 Copy"}
+            </button>
+
+            <button
+              type="button"
+              className="verdict-action-btn"
+              onClick={handleDownloadMarkdown}
+              title="Download structured Markdown (.md) dossier"
+            >
+              📝 Markdown
+            </button>
+
+            <button
+              type="button"
+              className="verdict-action-btn verdict-action-pdf"
+              onClick={handleExportPDF}
+              title="Print or save official PDF dossier"
+            >
+              📄 Export PDF
+            </button>
+          </div>
         </div>
 
         <p className="hero-verdict-summary">{assessment_summary}</p>
