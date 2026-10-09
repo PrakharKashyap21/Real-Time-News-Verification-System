@@ -49,6 +49,79 @@ function App() {
     }
   }, [history]);
 
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("demo") === "1" && !verificationResult) {
+        if (history.length > 0) {
+          handleSelectHistoryItem(history[0]);
+        } else {
+          setVerificationResult({
+            overall_assessment: "SUPPORTED",
+            assessment_summary: "Multi-source wire consensus confirms the core factual statements regarding Tata Trent standalone revenue growth and brand store expansion.",
+            has_conflict: false,
+            claims: [
+              {
+                claim_id: "claim_demo_1",
+                text: "Tata Group retail arm Trent reported standalone revenue surge led by Zudio and Westside expansion.",
+                verdict: "SUPPORTED",
+                reasoning: "Confirmed by earnings filings and multiple primary financial press reports citing official regulatory disclosures.",
+                supporting_evidence_count: 3,
+                contradicting_evidence_count: 0,
+                neutral_evidence_count: 1,
+                evidence: [
+                  {
+                    id: "ev_1",
+                    title: "Tata's Trent reports strong Q2 net profit surge driven by retail network",
+                    publisher: "Reuters",
+                    domain: "reuters.com",
+                    url: "https://reuters.com",
+                    snippet: "Trent Ltd posted substantial year-on-year revenue gains as apparel chains Westside and Zudio expanded rapidly across tier-1 and tier-2 markets.",
+                    stance: "SUPPORTS"
+                  },
+                  {
+                    id: "ev_2",
+                    title: "Trent Q2 financial results: Net profit up, retail footprint expands",
+                    publisher: "Bloomberg",
+                    domain: "bloomberg.com",
+                    url: "https://bloomberg.com",
+                    snippet: "Standalone quarterly revenue jumped 46 percent according to stock exchange disclosures filed on Wednesday.",
+                    stance: "SUPPORTS"
+                  },
+                  {
+                    id: "ev_3",
+                    title: "Financial Express Market Desk: Trent quarterly earnings breakdown",
+                    publisher: "Financial Express",
+                    domain: "financialexpress.com",
+                    url: "https://financialexpress.com",
+                    snippet: "Tata-backed fashion and retail enterprise Trent continues robust expansion trajectory.",
+                    stance: "SUPPORTS"
+                  },
+                  {
+                    id: "ev_4",
+                    title: "Trent Limited corporate overview and regulatory history",
+                    publisher: "Wikipedia",
+                    domain: "en.wikipedia.org",
+                    url: "https://en.wikipedia.org",
+                    snippet: "Trent is an Indian retail company and part of the Tata Group, operating Westside and Zudio.",
+                    stance: "NEUTRAL"
+                  }
+                ]
+              }
+            ],
+            service_status: { gemini_api: "ok" }
+          });
+          setActiveQuery({
+            title: "Trent Q2 Revenue Growth",
+            text: "Tata Group retail arm Trent reported standalone revenue surge led by Zudio and Westside expansion."
+          });
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
   const handleVerify = async ({ title, text, sourceUrl }) => {
     setIsLoading(true);
     setError("");

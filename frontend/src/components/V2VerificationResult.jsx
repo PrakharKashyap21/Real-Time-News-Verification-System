@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import EvidenceKnowledgeGraph from "./EvidenceKnowledgeGraph";
 
 const V2VerificationResult = ({ result }) => {
   if (!result) return null;
@@ -209,6 +210,14 @@ ${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: 
           <span className="stat-label">Reasoning Engine</span>
         </div>
       </div>
+
+      {/* Interactive Evidence Knowledge Graph */}
+      {claims && claims.length > 0 && (
+        <EvidenceKnowledgeGraph
+          claims={claims}
+          overallAssessment={overall_assessment}
+        />
+      )}
 
       {/* Claims Breakdown Section */}
       <div className="claims-section">
