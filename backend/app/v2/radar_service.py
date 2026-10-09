@@ -128,8 +128,17 @@ def fetch_radar_feed(category: Optional[str] = None) -> RadarResponse:
     except Exception as e:
         logger.debug("Live DDG news search in radar feed fallback to curated catalog: %s", e)
 
-    if category and category != "All":
-        items = [item for item in items if item.category.lower() == category.lower()]
+    if category and category.strip().lower() != "all":
+        c_low = category.strip().lower()
+        items = [
+            item for item in items
+            if c_low in item.category.lower()
+            or item.category.lower() in c_low
+            or (c_low.startswith("tech") and "tech" in item.category.lower())
+            or (c_low.startswith("sci") and "sci" in item.category.lower())
+            or (c_low.startswith("pol") and "pol" in item.category.lower())
+            or (c_low.startswith("fin") or c_low.startswith("bus") and "market" in item.category.lower())
+        ]
 
     categories = ["All", "World & Politics", "Tech & AI", "Science & Health", "Markets & Finance"]
 

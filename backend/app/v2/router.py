@@ -37,7 +37,7 @@ def extract_url_content(payload: URLExtractRequest):
 
     try:
         import trafilatura
-        downloaded = trafilatura.fetch_url(url, timeout=6.0)
+        downloaded = trafilatura.fetch_url(url)
         title = ""
         text = ""
         author = None
