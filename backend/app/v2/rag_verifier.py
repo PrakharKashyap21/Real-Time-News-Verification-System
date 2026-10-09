@@ -24,6 +24,8 @@ from backend.app.v2.schemas import (
     UncertaintyLevel,
     ClaimEvidenceSummary,
     LinguisticSignal,
+    DocumentClaimAudit,
+    DocumentAuditResponse,
 )
 
 class GeminiRAGVerifier:
@@ -469,7 +471,130 @@ Return strictly a valid JSON object matching this schema:
             )
         )
 
+    def _decompose_claims(self, title: str, content: str) -> List[str]:
+        """Extracts top 3-5 key testable factual assertions from document."""
+        if self.client:
+            prompt = f"""You are an elite investigative fact-checker.
+Read the following article/document and extract 3 to 5 core, testable factual assertions or claims made in it.
+Focus on specific verifiable statements, statistics, events, actions, or allegations.
+
+DOCUMENT TITLE: {title}
+DOCUMENT TEXT:
+{content[:3000]}
+
+OUTPUT FORMAT:
+Return strictly a valid JSON array of plain claim strings. Example:
+["Claim 1...", "Claim 2...", "Claim 3..."]
+"""
+            for model_name in self.candidate_models:
+                try:
+                    resp = self.client.models.generate_content(
+                        model=model_name,
+                        contents=prompt
+                    )
+                    if resp and resp.text:
+                        raw = resp.text.strip()
+                        m = re.search(r'\[.*\]', raw, re.DOTALL)
+                        if m:
+                            claims = json.loads(m.group(0))
+                            if isinstance(claims, list) and len(claims) > 0:
+                                return [str(c).strip() for c in claims if len(str(c).strip()) > 15][:5]
+                except Exception:
+                    continue
+
+        sentences = [s.strip() for s in re.split(r'[.!?\n]+', content) if len(s.strip()) >= 25]
+        return sentences[:4] if sentences else [content[:200]]
+
+    def audit_document(self, content: str, title: Optional[str] = None, filename: Optional[str] = None) -> DocumentAuditResponse:
+        """
+        Conducts a deep factual authenticity audit on a long document or news story.
+        Decomposes into core assertions, cross-verifies concurrently via RAG,
+        and computes document authenticity score.
+        """
+        import datetime
+        clean_content = content.strip()
+        doc_title = title or (filename.rsplit(".", 1)[0].replace("_", " ").title() if filename else "Untitled Document")
+        words = len(clean_content.split())
+
+        # Extract top 3-5 core factual assertions
+        claims = self._decompose_claims(doc_title, clean_content[:4000])
+        if not claims:
+            sentences = [s.strip() for s in re.split(r'[.!?]+', clean_content) if len(s.strip()) > 30]
+            claims = sentences[:3] if sentences else [clean_content[:150]]
+
+        claims = claims[:5]
+        audited_claims = []
+        counts = {"supported": 0, "contradicted": 0, "misleading": 0, "unverified": 0}
+
+        for idx, claim_text in enumerate(claims):
+            cid = f"doc_claim_{idx + 1}"
+            res = self.verify_claim(claim_text, cid)
+            verdict_obj = res["verdict"]
+            verdict_str = verdict_obj.value if hasattr(verdict_obj, "value") else str(verdict_obj)
+
+            if verdict_str == "SUPPORTED":
+                counts["supported"] += 1
+            elif verdict_str == "CONTRADICTED":
+                counts["contradicted"] += 1
+            elif verdict_str == "MISLEADING":
+                counts["misleading"] += 1
+            else:
+                counts["unverified"] += 1
+
+            ev_list = res.get("evidence", [])
+            top_sources = []
+            for ev in ev_list[:3]:
+                if hasattr(ev, "publisher"):
+                    top_sources.append(ev.publisher)
+                elif isinstance(ev, dict):
+                    top_sources.append(ev.get("publisher") or ev.get("domain") or "News Outlet")
+
+            audited_claims.append(DocumentClaimAudit(
+                claim_id=cid,
+                text=claim_text,
+                verdict=verdict_str,
+                confidence=0.92 if verdict_str in ["SUPPORTED", "CONTRADICTED"] else 0.65,
+                reasoning=res.get("reasoning", ""),
+                sources_count=len(ev_list),
+                top_sources=top_sources
+            ))
+
+        total = len(audited_claims) or 1
+        if counts["contradicted"] > 0:
+            penalty = (counts["contradicted"] / total) * 55 + (counts["misleading"] / total) * 25
+            base = (counts["supported"] / total) * 100
+            score = max(5.0, round(base - penalty, 1))
+        else:
+            score = round(((counts["supported"] * 100) + (counts["unverified"] * 60) + (counts["misleading"] * 30)) / total, 1)
+
+        score = min(100.0, max(0.0, score))
+
+        if score >= 75.0 and counts["contradicted"] == 0:
+            overall_status = "HIGH_CREDIBILITY"
+            exec_summary = f"The document demonstrates strong factual veracity. {counts['supported']} of {total} key assertions were confirmed by external reporting."
+        elif counts["contradicted"] > 0 or score < 45.0:
+            overall_status = "HIGH_RISK"
+            exec_summary = f"Audit detected factual errors or false assertions. {counts['contradicted']} statement(s) were contradicted by verified reporting."
+        else:
+            overall_status = "MIXED_CREDIBILITY"
+            exec_summary = f"The document mixes verified facts with uncorroborated assertions. Readers should verify key claims independently."
+
+        return DocumentAuditResponse(
+            filename=filename,
+            document_title=doc_title,
+            word_count=words,
+            authenticity_score=score,
+            overall_status=overall_status,
+            executive_assessment=exec_summary,
+            total_claims_detected=total,
+            claims_breakdown=counts,
+            audited_claims=audited_claims,
+            timestamp=datetime.datetime.utcnow().isoformat() + "Z"
+        )
+
+
 # Global singleton
+
 _rag_verifier: Optional[GeminiRAGVerifier] = None
 
 def get_rag_verifier() -> GeminiRAGVerifier:

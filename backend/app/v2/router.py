@@ -1,16 +1,19 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from backend.app.v2.schemas import (
     VerificationRequest,
     VerificationResponse,
     URLExtractRequest,
     URLExtractResponse,
+    DocumentAuditRequest,
+    DocumentAuditResponse,
 )
 from backend.app.v2.verification_service import get_verification_service, VerificationService
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/v2", tags=["V2 Verification"])
+
 
 
 @router.post("/extract-url", response_model=URLExtractResponse)
@@ -134,4 +137,69 @@ def verify_news_v2(payload: VerificationRequest, service: VerificationService = 
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="The verification service encountered an internal error. Please try again later."
         )
+
+
+@router.post("/audit-document", response_model=DocumentAuditResponse)
+def audit_document_content(payload: DocumentAuditRequest):
+    content = (payload.content or "").strip()
+    if not content or len(content) < 30:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Document content is too brief for fact-checking audit. Please provide at least 30 characters."
+        )
+
+    from backend.app.v2.rag_verifier import get_rag_verifier
+    rag = get_rag_verifier()
+    return rag.audit_document(
+        content=content,
+        title=payload.title,
+        filename=payload.filename
+    )
+
+
+@router.post("/audit-file", response_model=DocumentAuditResponse)
+async def audit_uploaded_file(file: UploadFile = File(...)):
+    if not file.filename:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="No file uploaded."
+        )
+
+    allowed_exts = (".pdf", ".txt", ".md")
+    if not any(file.filename.lower().endswith(ext) for ext in allowed_exts):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Unsupported file format. Please upload a PDF (.pdf) or text document (.txt, .md)."
+        )
+
+    try:
+        file_bytes = await file.read()
+        from backend.app.v2.document_parser import extract_text_from_file_bytes
+        inferred_title, extracted_text = extract_text_from_file_bytes(file_bytes, file.filename)
+
+        if len(extracted_text) < 30:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Extracted text is too brief to conduct an authenticity audit."
+            )
+
+        from backend.app.v2.rag_verifier import get_rag_verifier
+        rag = get_rag_verifier()
+        return rag.audit_document(
+            content=extracted_text,
+            title=inferred_title,
+            filename=file.filename
+        )
+    except ValueError as ve:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(ve)
+        )
+    except Exception as e:
+        logger.error("File audit error: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to audit document: {str(e)}"
+        )
+
 

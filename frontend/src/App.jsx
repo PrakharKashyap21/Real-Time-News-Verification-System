@@ -3,17 +3,20 @@ import OmniSearchInput from "./components/OmniSearchInput";
 import V2VerificationResult from "./components/V2VerificationResult";
 import HistoryDrawer from "./components/HistoryDrawer";
 import ArchitectureSection from "./components/ArchitectureSection";
+import DocumentAuditView from "./components/DocumentAuditView";
 import { verifyNewsV2 } from "./api";
 
 const LOCAL_STORAGE_KEY = "truthlens_verification_history_v1";
 
 function App() {
+  const [activeTab, setActiveTab] = useState("verify"); // "verify" | "doc-audit"
   const [isLoading, setIsLoading] = useState(false);
   const [verificationResult, setVerificationResult] = useState(null);
   const [activeQuery, setActiveQuery] = useState({ title: "", text: "" });
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [error, setError] = useState("");
   const [validationError, setValidationError] = useState("");
+
 
   const [history, setHistory] = useState(() => {
     try {
@@ -95,8 +98,33 @@ function App() {
           <span className="nav-badge">Agentic RAG</span>
         </div>
 
+        {/* Primary Page Navigation Tabs */}
+        <div className="nav-center-tabs">
+          <button
+            type="button"
+            className={`nav-tab-link ${activeTab === "verify" ? "active" : ""}`}
+            onClick={() => {
+              setActiveTab("verify");
+              handleResetHome();
+            }}
+          >
+            🔍 Live Verify
+          </button>
+          <button
+            type="button"
+            className={`nav-tab-link ${activeTab === "doc-audit" ? "active" : ""}`}
+            onClick={() => {
+              setActiveTab("doc-audit");
+              setError("");
+              setValidationError("");
+            }}
+          >
+            📑 Doc Audit
+          </button>
+        </div>
+
         <div className="nav-actions">
-          {verificationResult && (
+          {activeTab === "verify" && verificationResult && (
             <button
               type="button"
               className="nav-btn nav-new-btn"
@@ -124,10 +152,13 @@ function App() {
 
       {/* Main Content Area */}
       <main className="main-viewport">
-        {!verificationResult ? (
+        {activeTab === "doc-audit" ? (
+          <DocumentAuditView />
+        ) : !verificationResult ? (
           /* Initial Minimalist Landing State (Perplexity / Grok style) */
           <div className="hero-landing-container">
             <div className="hero-center-header">
+
               <div className="hero-pill">
                 <span className="live-dot"></span>
                 <span>Real-Time Autonomous Fact-Checking</span>

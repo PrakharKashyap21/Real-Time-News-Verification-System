@@ -10,3 +10,8 @@ pydantic
 scipy
 torch
 transformers
+google-genai
+ddgs
+trafilatura
+pypdf
+python-multipart

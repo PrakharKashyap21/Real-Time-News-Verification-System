@@ -194,6 +194,35 @@ class URLExtractResponse(BaseModel):
     error: Optional[str] = None
 
 
+class DocumentAuditRequest(BaseModel):
+    title: Optional[str] = None
+    content: str
+    filename: Optional[str] = None
+
+
+class DocumentClaimAudit(BaseModel):
+    claim_id: str
+    text: str
+    verdict: str
+    confidence: float = 0.9
+    reasoning: str
+    sources_count: int = 0
+    top_sources: List[str] = Field(default_factory=list)
+
+
+class DocumentAuditResponse(BaseModel):
+    filename: Optional[str] = None
+    document_title: str
+    word_count: int
+    authenticity_score: float
+    overall_status: str
+    executive_assessment: str
+    total_claims_detected: int
+    claims_breakdown: dict = Field(default_factory=dict)
+    audited_claims: List[DocumentClaimAudit] = Field(default_factory=list)
+    timestamp: Optional[str] = None
+
+
 
 
 
