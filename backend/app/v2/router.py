@@ -10,6 +10,7 @@ from backend.app.v2.schemas import (
     DocumentAuditResponse,
     AnalyticsResponse,
     RadarResponse,
+    ImageAuditResponse,
 )
 from backend.app.v2.verification_service import get_verification_service, VerificationService
 
@@ -216,5 +217,46 @@ def get_analytics(domain: Optional[str] = None):
 def get_radar(category: Optional[str] = None):
     from backend.app.v2.radar_service import fetch_radar_feed
     return fetch_radar_feed(category=category)
+
+
+@router.post("/audit-image", response_model=ImageAuditResponse)
+async def audit_uploaded_image(file: UploadFile = File(...)):
+    if not file.filename:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="No image uploaded."
+        )
+
+    allowed_exts = (".png", ".jpg", ".jpeg", ".webp")
+    if not any(file.filename.lower().endswith(ext) for ext in allowed_exts):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Unsupported image format. Please upload an image (.png, .jpg, .jpeg, .webp)."
+        )
+
+    try:
+        image_bytes = await file.read()
+        if len(image_bytes) < 100:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Uploaded image file is empty or corrupted."
+            )
+
+        mime = file.content_type or "image/png"
+        from backend.app.v2.image_auditor import get_image_auditor
+        auditor = get_image_auditor()
+        return auditor.audit_image(
+            image_bytes=image_bytes,
+            filename=file.filename,
+            mime_type=mime
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Image audit error: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to audit image: {str(e)}"
+        )
 
 

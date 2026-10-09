@@ -261,6 +261,24 @@ class RadarResponse(BaseModel):
     items: List[RadarItem]
 
 
+class ImageAuditResponse(BaseModel):
+    filename: Optional[str] = None
+    media_type: str = "Unknown"
+    dimensions: str = "0 x 0"
+    file_size_kb: float = 0.0
+    visual_manipulation_risk: str = "LOW"
+    visual_observations: List[str] = Field(default_factory=list)
+    extracted_headline: str = ""
+    extracted_text: str = ""
+    core_claim: str = ""
+    overall_verdict: str = "UNVERIFIED"
+    confidence_score: float = 0.8
+    authenticity_summary: str = ""
+    evidence_sources: List[EvidenceItem] = Field(default_factory=list)
+    claims_breakdown: List[DocumentClaimAudit] = Field(default_factory=list)
+    timestamp: Optional[str] = None
+
+
 
 
 

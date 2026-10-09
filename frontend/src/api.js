@@ -140,4 +140,24 @@ export const getRadarFeed = async (category = "") => {
   }
 };
 
+export const auditUploadedImage = async (file) => {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await apiClient.post("/v2/audit-image", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      timeout: 120000,
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw new Error(error.response.data.detail);
+    }
+    throw new Error(error.message || "Failed to audit uploaded image.");
+  }
+};
+
+
 
