@@ -8,6 +8,7 @@ import AnalyticsView from "./components/AnalyticsView";
 import RadarView from "./components/RadarView";
 import ImageAuditView from "./components/ImageAuditView";
 import AudioAuditView from "./components/AudioAuditView";
+import ChatbotBridgeView from "./components/ChatbotBridgeView";
 import { verifyNewsV2 } from "./api";
 
 const LOCAL_STORAGE_KEY = "truthlens_verification_history_v1";
@@ -17,6 +18,7 @@ function App() {
     try {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get("tab");
+      if (tabParam === "chatbot" || window.location.hash === "#chatbot") return "chatbot";
       if (tabParam === "audio-audit" || window.location.hash === "#audio-audit") return "audio-audit";
       if (tabParam === "image-audit" || window.location.hash === "#image-audit") return "image-audit";
       if (tabParam === "radar" || window.location.hash === "#radar") return "radar";
@@ -199,6 +201,10 @@ function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [activeTab]);
+
   const switchTab = (tab) => {
     setActiveTab(tab);
     setError("");
@@ -212,6 +218,7 @@ function App() {
     if (tab === "verify") {
       handleResetHome();
     }
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   };
 
   return (
@@ -263,6 +270,13 @@ function App() {
           </button>
           <button
             type="button"
+            className={`nav-tab-link ${activeTab === "chatbot" ? "active" : ""}`}
+            onClick={() => switchTab("chatbot")}
+          >
+            📱 Chatbot Bridge
+          </button>
+          <button
+            type="button"
             className={`nav-tab-link ${activeTab === "doc-audit" ? "active" : ""}`}
             onClick={() => switchTab("doc-audit")}
           >
@@ -307,7 +321,14 @@ function App() {
       {/* Main Content Area */}
       <main className="main-viewport">
         <div key={activeTab + (verificationResult ? "-result" : "-landing")} className="tab-viewport-fade">
-          {activeTab === "audio-audit" ? (
+          {activeTab === "chatbot" ? (
+            <ChatbotBridgeView
+              onOpenInDashboard={(claim) => {
+                switchTab("verify");
+                handleVerify({ title: "Chat Forward Claim", text: claim });
+              }}
+            />
+          ) : activeTab === "audio-audit" ? (
             <AudioAuditView
               onAuditToLiveVerify={(story) => {
                 switchTab("verify");

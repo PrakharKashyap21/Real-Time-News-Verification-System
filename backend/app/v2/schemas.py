@@ -300,6 +300,43 @@ class AudioAuditResponse(BaseModel):
     timestamp: Optional[str] = None
 
 
+class BotVerificationRequest(BaseModel):
+    message_text: str
+    platform: Optional[str] = "whatsapp"
+    sender_id: Optional[str] = None
+    sender_name: Optional[str] = None
+    is_forwarded: bool = False
+    forward_count: Optional[int] = None
+
+
+class BotVerificationResponse(BaseModel):
+    platform: str = "whatsapp"
+    raw_claim: str
+    sanitized_claim: str
+    verdict: str = "UNVERIFIED"
+    credibility_score: float = 50.0
+    status_emoji: str = "⚪"
+    headline: str = ""
+    explanation: str = ""
+    formatted_chat_reply: str = ""
+    top_sources: List[str] = Field(default_factory=list)
+    source_links: List[dict] = Field(default_factory=list)
+    shareable_url: str = ""
+    timestamp: str = ""
+
+
+class BotPresetScenario(BaseModel):
+    id: str
+    platform: str
+    title: str
+    sender_label: str
+    viral_text: str
+    category: str
+    is_forwarded: bool = True
+    simulated_verdict: str = "CONTRADICTED"
+
+
+
 
 
 

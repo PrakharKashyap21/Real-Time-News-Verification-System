@@ -12,6 +12,9 @@ from backend.app.v2.schemas import (
     RadarResponse,
     ImageAuditResponse,
     AudioAuditResponse,
+    BotVerificationRequest,
+    BotVerificationResponse,
+    BotPresetScenario,
 )
 from backend.app.v2.verification_service import get_verification_service, VerificationService
 
@@ -342,5 +345,49 @@ async def audit_uploaded_audio(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to audit audio: {str(e)}"
         )
+
+
+# =========================================================================
+# Feature 3: WhatsApp & Telegram Webhook Chatbot Bridge Endpoints
+# =========================================================================
+
+@router.post("/bot/verify", response_model=BotVerificationResponse)
+def verify_chat_forward(payload: BotVerificationRequest):
+    """Verifies a forwarded message or text snippet submitted via the chatbot simulator or bot webhook."""
+    text = (payload.message_text or "").strip()
+    if not text or len(text) < 5:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Message content is too brief for fact-checking."
+        )
+
+    from backend.app.v2.bot_bridge import get_bot_bridge
+    bridge = get_bot_bridge()
+    return bridge.verify_message(payload)
+
+
+@router.get("/bot/presets")
+def get_viral_forward_presets():
+    """Returns curated realistic viral WhatsApp and Telegram forwarded message scenarios."""
+    from backend.app.v2.bot_bridge import get_bot_bridge
+    bridge = get_bot_bridge()
+    return bridge.get_presets()
+
+
+@router.post("/bot/webhook/telegram")
+def handle_telegram_incoming_webhook(payload: dict):
+    """Standard Telegram Bot API Webhook receiver endpoint."""
+    from backend.app.v2.bot_bridge import get_bot_bridge
+    bridge = get_bot_bridge()
+    return bridge.process_telegram_webhook(payload)
+
+
+@router.post("/bot/webhook/whatsapp")
+def handle_whatsapp_incoming_webhook(payload: dict):
+    """Standard WhatsApp Cloud API / Twilio Webhook receiver endpoint."""
+    from backend.app.v2.bot_bridge import get_bot_bridge
+    bridge = get_bot_bridge()
+    return bridge.process_whatsapp_webhook(payload)
+
 
 

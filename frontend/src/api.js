@@ -222,5 +222,48 @@ export const auditAudioPreset = async (sampleId) => {
   }
 };
 
+// =========================================================================
+// Feature 3: WhatsApp & Telegram Webhook Chatbot Bridge API
+// =========================================================================
+
+export const verifyBotMessage = async (messageText, platform = "whatsapp", isForwarded = false) => {
+  try {
+    const response = await apiClient.post("/v2/bot/verify", {
+      message_text: messageText,
+      platform: platform,
+      is_forwarded: isForwarded
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw new Error(error.response.data.detail);
+    }
+    throw new Error(error.message || "Failed to verify forwarded message.");
+  }
+};
+
+export const fetchBotPresets = async () => {
+  try {
+    const response = await apiClient.get("/v2/bot/presets");
+    return response.data || [];
+  } catch (error) {
+    console.warn("Failed to fetch bot presets:", error);
+    return [];
+  }
+};
+
+export const simulateWebhookCall = async (platform, payload) => {
+  try {
+    const endpoint = platform === "telegram" ? "/v2/bot/webhook/telegram" : "/v2/bot/webhook/whatsapp";
+    const response = await apiClient.post(endpoint, payload);
+    return response.data;
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw new Error(error.response.data.detail);
+    }
+    throw new Error(error.message || "Failed to simulate webhook dispatch.");
+  }
+};
+
 
 
