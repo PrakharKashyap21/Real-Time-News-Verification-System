@@ -86,14 +86,14 @@ function App() {
     }
   }, [history]);
 
-  const handleVerify = async ({ title, text, sourceUrl }) => {
+  const handleVerify = async ({ title, text, sourceUrl, language = "auto" }) => {
     setIsLoading(true);
     setError("");
     setValidationError("");
     setActiveQuery({ title: title || "", text: text || "" });
 
     try {
-      const data = await verifyNewsV2(title, text);
+      const data = await verifyNewsV2(title, text, language);
       setVerificationResult(data);
 
       const newItem = {

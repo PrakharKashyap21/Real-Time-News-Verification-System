@@ -79,11 +79,25 @@ class LinguisticSignal(BaseModel):
     message: str
 
 
+class VernacularAuditInfo(BaseModel):
+    detected_language: str = "en"
+    language_name: str = "English"
+    original_claim: str
+    translated_claim_en: Optional[str] = None
+    native_verdict_label: Optional[str] = None
+    native_reasoning: Optional[str] = None
+    english_reasoning: Optional[str] = None
+    native_key_findings: List[str] = Field(default_factory=list)
+    vernacular_sources_searched: List[str] = Field(default_factory=list)
+
+
 class VerificationRequest(BaseModel):
     title: Optional[str] = ""
     text: Optional[str] = ""
     max_claims: Optional[int] = 5
     include_linguistic_signal: Optional[bool] = True
+    language: Optional[str] = "auto"
+    target_language: Optional[str] = None
 
     @model_validator(mode="after")
     def validate_content_present(self) -> "VerificationRequest":
@@ -149,6 +163,7 @@ class ClaimVerificationDetail(BaseModel):
     semantic_relation: Optional[str] = None
     semantic_model: Optional[str] = "cross-encoder/nli-distilroberta-base"
     semantic_evidence_count: int = 0
+    vernacular_info: Optional[VernacularAuditInfo] = None
 
 
 class VerificationResponse(BaseModel):
@@ -162,6 +177,11 @@ class VerificationResponse(BaseModel):
         "Verification is based on aggregated live news and fact-check sources. "
         "UNVERIFIED claims do not imply falsity, but rather an absence of conclusive external reporting."
     )
+    detected_language: Optional[str] = "en"
+    language_name: Optional[str] = "English"
+    vernacular_summary: Optional[str] = None
+    vernacular_overall_verdict: Optional[str] = None
+    available_translations: List[str] = Field(default_factory=lambda: ["en"])
 
 
 class ClaimVerificationResult(BaseModel):

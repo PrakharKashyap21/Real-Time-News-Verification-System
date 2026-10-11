@@ -4,16 +4,30 @@ import EvidenceKnowledgeGraph from "./EvidenceKnowledgeGraph";
 const V2VerificationResult = ({ result }) => {
   if (!result) return null;
 
-  const [copied, setCopied] = useState(false);
-
   const {
     overall_assessment,
     assessment_summary,
     has_conflict,
     claims,
     service_status,
-    disclaimer
+    disclaimer,
+    detected_language = "en",
+    language_name = "English",
+    vernacular_summary,
+    vernacular_overall_verdict
   } = result;
+
+  const isVernacular = detected_language && detected_language !== "en";
+  const [displayLanguage, setDisplayLanguage] = useState(isVernacular ? "native" : "en");
+  const [copied, setCopied] = useState(false);
+
+  React.useEffect(() => {
+    if (isVernacular) {
+      setDisplayLanguage("native");
+    } else {
+      setDisplayLanguage("en");
+    }
+  }, [detected_language, isVernacular]);
 
   const getVerdictClass = (verdict) => {
     switch (verdict?.toUpperCase()) {
@@ -137,16 +151,64 @@ ${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: 
     window.print();
   };
 
-  const totalSources = (claims || []).reduce((acc, c) => acc + (c.evidence ? c.evidence.length : 0), 0);
+  const totalSources = claims
+    ? claims.reduce((acc, c) => acc + (c.evidence ? c.evidence.length : 0), 0)
+    : 0;
+
+  const activeOverallVerdict =
+    displayLanguage === "native" && vernacular_overall_verdict
+      ? vernacular_overall_verdict
+      : overall_assessment;
+
+  const activeOverallSummary =
+    displayLanguage === "native" && vernacular_summary
+      ? vernacular_summary
+      : assessment_summary;
 
   return (
     <div className="v2-verification-container">
+      {/* Vernacular Language Banner & Toggle Pill Bar */}
+      {isVernacular && (
+        <div className="vernacular-toggle-banner">
+          <div className="vernacular-meta">
+            <span className="vernacular-icon">🌍</span>
+            <div className="vernacular-meta-text">
+              <span className="vernacular-title">
+                Multi-Lingual Claim Verified: <strong>{language_name}</strong>
+              </span>
+              <span className="vernacular-sub">
+                Cross-referenced with regional fact-checks & global news wires
+              </span>
+            </div>
+          </div>
+
+          <div className="vernacular-lang-pills">
+            <button
+              type="button"
+              className={`vernacular-lang-pill ${displayLanguage === "native" ? "active" : ""}`}
+              onClick={() => setDisplayLanguage("native")}
+              title={`View explanation in ${language_name}`}
+            >
+              🌐 मूल भाषा ({language_name.split(" ")[0]})
+            </button>
+            <button
+              type="button"
+              className={`vernacular-lang-pill ${displayLanguage === "en" ? "active" : ""}`}
+              onClick={() => setDisplayLanguage("en")}
+              title="View English translation"
+            >
+              🇬🇧 English
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top Banner with Verdict & Export Action Buttons */}
       <div className={`hero-verdict-card ${getVerdictClass(overall_assessment)}`}>
         <div className="hero-verdict-header">
           <div className="hero-verdict-badge-group">
             <span className="verdict-emoji">{getVerdictIcon(overall_assessment)}</span>
-            <span className="hero-verdict-title">{overall_assessment}</span>
+            <span className="hero-verdict-title">{activeOverallVerdict}</span>
           </div>
 
           <div className="hero-verdict-actions">
@@ -179,7 +241,7 @@ ${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: 
           </div>
         </div>
 
-        <p className="hero-verdict-summary">{assessment_summary}</p>
+        <p className="hero-verdict-summary">{activeOverallSummary}</p>
 
         <div className="hero-verdict-footer">
           <div className="verdict-guide-box">
@@ -205,7 +267,7 @@ ${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: 
         </div>
         <div className="stat-item">
           <span className="stat-num">
-            {service_status?.gemini_api === "ok" ? "Gemini AI" : "Heuristic"}
+            {service_status?.gemini_api === "ok" ? (isVernacular ? `${language_name.split(" ")[0]} RAG` : "Gemini AI") : "Heuristic"}
           </span>
           <span className="stat-label">Reasoning Engine</span>
         </div>
@@ -236,6 +298,7 @@ ${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: 
               getVerdictClass={getVerdictClass}
               getVerdictIcon={getVerdictIcon}
               getStanceBadge={getStanceBadge}
+              displayLanguage={displayLanguage}
             />
           ))
         )}
@@ -253,7 +316,7 @@ ${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: 
   );
 };
 
-const ClaimCard = ({ claim, index, getVerdictClass, getVerdictIcon, getStanceBadge }) => {
+const ClaimCard = ({ claim, index, getVerdictClass, getVerdictIcon, getStanceBadge, displayLanguage = "en" }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const {
@@ -263,8 +326,14 @@ const ClaimCard = ({ claim, index, getVerdictClass, getVerdictIcon, getStanceBad
     supporting_evidence_count = 0,
     contradicting_evidence_count = 0,
     neutral_evidence_count = 0,
-    evidence = []
+    evidence = [],
+    vernacular_info
   } = claim;
+
+  const isNative = displayLanguage === "native" && vernacular_info;
+  const activeVerdict = isNative && vernacular_info.native_verdict_label ? vernacular_info.native_verdict_label : verdict;
+  const activeReasoning = isNative && vernacular_info.native_reasoning ? vernacular_info.native_reasoning : reasoning;
+  const nativeFindings = isNative && vernacular_info.native_key_findings ? vernacular_info.native_key_findings : [];
 
   return (
     <div className={`claim-card-modern ${getVerdictClass(verdict)}`}>
@@ -275,13 +344,23 @@ const ClaimCard = ({ claim, index, getVerdictClass, getVerdictIcon, getStanceBad
         tabIndex={0}
       >
         <div className="claim-headline-area">
-          <span className="claim-badge-num">Claim #{index + 1}</span>
+          <div className="claim-headline-meta">
+            <span className="claim-badge-num">Claim #{index + 1}</span>
+            {vernacular_info?.language_name && (
+              <span className="claim-lang-tag">🌐 {vernacular_info.language_name}</span>
+            )}
+          </div>
           <h4 className="claim-quote-text">"{text}"</h4>
+          {vernacular_info?.translated_claim_en && (
+            <p className="claim-translated-sub">
+              🇬🇧 <em>English Translation:</em> "{vernacular_info.translated_claim_en}"
+            </p>
+          )}
         </div>
 
         <div className="claim-verdict-pill-area">
           <span className={`verdict-pill-modern ${getVerdictClass(verdict)}`}>
-            {getVerdictIcon(verdict)} {verdict}
+            {getVerdictIcon(verdict)} {activeVerdict}
           </span>
           <button type="button" className="accordion-arrow" aria-label="Toggle details">
             {isExpanded ? "▲" : "▼"}
@@ -295,9 +374,23 @@ const ClaimCard = ({ claim, index, getVerdictClass, getVerdictIcon, getStanceBad
           <div className="ai-reasoning-card">
             <div className="reasoning-header">
               <span className="ai-icon">💡</span>
-              <span className="ai-label">AI Verification Analysis</span>
+              <span className="ai-label">
+                AI Verification Analysis {isNative ? `(${vernacular_info.language_name})` : "(English)"}
+              </span>
             </div>
-            <p className="reasoning-text">{reasoning}</p>
+            <p className="reasoning-text">{activeReasoning}</p>
+
+            {/* Native Key Findings */}
+            {nativeFindings.length > 0 && (
+              <div className="native-findings-box">
+                <span className="findings-title">📌 मुख्य निष्कर्ष (Key Verified Points):</span>
+                <ul className="findings-list">
+                  {nativeFindings.map((f, i) => (
+                    <li key={i}>{f}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Stance Counter */}

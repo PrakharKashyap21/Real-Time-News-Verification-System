@@ -39,11 +39,12 @@ export const predictNews = async (title, text) => {
   }
 };
 
-export const verifyNewsV2 = async (title, text) => {
+export const verifyNewsV2 = async (title, text, language = "auto") => {
   try {
     const response = await apiClient.post("/v2/verify", {
       title: title || "",
       text: text || "",
+      language: language || "auto",
     });
     return response.data;
   } catch (error) {

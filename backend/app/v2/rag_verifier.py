@@ -26,15 +26,27 @@ from backend.app.v2.schemas import (
     LinguisticSignal,
     DocumentClaimAudit,
     DocumentAuditResponse,
+    VernacularAuditInfo,
 )
+
+HINGLISH_KEYWORDS = {
+    "karega", "karenge", "karti", "sarkar", "sarkaar", "yojna", "yojana",
+    "khabar", "daawa", "dawa", "aadesh", "faisla", "rupaye", "rupey",
+    "paisa", "paise", "nakli", "asli", "waale", "wale", "sabko", "milega",
+    "milegi", "band", "khulenge", "chutti", "aaya", "aayi", "gaya", "gayi",
+    "hoga", "hogi", "nahi", "nahin", "nhi", "mat", "karo", "dekho", "viral",
+    "whatsapp", "such", "jhooth", "jhoot", "dhokha", "bacho", "parivar",
+    "kehta", "kehti", "bheja", "bhej", "rahe", "rahi", "hai", "hain", "kare"
+}
 
 class GeminiRAGVerifier:
     """
     Production-grade RAG Verification Engine combining:
     1. Live Web & Breaking News search (DDGS)
     2. Full-text content extraction (trafilatura & bs4)
-    3. Gemini AI Multimodal/Reasoning models with auto-fallback
-    4. Structured JSON evidence attribution & verification verdicts
+    3. Multilingual Vernacular processing (Hindi, Hinglish, Bengali, Tamil, etc.)
+    4. Gemini AI Multimodal/Reasoning models with auto-fallback
+    5. Structured JSON evidence attribution & verification verdicts
     """
 
     def __init__(self, api_key: Optional[str] = None):
@@ -54,6 +66,43 @@ class GeminiRAGVerifier:
             "gemini-3.5-flash",
             "gemma-4-26b-a4b-it"
         ]
+
+    def _detect_language(self, text: str, user_hint: Optional[str] = None) -> tuple[str, str]:
+        """Detect language or script of claim text, honoring explicit user hints."""
+        if user_hint and user_hint.lower() not in ["auto", ""]:
+            hint = user_hint.lower().strip()
+            if hint in ["hi", "hindi"]:
+                return "hi", "Hindi (हिन्दी)"
+            elif hint in ["hinglish"]:
+                return "hinglish", "Hinglish (Roman Hindi)"
+            elif hint in ["bn", "bengali"]:
+                return "bn", "Bengali (বাংলা)"
+            elif hint in ["ta", "tamil"]:
+                return "ta", "Tamil (தமிழ்)"
+            elif hint in ["te", "telugu"]:
+                return "te", "Telugu (తెలుగు)"
+            elif hint in ["mr", "marathi"]:
+                return "mr", "Marathi (मराठी)"
+            elif hint in ["en", "english"]:
+                return "en", "English"
+
+        # Unicode script detection
+        if re.search(r'[\u0900-\u097F]', text):
+            return "hi", "Hindi (हिन्दी)"
+        if re.search(r'[\u0980-\u09FF]', text):
+            return "bn", "Bengali (বাংলা)"
+        if re.search(r'[\u0B80-\u0BFF]', text):
+            return "ta", "Tamil (தமிழ்)"
+        if re.search(r'[\u0C00-\u0C7F]', text):
+            return "te", "Telugu (తెలుగు)"
+
+        # Hinglish romanized vocabulary detection
+        words = [w.lower().strip(",.?!;:\"'()") for w in text.split()]
+        matching_hinglish = [w for w in words if w in HINGLISH_KEYWORDS]
+        if len(matching_hinglish) >= 2 or (len(words) > 0 and (len(matching_hinglish) / len(words)) >= 0.15):
+            return "hinglish", "Hinglish (Roman Hindi)"
+
+        return "en", "English"
 
     def _search_web_and_news(self, query: str, max_results: int = 4) -> List[Dict[str, str]]:
         """Search live web and news articles for the given query using DDGS."""
@@ -175,28 +224,79 @@ class GeminiRAGVerifier:
         except Exception:
             return "Unknown", "unknown"
 
-    def verify_claim(self, claim_text: str, claim_id: str = "c1") -> Dict[str, Any]:
-        """Verify a single claim against live web evidence and Gemini reasoning."""
-        # Step 1: Retrieve search results (top 3)
-        search_results = self._search_web_and_news(claim_text, max_results=3)
+    def _search_multilingual_evidence(self, query: str, lang_code: str, max_results: int = 4) -> List[Dict[str, str]]:
+        """Search live web and news articles with cross-lingual query construction."""
+        if lang_code == "en":
+            return self._search_web_and_news(query, max_results=max_results)
+
+        results = []
+        queries_to_try = []
+
+        clean_q = re.sub(r'["\n\r]', ' ', query).strip()[:80]
+
+        # Targeted fact-checking queries
+        if lang_code == "hi":
+            queries_to_try.append(f"{clean_q} PIB fact check")
+            queries_to_try.append(f"{clean_q} सच या झूठ")
+        elif lang_code == "hinglish":
+            queries_to_try.append(f"{clean_q} fact check")
+            queries_to_try.append(f"{clean_q} real or fake")
+        elif lang_code in ["bn", "ta", "te", "mr"]:
+            queries_to_try.append(f"{clean_q} fact check")
+
+        # Direct query
+        queries_to_try.append(clean_q)
+
+        for q in queries_to_try:
+            items = self._search_web_and_news(q, max_results=3)
+            for it in items:
+                if not any(r["url"] == it["url"] for r in results):
+                    results.append(it)
+            if len(results) >= max_results:
+                break
+
+        return results[:max_results]
+
+    def verify_claim(self, claim_text: str, claim_id: str = "c1", language_hint: Optional[str] = "auto") -> Dict[str, Any]:
+        """Verify a single claim against live web evidence and Gemini reasoning with vernacular support."""
+        # Step 0: Language & script detection
+        lang_code, lang_name = self._detect_language(claim_text, language_hint)
+
+        # Step 1: Retrieve search results (with multilingual cross-querying)
+        search_results = self._search_multilingual_evidence(claim_text, lang_code, max_results=4)
         
         # Step 2: Fetch article text context in parallel (max 3s)
         evidence_docs = self._fetch_all_docs_concurrently(search_results)
 
         # If no client or no key, return heuristic fallback
         if not self.client:
-            return self._fallback_response(claim_text, claim_id, evidence_docs)
+            return self._fallback_response(claim_text, claim_id, evidence_docs, lang_code, lang_name)
 
         # Step 3: Construct prompt for Gemini Reasoning
         sources_text = ""
         for idx, doc in enumerate(evidence_docs, 1):
             sources_text += f"\n\nSource [{idx}]:\nTitle: {doc['title']}\nPublisher: {doc['publisher']} ({doc['domain']})\nURL: {doc['url']}\nContext: {doc['content'] or doc['snippet']}"
 
+        vernacular_instructions = ""
+        if lang_code != "en":
+            vernacular_instructions = f"""
+6. MULTILINGUAL & VERNACULAR ATTRIBUTION ({lang_name}):
+   - In "native_verdict_label", write the verdict in {lang_name}:
+     * If SUPPORTED: "पुष्ट (SUPPORTED)"
+     * If CONTRADICTED: "असत्य / फर्जी (CONTRADICTED)"
+     * If MISLEADING: "भ्रामक (MISLEADING)"
+     * If UNVERIFIED: "अपुष्ट (UNVERIFIED)"
+   - In "native_explanation", write an objective, clear 2-3 sentence explanation in {lang_name} summarizing the findings.
+   - In "native_key_findings", provide 2-3 concise bullet points written in {lang_name}.
+   - In "translated_claim_en", provide an accurate English translation of the claim.
+"""
+
         prompt = f"""You are an elite, objective, real-time News and Fact-Checking AI system.
 Evaluate the following CLAIM against the provided EVIDENCE retrieved from live sources.
 
 CLAIM TO VERIFY:
 "{claim_text}"
+DETECTED CLAIM LANGUAGE: {lang_name} ({lang_code})
 
 EVIDENCE SOURCES:
 {sources_text if sources_text else "No external evidence found."}
@@ -208,16 +308,20 @@ INSTRUCTIONS:
    - "MISLEADING": The claim mixes truth with falsehoods, distorts context, or exaggerates numbers.
    - "UNVERIFIED": Insufficient or no reliable evidence found to independently confirm or debunk the claim.
 2. Assign a confidence score (0.0 to 1.0).
-3. Write a clear, objective 2-3 sentence explanation summarizing the verdict and why.
-4. Provide 2-3 key findings.
-5. For each source that was relevant, identify its stance towards the claim: "SUPPORTS", "CONTRADICTS", or "NEUTRAL".
+3. Write a clear, objective 2-3 sentence explanation in English summarizing the verdict and why.
+4. Provide 2-3 key findings in English.
+5. For each source that was relevant, identify its stance towards the claim: "SUPPORTS", "CONTRADICTS", or "NEUTRAL".{vernacular_instructions}
 
 OUTPUT FORMAT:
 Return strictly a valid JSON object matching this schema:
 {{
   "verdict": "SUPPORTED" | "CONTRADICTED" | "MISLEADING" | "UNVERIFIED",
   "confidence": 0.95,
-  "explanation": "Plain language explanation of why the verdict was reached.",
+  "explanation": "Plain language explanation in English.",
+  "native_verdict_label": "Verdict label in native language",
+  "native_explanation": "Explanation in native language if non-English, else same as explanation",
+  "native_key_findings": ["Finding 1 in native language", "Finding 2 in native language"],
+  "translated_claim_en": "English translation if claim was in another language",
   "key_findings": ["Finding 1", "Finding 2"],
   "source_stances": [
     {{
@@ -305,6 +409,24 @@ Return strictly a valid JSON object matching this schema:
             UncertaintyLevel.MEDIUM if len(evidence_items) > 0 else UncertaintyLevel.HIGH
         )
 
+        native_verdict_fallback = (
+            "पुष्ट (SUPPORTED)" if claim_verdict == ClaimVerdict.SUPPORTED else (
+                "असत्य / फर्जी (CONTRADICTED)" if claim_verdict == ClaimVerdict.CONTRADICTED else "अपुष्ट (UNVERIFIED)"
+            )
+        )
+
+        vernacular_info = VernacularAuditInfo(
+            detected_language=lang_code,
+            language_name=lang_name,
+            original_claim=claim_text,
+            translated_claim_en=parsed_data.get("translated_claim_en"),
+            native_verdict_label=parsed_data.get("native_verdict_label") or native_verdict_fallback,
+            native_reasoning=parsed_data.get("native_explanation") or parsed_data.get("explanation"),
+            english_reasoning=parsed_data.get("explanation"),
+            native_key_findings=parsed_data.get("native_key_findings") or parsed_data.get("key_findings", []),
+            vernacular_sources_searched=list({doc["publisher"] for doc in evidence_docs if doc.get("publisher")})
+        )
+
         return {
             "claim_id": claim_id,
             "text": claim_text,
@@ -319,7 +441,8 @@ Return strictly a valid JSON object matching this schema:
             "keywords": [w for w in claim_text.split() if len(w) > 4][:5],
             "evidence": evidence_items,
             "key_findings": parsed_data.get("key_findings", []),
-            "confidence": parsed_data.get("confidence", 0.90)
+            "confidence": parsed_data.get("confidence", 0.90),
+            "vernacular_info": vernacular_info
         }
 
     def _parse_gemini_json(self, text: Optional[str]) -> Dict[str, Any]:
@@ -353,8 +476,19 @@ Return strictly a valid JSON object matching this schema:
                 "source_stances": []
             }
 
-    def _fallback_response(self, claim_text: str, claim_id: str, docs: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _fallback_response(self, claim_text: str, claim_id: str, docs: List[Dict[str, Any]], lang_code: str = "en", lang_name: str = "English") -> Dict[str, Any]:
         """Offline fallback response if Gemini is unreachable."""
+        v_info = VernacularAuditInfo(
+            detected_language=lang_code,
+            language_name=lang_name,
+            original_claim=claim_text,
+            translated_claim_en=None,
+            native_verdict_label="अपुष्ट (UNVERIFIED)" if lang_code != "en" else "UNVERIFIED",
+            native_reasoning="Gemini AI API key is not configured or offline. Real-time verification requires GEMINI_API_KEY.",
+            english_reasoning="Gemini AI API key is not configured or offline. Real-time verification requires GEMINI_API_KEY.",
+            native_key_findings=[],
+            vernacular_sources_searched=[doc["publisher"] for doc in docs if doc.get("publisher")]
+        )
         return {
             "claim_id": claim_id,
             "text": claim_text,
@@ -369,14 +503,16 @@ Return strictly a valid JSON object matching this schema:
             "keywords": [w for w in claim_text.split() if len(w) > 4][:5],
             "evidence": [],
             "key_findings": [],
-            "confidence": 0.50
+            "confidence": 0.50,
+            "vernacular_info": v_info
         }
 
     def verify_request(self, request: VerificationRequest) -> VerificationResponse:
-        """Process full verification request (headline + text body) and return VerificationResponse."""
+        """Process full verification request (headline + text body) and return VerificationResponse with multilingual support."""
         title = (request.title or "").strip()
         text = (request.text or "").strip()
         full_text = f"{title}. {text}".strip() if title and text else (title or text)
+        req_lang = request.language or "auto"
 
         # Prioritize the most substantive factual claim for high precision and fast turnaround
         claims_to_verify = []
@@ -396,7 +532,7 @@ Return strictly a valid JSON object matching this schema:
 
         for idx, claim_str in enumerate(claims_to_verify[:request.max_claims or 2]):
             cid = f"claim_{idx+1}"
-            res = self.verify_claim(claim_str, cid)
+            res = self.verify_claim(claim_str, cid, language_hint=req_lang)
             
             # Evidence summary
             ev_items = res["evidence"]
@@ -433,7 +569,8 @@ Return strictly a valid JSON object matching this schema:
                 evidence=ev_items,
                 semantic_relation=res["verdict"].value,
                 semantic_model="Google Gemini Flash RAG",
-                semantic_evidence_count=len(ev_items)
+                semantic_evidence_count=len(ev_items),
+                vernacular_info=res.get("vernacular_info")
             )
             claim_details.append(detail)
             if res.get("key_findings"):
@@ -454,6 +591,15 @@ Return strictly a valid JSON object matching this schema:
             overall = OverallAssessment.UNVERIFIED
             summary_msg = claim_details[0].reasoning if claim_details else "Insufficient external evidence found."
 
+        first_vinfo = claim_details[0].vernacular_info if claim_details else None
+        detected_lang = first_vinfo.detected_language if first_vinfo else "en"
+        lang_name = first_vinfo.language_name if first_vinfo else "English"
+        vernacular_summary = first_vinfo.native_reasoning if (first_vinfo and first_vinfo.native_reasoning) else None
+        vernacular_overall = first_vinfo.native_verdict_label if (first_vinfo and first_vinfo.native_verdict_label) else None
+        translations = ["en"]
+        if detected_lang != "en":
+            translations.append(detected_lang)
+
         return VerificationResponse(
             overall_assessment=overall,
             assessment_summary=summary_msg,
@@ -468,7 +614,12 @@ Return strictly a valid JSON object matching this schema:
             disclaimer=(
                 "Verification is powered by real-time web news retrieval and Google Gemini AI reasoning. "
                 "UNVERIFIED claims indicate an absence of indexed external reporting rather than proven falsehood."
-            )
+            ),
+            detected_language=detected_lang,
+            language_name=lang_name,
+            vernacular_summary=vernacular_summary,
+            vernacular_overall_verdict=vernacular_overall,
+            available_translations=translations
         )
 
     def _decompose_claims(self, title: str, content: str) -> List[str]:

@@ -1,43 +1,86 @@
 import React, { useState, useEffect, useRef } from "react";
 import { extractArticleFromUrl } from "../api";
 
+const SUPPORTED_LANGUAGES = [
+  { code: "auto", label: "Auto-Detect", flag: "🌐" },
+  { code: "hi", label: "हिन्दी (Hindi)", flag: "🇮🇳" },
+  { code: "hinglish", label: "Hinglish (Roman)", flag: "💬" },
+  { code: "en", label: "English", flag: "🇬🇧" },
+  { code: "bn", label: "বাংলা (Bengali)", flag: "🇮🇳" },
+  { code: "ta", label: "தமிழ் (Tamil)", flag: "🇮🇳" },
+  { code: "te", label: "తెలుగు (Telugu)", flag: "🇮🇳" },
+  { code: "mr", label: "मराठी (Marathi)", flag: "🇮🇳" }
+];
+
+const detectScriptClientSide = (text) => {
+  if (!text || text.trim().length < 3) return null;
+  if (/[\u0900-\u097F]/.test(text)) return "हिन्दी (Hindi)";
+  if (/[\u0980-\u09FF]/.test(text)) return "বাংলা (Bengali)";
+  if (/[\u0B80-\u0BFF]/.test(text)) return "தமிழ் (Tamil)";
+  if (/[\u0C00-\u0C7F]/.test(text)) return "తెలుగు (Telugu)";
+
+  const hinglishWords = [
+    "karega", "karenge", "sarkar", "sarkaar", "yojna", "yojana",
+    "khabar", "daawa", "dawa", "aadesh", "faisla", "rupaye", "rupey",
+    "paisa", "paise", "nakli", "asli", "waale", "wale", "sabko", "milega",
+    "band", "khulenge", "chutti", "nahi", "nahin", "nhi", "viral", "whatsapp"
+  ];
+  const words = text.toLowerCase().split(/\s+/);
+  if (words.some((w) => hinglishWords.includes(w.replace(/[^a-z]/g, "")))) {
+    return "Hinglish (Roman Hindi)";
+  }
+  return null;
+};
+
 const TRENDING_EXAMPLES = [
+  {
+    type: "claim",
+    label: "🇮🇳 ₹500 Note Rumor (हिन्दी)",
+    title: "RBI 500 Currency Note Ban Rumor",
+    text: "सोशल मीडिया पर दावा किया जा रहा है कि RBI ने ₹500 के स्टार मार्क वाले नोटों को अवैध घोषित कर बंद कर दिया है।",
+    language: "hi"
+  },
+  {
+    type: "claim",
+    label: "⚡ Free Bijli Subsidy (Hinglish)",
+    title: "PM Muft Bijli Yojna WhatsApp Message",
+    text: "WhatsApp forward keh raha hai ki sarkar sabhi nagriko ke account me 5000 rupaye bijli subsidy direct bhej rahi hai link se claim karein.",
+    language: "hinglish"
+  },
   {
     type: "claim",
     label: "📈 Trent Q2 Revenue",
     title: "Trent Q2 standalone revenue",
-    text: "Indian retailer Trent reported a 23% year-on-year rise in standalone revenue in the July-September 2026 quarter."
+    text: "Indian retailer Trent reported a 23% year-on-year rise in standalone revenue in the July-September 2026 quarter.",
+    language: "en"
   },
   {
     type: "claim",
     label: "🦠 5G COVID Hoax",
     title: "5G and Coronavirus",
-    text: "5G mobile towers transmit coronavirus pathogens and cause COVID-19 infections."
+    text: "5G mobile towers transmit coronavirus pathogens and cause COVID-19 infections.",
+    language: "en"
   },
   {
     type: "claim",
     label: "🚀 NASA Artemis I",
     title: "NASA Artemis Mission",
-    text: "NASA launched the Artemis I mission to test the Orion spacecraft and Space Launch System rocket."
-  },
-  {
-    type: "claim",
-    label: "💼 Microsoft Acquisition",
-    title: "Microsoft Activision Deal",
-    text: "Microsoft acquired video game publisher Activision Blizzard for approximately $69 billion in an all-cash transaction."
+    text: "NASA launched the Artemis I mission to test the Orion spacecraft and Space Launch System rocket.",
+    language: "en"
   },
   {
     type: "url",
     label: "🌐 BBC Tech Article",
-    url: "https://www.bbc.com/news/technology"
+    url: "https://www.bbc.com/news/technology",
+    language: "en"
   }
 ];
 
 const LOADING_STEPS = [
-  { text: "🔍 Searching live web, breaking news & fact-checks...", delay: 0 },
-  { text: "📄 Fetching and reading full article paragraphs...", delay: 3500 },
-  { text: "🧠 Analyzing facts & evaluating stance with Gemini AI...", delay: 7000 },
-  { text: "✨ Formulating structured verdict & citations...", delay: 11000 }
+  { text: "🔍 Searching live web, breaking news & regional archives...", delay: 0 },
+  { text: "📄 Reading source paragraphs & fact-check wires...", delay: 3500 },
+  { text: "🧠 Analyzing claims & cross-verifying stance with Gemini AI...", delay: 7000 },
+  { text: "✨ Formulating multilingual verdict & citations...", delay: 11000 }
 ];
 
 const OmniSearchInput = ({
@@ -51,6 +94,7 @@ const OmniSearchInput = ({
 }) => {
   const [inputText, setInputText] = useState(initialText);
   const [headline, setHeadline] = useState(initialTitle);
+  const [selectedLanguage, setSelectedLanguage] = useState("auto");
   const [showHeadlineInput, setShowHeadlineInput] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [loadingStepIndex, setLoadingStepIndex] = useState(0);
@@ -113,7 +157,8 @@ const OmniSearchInput = ({
           onSubmit({
             title: extractedTitle,
             text: extractedText,
-            sourceUrl: rawInput
+            sourceUrl: rawInput,
+            language: selectedLanguage
           });
         } else {
           if (setValidationError) setValidationError(extracted?.error || "Could not extract article content from URL.");
@@ -134,7 +179,8 @@ const OmniSearchInput = ({
 
     onSubmit({
       title: headline.trim() || undefined,
-      text: rawInput
+      text: rawInput,
+      language: selectedLanguage
     });
   };
 
@@ -149,13 +195,19 @@ const OmniSearchInput = ({
       setInputText(example.text);
       setHeadline(example.title || "");
     }
+    if (example.language) {
+      setSelectedLanguage(example.language);
+    }
   };
 
   const handleClear = () => {
     setInputText("");
     setHeadline("");
+    setSelectedLanguage("auto");
     if (setValidationError) setValidationError("");
   };
+
+  const detectedScript = detectScriptClientSide(inputText);
 
   return (
     <div className={`omni-search-wrapper ${isCompact ? "compact-mode" : ""}`}>
@@ -196,7 +248,7 @@ const OmniSearchInput = ({
             placeholder={
               isCompact
                 ? "Verify another claim or paste news URL..."
-                : "Ask anything, paste a news claim, viral statement, or article URL to verify..."
+                : "Ask anything in Hindi, Hinglish, or English to verify with live news wires..."
             }
             value={inputText}
             onChange={(e) => {
@@ -225,6 +277,30 @@ const OmniSearchInput = ({
                 + Add Headline
               </button>
             ) : null}
+
+            {/* Language Selector Dropdown */}
+            <div className="omni-lang-badge-wrapper" title="Claim & response language mode">
+              <select
+                className="omni-lang-select"
+                value={selectedLanguage}
+                onChange={(e) => setSelectedLanguage(e.target.value)}
+                disabled={isLoading || isExtracting}
+                aria-label="Select Claim Language"
+              >
+                {SUPPORTED_LANGUAGES.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.flag} {lang.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Live Client Script Detection Chip */}
+            {detectedScript && selectedLanguage === "auto" && (
+              <span className="omni-detected-pill" title="Script automatically detected from your typing">
+                ✨ {detectedScript}
+              </span>
+            )}
 
             {inputText.trim().length > 0 && (
               <span className="omni-char-count">{inputText.trim().length} chars</span>
