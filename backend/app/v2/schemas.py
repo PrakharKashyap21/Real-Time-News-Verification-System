@@ -273,12 +273,15 @@ class RadarItem(BaseModel):
     source_preview: str
     published_time: str
     prefilled_query: str
+    pub_date_iso: Optional[str] = None
+    link: Optional[str] = None
 
 
 class RadarResponse(BaseModel):
     last_updated: str
     total_active_stories: int
     categories: List[str]
+    country: Optional[str] = "IN"
     items: List[RadarItem]
 
 

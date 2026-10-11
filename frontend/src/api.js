@@ -128,9 +128,12 @@ export const getAnalyticsData = async (domain = "") => {
   }
 };
 
-export const getRadarFeed = async (category = "") => {
+export const getRadarFeed = async (category = "", country = "IN", rotate = false) => {
   try {
-    const params = category && category !== "All" ? { category } : {};
+    const params = {};
+    if (category && category !== "All") params.category = category;
+    if (country) params.country = country;
+    if (rotate) params.rotate = true;
     const response = await apiClient.get("/v2/radar", { params });
     return response.data;
   } catch (error) {

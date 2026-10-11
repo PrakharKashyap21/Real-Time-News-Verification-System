@@ -1,27 +1,150 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { getRadarFeed } from "../api";
 
 export default function RadarView({ onVerifyStory }) {
   const [radarData, setRadarData] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCountry, setSelectedCountry] = useState("IN");
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [verifyingId, setVerifyingId] = useState(null);
+  const [autoUpdate, setAutoUpdate] = useState(true);
+  const [countdown, setCountdown] = useState(30);
+  const [justUpdated, setJustUpdated] = useState(false);
 
+  // Approach A: Pending new stories notification state
+  const [pendingNewData, setPendingNewData] = useState(null);
+  const [pendingNewCount, setPendingNewCount] = useState(0);
+
+  const selectedCategoryRef = useRef(selectedCategory);
+  selectedCategoryRef.current = selectedCategory;
+
+  const selectedCountryRef = useRef(selectedCountry);
+  selectedCountryRef.current = selectedCountry;
+
+  const COUNTRIES = [
+    { code: "IN", name: "India", flag: "🇮🇳" },
+    { code: "US", name: "United States", flag: "🇺🇸" },
+    { code: "GB", name: "United Kingdom", flag: "🇬🇧" },
+    { code: "GL", name: "Global Edition", flag: "🌍" },
+  ];
+
+  const categories = [
+    { label: "🔥 All Trending", val: "All" },
+    { label: "🌍 World & Politics", val: "World & Politics" },
+    { label: "🤖 Tech & AI", val: "Tech & AI" },
+    { label: "🧬 Science & Health", val: "Science & Health" },
+    { label: "📈 Markets & Finance", val: "Markets & Finance" },
+  ];
+
+  // Fetch when category or country changes
   useEffect(() => {
-    fetchFeed(selectedCategory);
-  }, [selectedCategory]);
+    fetchFeed(selectedCategory, selectedCountry, false, false);
+    setCountdown(30);
+    setPendingNewData(null);
+    setPendingNewCount(0);
+  }, [selectedCategory, selectedCountry]);
 
-  const fetchFeed = async (cat = "All") => {
-    setLoading(true);
+  // Approach A: Live Background Polling Countdown Engine
+  useEffect(() => {
+    if (!autoUpdate) return;
+
+    const interval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          // Trigger background poll with rotation so buffer stays fresh
+          fetchFeed(selectedCategoryRef.current, selectedCountryRef.current, true, true);
+          return 30;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [autoUpdate]);
+
+  // Client-Side Live Relative Timestamp Engine (ticks every 10 seconds)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRadarData((prev) => {
+        if (!prev || !prev.items) return prev;
+        const now = new Date();
+        const updatedItems = prev.items.map((item) => {
+          if (!item.pub_date_iso) return item;
+          try {
+            const pubDate = new Date(item.pub_date_iso);
+            const diffMins = Math.max(0, Math.floor((now - pubDate) / 60000));
+            let timeStr = "Just now";
+            if (diffMins >= 1 && diffMins < 60) {
+              timeStr = `${diffMins}m ago`;
+            } else if (diffMins >= 60 && diffMins < 1440) {
+              timeStr = `${Math.floor(diffMins / 60)}h ago`;
+            } else if (diffMins >= 1440) {
+              timeStr = `${Math.floor(diffMins / 1440)}d ago`;
+            }
+            return { ...item, published_time: timeStr };
+          } catch (e) {
+            return item;
+          }
+        });
+        return { ...prev, items: updatedItems };
+      });
+    }, 10000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const fetchFeed = async (cat = "All", ctry = selectedCountry, isBackground = false, rotate = false) => {
+    if (!isBackground) {
+      setLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
     setError("");
+
     try {
-      const data = await getRadarFeed(cat);
-      setRadarData(data);
+      const data = await getRadarFeed(cat, ctry, rotate);
+
+      if (isBackground && radarData?.items?.length) {
+        // Approach A: Check if any stories are new compared to current screen
+        const currentTitles = new Set(radarData.items.map((it) => it.title));
+        const freshItems = (data.items || []).filter((it) => !currentTitles.has(it.title));
+
+        if (freshItems.length > 0) {
+          // Do not abruptly replace the cards; prompt the user gracefully
+          setPendingNewData(data);
+          setPendingNewCount(freshItems.length);
+        } else {
+          // If stories match current set, update timestamps without disrupting view
+          setRadarData(data);
+        }
+      } else {
+        // Immediate user-initiated fetch / category switch
+        setRadarData(data);
+        setPendingNewData(null);
+        setPendingNewCount(0);
+        setJustUpdated(true);
+        setTimeout(() => setJustUpdated(false), 2500);
+      }
     } catch (err) {
-      setError(err.message || "Failed to load breaking news radar stream.");
+      if (!isBackground) {
+        setError(err.message || "Failed to load breaking news radar stream.");
+      }
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  const handleApplyPendingStories = () => {
+    if (pendingNewData) {
+      setRadarData(pendingNewData);
+      setPendingNewData(null);
+      setPendingNewCount(0);
+      setJustUpdated(true);
+      setTimeout(() => setJustUpdated(false), 2500);
+      window.scrollTo({ top: 100, behavior: "smooth" });
     }
   };
 
@@ -35,14 +158,6 @@ export default function RadarView({ onVerifyStory }) {
     }
   };
 
-  const categories = [
-    { label: "🔥 All Trending", val: "All" },
-    { label: "🌍 World & Politics", val: "World & Politics" },
-    { label: "🤖 Tech & AI", val: "Tech & AI" },
-    { label: "🧬 Science & Health", val: "Science & Health" },
-    { label: "📈 Markets & Finance", val: "Markets & Finance" },
-  ];
-
   return (
     <div className="radar-page-container">
       {/* Header */}
@@ -50,6 +165,11 @@ export default function RadarView({ onVerifyStory }) {
         <div className="radar-pill">
           <span className="live-dot pulse-amber"></span>
           <span>Live Detection Stream</span>
+          {autoUpdate && (
+            <span className="radar-live-indicator" title="Stream automatically updating in background">
+              ⚡ LIVE
+            </span>
+          )}
         </div>
         <h1 className="radar-title">Breaking News Radar & Viral Claims</h1>
         <p className="radar-subtitle">
@@ -57,8 +177,9 @@ export default function RadarView({ onVerifyStory }) {
         </p>
       </div>
 
-      {/* Control Bar: Categories & Refresh */}
+      {/* Control Bar: Categories, Country Selector & Controls */}
       <div className="radar-controls-bar">
+        {/* Categories Bar */}
         <div className="radar-category-pills">
           {categories.map((c) => (
             <button
@@ -72,38 +193,113 @@ export default function RadarView({ onVerifyStory }) {
           ))}
         </div>
 
+        {/* Right Tools: Country Selector, Auto-Update & Refresh */}
         <div className="radar-meta-controls">
+          {/* Country Regional Edition Selector */}
+          <div className="radar-country-selector-wrapper" title="Select regional breaking news edition">
+            <span className="country-globe-icon">🌐</span>
+            <select
+              className="radar-country-select"
+              value={selectedCountry}
+              onChange={(e) => setSelectedCountry(e.target.value)}
+              aria-label="Select News Region"
+            >
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.flag} {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Live Auto-Update Switcher (Approach A) */}
+          <button
+            type="button"
+            className={`radar-autoupdate-btn ${autoUpdate ? "active" : "paused"}`}
+            onClick={() => {
+              if (autoUpdate) {
+                setAutoUpdate(false);
+              } else {
+                setAutoUpdate(true);
+                setCountdown(30);
+                fetchFeed(selectedCategory, selectedCountry, true, true);
+              }
+            }}
+            title={autoUpdate ? "Click to pause background auto-updates" : "Click to enable live background auto-updates"}
+          >
+            <span className={`radar-beacon-dot ${autoUpdate ? "pulse-green" : "beacon-paused"}`}></span>
+            <span>
+              {autoUpdate ? (
+                <>
+                  Auto-Update: <strong>{countdown}s</strong>
+                </>
+              ) : (
+                "Auto-Update: Paused"
+              )}
+            </span>
+          </button>
+
           {radarData?.last_updated && (
-            <span className="radar-updated-tag">
+            <span className="radar-updated-tag" title="Last feed synchronization time">
               Updated: {radarData.last_updated.split(" ")[1]} UTC
             </span>
           )}
+
+          {justUpdated && (
+            <span className="radar-flash-tag animate-fade">
+              ✨ Fresh Stream
+            </span>
+          )}
+
+          {/* Manual Refresh Button (rotates candidate buffer immediately) */}
           <button
             type="button"
             className="radar-refresh-btn"
-            onClick={() => fetchFeed(selectedCategory)}
-            disabled={loading}
-            title="Refresh breaking news stream"
+            onClick={() => {
+              fetchFeed(selectedCategory, selectedCountry, false, true);
+              setCountdown(30);
+            }}
+            disabled={loading || isRefreshing}
+            title="Rotate to fresh stories from buffer pool now"
           >
-            <span className={loading ? "spin-icon" : ""}>🔄</span> Refresh
+            <span className={loading || isRefreshing ? "spin-icon" : ""}>🔄</span> Refresh
           </button>
         </div>
       </div>
 
+      {/* Approach A: Floating New Stories Banner */}
+      {pendingNewCount > 0 && (
+        <div
+          className="radar-new-stories-banner"
+          onClick={handleApplyPendingStories}
+          role="button"
+          tabIndex={0}
+          title="Click to display freshly retrieved stories"
+        >
+          <span className="radar-pill-dot pulse-emerald"></span>
+          <span className="radar-banner-text">
+            ✨ <strong>{pendingNewCount} New Breaking Stories</strong> Available — Click to view latest updates
+          </span>
+          <span className="radar-banner-action">View Stream ↑</span>
+        </div>
+      )}
+
       {error && (
         <div className="radar-error-banner">
           <span>⚠️ {error}</span>
-          <button type="button" onClick={() => fetchFeed(selectedCategory)} className="retry-btn">
+          <button type="button" onClick={() => fetchFeed(selectedCategory, selectedCountry, false, false)} className="retry-btn">
             Retry
           </button>
         </div>
       )}
 
-      {/* Loading State */}
-      {loading ? (
+      {/* Loading State for initial fetch */}
+      {loading && !radarData ? (
         <div className="radar-loading-container">
           <div className="radar-pulse-ring"></div>
-          <p className="radar-loading-text">Scanning global news feeds & viral networks...</p>
+          <p className="radar-loading-text">
+            Scanning {COUNTRIES.find((c) => c.code === selectedCountry)?.name || "regional"} live news feeds & viral networks...
+          </p>
         </div>
       ) : !radarData?.items?.length ? (
         <div className="radar-empty-box">
@@ -147,7 +343,9 @@ export default function RadarView({ onVerifyStory }) {
                       </span>
                     )}
                   </div>
-                  <span className="story-time-tag">{item.published_time}</span>
+                  <span className="story-time-tag" title={item.pub_date_iso || ""}>
+                    {item.published_time}
+                  </span>
                 </div>
 
                 {/* Headline */}

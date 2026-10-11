@@ -218,9 +218,13 @@ def get_analytics(domain: Optional[str] = None):
 
 
 @router.get("/radar", response_model=RadarResponse)
-def get_radar(category: Optional[str] = None):
+def get_radar(
+    category: Optional[str] = None,
+    country: Optional[str] = "IN",
+    rotate: Optional[bool] = False
+):
     from backend.app.v2.radar_service import fetch_radar_feed
-    return fetch_radar_feed(category=category)
+    return fetch_radar_feed(category=category, country=country, rotate=rotate)
 
 
 @router.post("/audit-image", response_model=ImageAuditResponse)
