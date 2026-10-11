@@ -9,8 +9,6 @@ export default function RadarView({ onVerifyStory }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [verifyingId, setVerifyingId] = useState(null);
-  const [autoUpdate, setAutoUpdate] = useState(true);
-  const [countdown, setCountdown] = useState(30);
   const [justUpdated, setJustUpdated] = useState(false);
 
   // Approach A: Pending new stories notification state
@@ -41,28 +39,19 @@ export default function RadarView({ onVerifyStory }) {
   // Fetch when category or country changes
   useEffect(() => {
     fetchFeed(selectedCategory, selectedCountry, false, false);
-    setCountdown(30);
     setPendingNewData(null);
     setPendingNewCount(0);
   }, [selectedCategory, selectedCountry]);
 
-  // Approach A: Live Background Polling Countdown Engine
+  // Silent Background Polling Engine (Every 30s)
   useEffect(() => {
-    if (!autoUpdate) return;
-
     const interval = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          // Trigger background poll with rotation so buffer stays fresh
-          fetchFeed(selectedCategoryRef.current, selectedCountryRef.current, true, true);
-          return 30;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+      // Trigger background poll with rotation so buffer stays fresh
+      fetchFeed(selectedCategoryRef.current, selectedCountryRef.current, true, true);
+    }, 30000);
 
     return () => clearInterval(interval);
-  }, [autoUpdate]);
+  }, []);
 
   // Client-Side Live Relative Timestamp Engine (ticks every 10 seconds)
   useEffect(() => {
@@ -165,11 +154,9 @@ export default function RadarView({ onVerifyStory }) {
         <div className="radar-pill">
           <span className="live-dot pulse-amber"></span>
           <span>Live Detection Stream</span>
-          {autoUpdate && (
-            <span className="radar-live-indicator" title="Stream automatically updating in background">
-              ⚡ LIVE
-            </span>
-          )}
+          <span className="radar-live-indicator" title="Stream continuously updating in background">
+            ⚡ LIVE
+          </span>
         </div>
         <h1 className="radar-title">Breaking News Radar & Viral Claims</h1>
         <p className="radar-subtitle">
@@ -193,7 +180,7 @@ export default function RadarView({ onVerifyStory }) {
           ))}
         </div>
 
-        {/* Right Tools: Country Selector, Auto-Update & Refresh */}
+        {/* Right Tools: Country Selector, Status & Refresh */}
         <div className="radar-meta-controls">
           {/* Country Regional Edition Selector */}
           <div className="radar-country-selector-wrapper" title="Select regional breaking news edition">
@@ -211,33 +198,6 @@ export default function RadarView({ onVerifyStory }) {
               ))}
             </select>
           </div>
-
-          {/* Live Auto-Update Switcher (Approach A) */}
-          <button
-            type="button"
-            className={`radar-autoupdate-btn ${autoUpdate ? "active" : "paused"}`}
-            onClick={() => {
-              if (autoUpdate) {
-                setAutoUpdate(false);
-              } else {
-                setAutoUpdate(true);
-                setCountdown(30);
-                fetchFeed(selectedCategory, selectedCountry, true, true);
-              }
-            }}
-            title={autoUpdate ? "Click to pause background auto-updates" : "Click to enable live background auto-updates"}
-          >
-            <span className={`radar-beacon-dot ${autoUpdate ? "pulse-green" : "beacon-paused"}`}></span>
-            <span>
-              {autoUpdate ? (
-                <>
-                  Auto-Update: <strong>{countdown}s</strong>
-                </>
-              ) : (
-                "Auto-Update: Paused"
-              )}
-            </span>
-          </button>
 
           {radarData?.last_updated && (
             <span className="radar-updated-tag" title="Last feed synchronization time">
@@ -257,7 +217,6 @@ export default function RadarView({ onVerifyStory }) {
             className="radar-refresh-btn"
             onClick={() => {
               fetchFeed(selectedCategory, selectedCountry, false, true);
-              setCountdown(30);
             }}
             disabled={loading || isRefreshing}
             title="Rotate to fresh stories from buffer pool now"
