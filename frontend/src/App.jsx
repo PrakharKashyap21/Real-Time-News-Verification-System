@@ -29,15 +29,26 @@ function App() {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get("tab");
       if (tabParam === "chatbot" || window.location.hash === "#chatbot") return "chatbot";
-      if (tabParam === "audio-audit" || window.location.hash === "#audio-audit") return "audio-audit";
-      if (tabParam === "image-audit" || window.location.hash === "#image-audit") return "image-audit";
       if (tabParam === "radar" || window.location.hash === "#radar") return "radar";
       if (tabParam === "analytics" || window.location.hash === "#analytics") return "analytics";
-      if (tabParam === "doc-audit" || window.location.hash === "#doc-audit") return "doc-audit";
     } catch (e) {
       // ignore
     }
     return "verify";
+  });
+
+  const [verifyModality, setVerifyModality] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      const modalityParam = params.get("modality");
+      if (modalityParam === "audio" || tabParam === "audio-audit" || window.location.hash === "#audio-audit") return "audio";
+      if (modalityParam === "image" || tabParam === "image-audit" || window.location.hash === "#image-audit") return "image";
+      if (modalityParam === "doc" || tabParam === "doc-audit" || window.location.hash === "#doc-audit") return "doc";
+    } catch (e) {
+      // ignore
+    }
+    return "search";
   });
   const [isLoading, setIsLoading] = useState(false);
   const [verificationResult, setVerificationResult] = useState(null);
@@ -104,6 +115,8 @@ function App() {
   };
 
   const handleSelectHistoryItem = (item) => {
+    setActiveTab("verify");
+    setVerifyModality("search");
     setVerificationResult(item.result);
     setActiveQuery({ title: item.title || "", text: item.text || "" });
     setError("");
@@ -125,6 +138,7 @@ function App() {
       if (queryParam && !autoVerifiedRef.current) {
         autoVerifiedRef.current = true;
         setActiveTab("verify");
+        setVerifyModality("search");
         handleVerify({ title: titleParam, text: queryParam });
         return;
       }
@@ -208,6 +222,7 @@ function App() {
     setActiveQuery({ title: "", text: "" });
     setError("");
     setValidationError("");
+    setVerifyModality("search");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -220,15 +235,37 @@ function App() {
     setError("");
     setValidationError("");
     try {
-      const url = tab === "verify" ? window.location.pathname : `?tab=${tab}`;
+      let url;
+      if (tab === "verify") {
+        url = verifyModality === "search" ? window.location.pathname : `?tab=${verifyModality === "audio" ? "audio-audit" : verifyModality === "image" ? "image-audit" : "doc-audit"}`;
+      } else {
+        url = `?tab=${tab}`;
+      }
       window.history.replaceState(null, "", url);
     } catch (e) {
       // ignore
     }
-    if (tab === "verify") {
+    if (tab === "verify" && verifyModality === "search") {
       handleResetHome();
     }
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  };
+
+  const switchModality = (modality) => {
+    setActiveTab("verify");
+    setVerifyModality(modality);
+    setError("");
+    setValidationError("");
+    try {
+      let url = window.location.pathname;
+      if (modality === "audio") url = "?tab=audio-audit";
+      else if (modality === "image") url = "?tab=image-audit";
+      else if (modality === "doc") url = "?tab=doc-audit";
+      window.history.replaceState(null, "", url);
+    } catch (e) {
+      // ignore
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   };
 
   return (
@@ -253,7 +290,14 @@ function App() {
           <button
             type="button"
             className={`nav-tab-link ${activeTab === "verify" ? "active" : ""}`}
-            onClick={() => switchTab("verify")}
+            onClick={() => {
+              if (activeTab === "verify") {
+                setVerifyModality("search");
+                handleResetHome();
+              } else {
+                switchTab("verify");
+              }
+            }}
           >
             <NavVerifyIcon size={14} /> <span>Live Verify</span>
           </button>
@@ -266,31 +310,10 @@ function App() {
           </button>
           <button
             type="button"
-            className={`nav-tab-link ${activeTab === "image-audit" ? "active" : ""}`}
-            onClick={() => switchTab("image-audit")}
-          >
-            <NavImageIcon size={14} /> <span>Image Audit</span>
-          </button>
-          <button
-            type="button"
-            className={`nav-tab-link ${activeTab === "audio-audit" ? "active" : ""}`}
-            onClick={() => switchTab("audio-audit")}
-          >
-            <NavAudioIcon size={14} /> <span>Audio Audit</span>
-          </button>
-          <button
-            type="button"
             className={`nav-tab-link ${activeTab === "chatbot" ? "active" : ""}`}
             onClick={() => switchTab("chatbot")}
           >
             <NavChatbotIcon size={14} /> <span>Chatbot Bridge</span>
-          </button>
-          <button
-            type="button"
-            className={`nav-tab-link ${activeTab === "doc-audit" ? "active" : ""}`}
-            onClick={() => switchTab("doc-audit")}
-          >
-            <NavDocIcon size={14} /> <span>Doc Audit</span>
           </button>
           <button
             type="button"
@@ -302,7 +325,7 @@ function App() {
         </div>
 
         <div className="nav-actions">
-          {activeTab === "verify" && verificationResult && (
+          {activeTab === "verify" && verifyModality === "search" && verificationResult && (
             <button
               type="button"
               className="nav-btn nav-new-btn"
@@ -330,102 +353,165 @@ function App() {
 
       {/* Main Content Area */}
       <main className="main-viewport">
-        <div key={activeTab + (verificationResult ? "-result" : "-landing")} className="tab-viewport-fade">
+        <div
+          key={activeTab + (activeTab === "verify" ? `-${verifyModality}` : "") + (verificationResult ? "-result" : "-landing")}
+          className="tab-viewport-fade"
+        >
           {activeTab === "chatbot" ? (
             <ChatbotBridgeView
               onOpenInDashboard={(claim) => {
                 switchTab("verify");
+                setVerifyModality("search");
                 handleVerify({ title: "Chat Forward Claim", text: claim });
-              }}
-            />
-          ) : activeTab === "audio-audit" ? (
-            <AudioAuditView
-              onAuditToLiveVerify={(story) => {
-                switchTab("verify");
-                handleVerify({ title: story.title, text: story.text });
-              }}
-            />
-          ) : activeTab === "image-audit" ? (
-            <ImageAuditView
-              onAuditToLiveVerify={(story) => {
-                switchTab("verify");
-                handleVerify({ title: story.title, text: story.text });
               }}
             />
           ) : activeTab === "radar" ? (
             <RadarView
               onVerifyStory={(story) => {
                 switchTab("verify");
+                setVerifyModality("search");
                 handleVerify({ title: story.title, text: story.text });
               }}
             />
           ) : activeTab === "analytics" ? (
             <AnalyticsView />
-          ) : activeTab === "doc-audit" ? (
-            <DocumentAuditView />
-          ) : !verificationResult ? (
-            /* Initial Minimalist Landing State (Perplexity / Grok style) */
-            <div className="hero-landing-container">
-              <div className="hero-center-header">
-
-                <div className="hero-pill">
-                  <span className="live-dot"></span>
-                  <span>Real-Time Autonomous Fact-Checking</span>
-                </div>
-                <h1 className="hero-headline">Where claims meet evidence.</h1>
-                <p className="hero-tagline">
-                  Verify breaking news, viral statements, and article URLs with real-time web retrieval, deep paragraph extraction, and Google Gemini AI.
-                </p>
-              </div>
-
-              {/* Omni Search AI Box */}
-              <div className="hero-search-area">
-                <OmniSearchInput
-                  onSubmit={handleVerify}
-                  isLoading={isLoading}
-                  validationError={validationError}
-                  setValidationError={setValidationError}
-                  initialText={activeQuery.text}
-                  initialTitle={activeQuery.title}
-                  isCompact={false}
-                />
-              </div>
-
-              {error && (
-                <div className="error-card-floating" role="alert">
-                  <strong>⚠️ Verification Failed:</strong> {error}
-                </div>
-              )}
-
-              {/* Below-the-fold Architecture Section */}
-              <ArchitectureSection />
-            </div>
           ) : (
-            /* Active Result State */
-            <div className="result-view-container">
-              {/* Compact Search Bar at Top */}
-              <div className="compact-search-container">
-                <OmniSearchInput
-                  onSubmit={handleVerify}
-                  isLoading={isLoading}
-                  validationError={validationError}
-                  setValidationError={setValidationError}
-                  initialText=""
-                  initialTitle=""
-                  isCompact={true}
-                />
+            /* Live Verify Omni Studio */
+            <div className="live-verify-omni-studio">
+              {/* Floating Omni Modality Switcher Bar */}
+              <div className="omni-modality-wrapper">
+                <div className="omni-modality-bar" role="tablist" aria-label="Verification Modality">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={verifyModality === "search"}
+                    className={`modality-chip ${verifyModality === "search" ? "active" : ""}`}
+                    onClick={() => switchModality("search")}
+                    title="Real-Time Text & Web Claim Search"
+                  >
+                    <NavVerifyIcon size={14} />
+                    <span className="modality-chip-text">Text & Claims</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={verifyModality === "audio"}
+                    className={`modality-chip ${verifyModality === "audio" ? "active" : ""}`}
+                    onClick={() => switchModality("audio")}
+                    title="Acoustic Forensics & Speech Fact-Checker"
+                  >
+                    <NavAudioIcon size={14} />
+                    <span className="modality-chip-text">Audio Audit</span>
+                    <span className="modality-chip-tag">Mic & Speech</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={verifyModality === "image"}
+                    className={`modality-chip ${verifyModality === "image" ? "active" : ""}`}
+                    onClick={() => switchModality("image")}
+                    title="Image Vision & Deepfake Analysis"
+                  >
+                    <NavImageIcon size={14} />
+                    <span className="modality-chip-text">Image Audit</span>
+                    <span className="modality-chip-tag">Vision OCR</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={verifyModality === "doc"}
+                    className={`modality-chip ${verifyModality === "doc" ? "active" : ""}`}
+                    onClick={() => switchModality("doc")}
+                    title="Multi-Assertion Document Dossier"
+                  >
+                    <NavDocIcon size={14} />
+                    <span className="modality-chip-text">Document Audit</span>
+                    <span className="modality-chip-tag">PDF Dossier</span>
+                  </button>
+                </div>
               </div>
 
-              {error && (
-                <div className="error-card-floating" role="alert">
-                  <strong>⚠️ Verification Failed:</strong> {error}
+              {/* Modality View Content */}
+              {verifyModality === "audio" ? (
+                <AudioAuditView
+                  onAuditToLiveVerify={(story) => {
+                    switchModality("search");
+                    handleVerify({ title: story.title, text: story.text });
+                  }}
+                />
+              ) : verifyModality === "image" ? (
+                <ImageAuditView
+                  onAuditToLiveVerify={(story) => {
+                    switchModality("search");
+                    handleVerify({ title: story.title, text: story.text });
+                  }}
+                />
+              ) : verifyModality === "doc" ? (
+                <DocumentAuditView />
+              ) : !verificationResult ? (
+                /* Initial Minimalist Landing State (Perplexity / Grok style) */
+                <div className="hero-landing-container">
+                  <div className="hero-center-header">
+                    <div className="hero-pill">
+                      <span className="live-dot"></span>
+                      <span>Real-Time Autonomous Fact-Checking</span>
+                    </div>
+                    <h1 className="hero-headline">Where claims meet evidence.</h1>
+                    <p className="hero-tagline">
+                      Verify breaking news, viral statements, and article URLs with real-time web retrieval, deep paragraph extraction, and Google Gemini AI.
+                    </p>
+                  </div>
+
+                  {/* Omni Search AI Box */}
+                  <div className="hero-search-area">
+                    <OmniSearchInput
+                      onSubmit={handleVerify}
+                      isLoading={isLoading}
+                      validationError={validationError}
+                      setValidationError={setValidationError}
+                      initialText={activeQuery.text}
+                      initialTitle={activeQuery.title}
+                      isCompact={false}
+                    />
+                  </div>
+
+                  {error && (
+                    <div className="error-card-floating" role="alert">
+                      <strong>⚠️ Verification Failed:</strong> {error}
+                    </div>
+                  )}
+
+                  {/* Below-the-fold Architecture Section */}
+                  <ArchitectureSection />
+                </div>
+              ) : (
+                /* Active Result State */
+                <div className="result-view-container">
+                  {/* Compact Search Bar at Top */}
+                  <div className="compact-search-container">
+                    <OmniSearchInput
+                      onSubmit={handleVerify}
+                      isLoading={isLoading}
+                      validationError={validationError}
+                      setValidationError={setValidationError}
+                      initialText=""
+                      initialTitle=""
+                      isCompact={true}
+                    />
+                  </div>
+
+                  {error && (
+                    <div className="error-card-floating" role="alert">
+                      <strong>⚠️ Verification Failed:</strong> {error}
+                    </div>
+                  )}
+
+                  {/* Full Width Verification Report */}
+                  <div className="result-report-card">
+                    <V2VerificationResult result={verificationResult} />
+                  </div>
                 </div>
               )}
-
-              {/* Full Width Verification Report */}
-              <div className="result-report-card">
-                <V2VerificationResult result={verificationResult} />
-              </div>
             </div>
           )}
         </div>
