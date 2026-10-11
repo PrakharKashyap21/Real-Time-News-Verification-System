@@ -9,6 +9,16 @@ import RadarView from "./components/RadarView";
 import ImageAuditView from "./components/ImageAuditView";
 import AudioAuditView from "./components/AudioAuditView";
 import ChatbotBridgeView from "./components/ChatbotBridgeView";
+import {
+  NavVerifyIcon,
+  NavRadarIcon,
+  NavImageIcon,
+  NavAudioIcon,
+  NavChatbotIcon,
+  NavDocIcon,
+  NavAnalyticsIcon,
+  NavClockIcon
+} from "./components/Icons";
 import { verifyNewsV2 } from "./api";
 
 const LOCAL_STORAGE_KEY = "truthlens_verification_history_v1";
@@ -245,49 +255,49 @@ function App() {
             className={`nav-tab-link ${activeTab === "verify" ? "active" : ""}`}
             onClick={() => switchTab("verify")}
           >
-            🔍 Live Verify
+            <NavVerifyIcon size={14} /> <span>Live Verify</span>
           </button>
           <button
             type="button"
             className={`nav-tab-link ${activeTab === "radar" ? "active" : ""}`}
             onClick={() => switchTab("radar")}
           >
-            ⚡ Radar
+            <NavRadarIcon size={14} /> <span>Radar</span>
           </button>
           <button
             type="button"
             className={`nav-tab-link ${activeTab === "image-audit" ? "active" : ""}`}
             onClick={() => switchTab("image-audit")}
           >
-            🖼️ Image Audit
+            <NavImageIcon size={14} /> <span>Image Audit</span>
           </button>
           <button
             type="button"
             className={`nav-tab-link ${activeTab === "audio-audit" ? "active" : ""}`}
             onClick={() => switchTab("audio-audit")}
           >
-            🎙️ Audio Audit
+            <NavAudioIcon size={14} /> <span>Audio Audit</span>
           </button>
           <button
             type="button"
             className={`nav-tab-link ${activeTab === "chatbot" ? "active" : ""}`}
             onClick={() => switchTab("chatbot")}
           >
-            📱 Chatbot Bridge
+            <NavChatbotIcon size={14} /> <span>Chatbot Bridge</span>
           </button>
           <button
             type="button"
             className={`nav-tab-link ${activeTab === "doc-audit" ? "active" : ""}`}
             onClick={() => switchTab("doc-audit")}
           >
-            📑 Doc Audit
+            <NavDocIcon size={14} /> <span>Doc Audit</span>
           </button>
           <button
             type="button"
             className={`nav-tab-link ${activeTab === "analytics" ? "active" : ""}`}
             onClick={() => switchTab("analytics")}
           >
-            📊 Analytics
+            <NavAnalyticsIcon size={14} /> <span>Analytics</span>
           </button>
         </div>
 
@@ -312,7 +322,7 @@ function App() {
             onClick={() => setIsDrawerOpen(true)}
             title="Open Recent Verification History"
           >
-            <span>🕒 History</span>
+            <NavClockIcon size={14} /> <span>History</span>
             {history.length > 0 && <span className="nav-history-count">{history.length}</span>}
           </button>
         </div>

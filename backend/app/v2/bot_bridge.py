@@ -176,9 +176,23 @@ class BotBridgeManager:
         top_sources = []
         source_links = []
         if doc_audit.audited_claims and len(doc_audit.audited_claims) > 0:
-            first_claim = doc_audit.audited_claims[0]
-            top_sources = getattr(first_claim, "top_sources", []) or []
-            source_links = getattr(first_claim, "source_links", []) or []
+            for cl in doc_audit.audited_claims:
+                for s in (getattr(cl, "top_sources", []) or []):
+                    if s and s not in top_sources:
+                        top_sources.append(s)
+                for sl in (getattr(cl, "source_links", []) or []):
+                    if isinstance(sl, dict) and sl.get("title") and sl.get("url"):
+                        if not any(x.get("url") == sl["url"] for x in source_links):
+                            source_links.append(sl)
+
+        # Ensure every top_source has a clickable web wire URL
+        for src in top_sources:
+            if not any(x.get("title", "").strip().lower() == src.strip().lower() for x in source_links):
+                search_q = urllib.parse.quote_plus(f"{src} {sanitized[:60]}")
+                source_links.append({
+                    "title": src,
+                    "url": f"https://www.google.com/search?q={search_q}"
+                })
 
         headline = sanitized.split(".")[0] if "." in sanitized else sanitized[:75]
         if len(headline) > 85:

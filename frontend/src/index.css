@@ -5912,209 +5912,290 @@ body {
   color: #ffffff;
 }
 
-/* Chatbot Layout: Grid */
-.chatbot-layout-grid {
-  display: grid;
-  grid-template-columns: 1fr 480px;
-  gap: 1.75rem;
-  align-items: start;
-}
-
-@media (max-width: 1024px) {
-  .chatbot-layout-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Left Panel: Presets */
-.chatbot-presets-panel {
+/* Chatbot Layout: Centered Stage (Option 2 Minimalist) */
+.chatbot-stage-centered {
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
+  align-items: center;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  gap: 1.25rem;
 }
 
-.panel-title-row {
+/* Minimalist Horizontal Viral Forward Prompt Pills */
+.viral-pills-bar {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 0.2rem;
+}
+
+.pills-lead-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.pills-icon {
+  font-size: 0.95rem;
+}
+
+.viral-pills-track {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
   gap: 0.5rem;
+  max-width: 1100px;
 }
 
-.panel-icon {
-  font-size: 1.25rem;
-}
-
-.panel-heading {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0;
-}
-
-.presets-desc {
-  font-size: 0.84rem;
-  color: var(--text-secondary);
-  margin: 0;
-  line-height: 1.45;
-}
-
-.presets-stack {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 0.9rem;
-}
-
-.preset-forward-card {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-md);
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.preset-forward-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(56, 189, 248, 0.4);
-  background: rgba(15, 23, 42, 0.9);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-}
-
-.preset-card-top {
-  display: flex;
+.viral-pill-chip {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 9999px;
+  padding: 0.38rem 0.85rem;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-}
-
-.preset-platform-badge {
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 0.15rem 0.5rem;
-  border-radius: 4px;
-}
-
-.preset-platform-badge.whatsapp {
-  background: rgba(18, 140, 126, 0.2);
-  color: #25d366;
-  border: 1px solid rgba(37, 211, 102, 0.3);
-}
-
-.preset-platform-badge.telegram {
-  background: rgba(34, 158, 217, 0.2);
-  color: #38bdf8;
-  border: 1px solid rgba(34, 158, 217, 0.3);
-}
-
-.preset-cat-badge {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-}
-
-.preset-card-title {
-  font-size: 0.88rem;
+  gap: 0.45rem;
   color: #f1f5f9;
-  font-weight: 600;
-  line-height: 1.35;
-}
-
-.preset-card-snippet {
   font-size: 0.78rem;
-  color: var(--text-secondary);
-  line-height: 1.4;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.preset-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: auto;
-  padding-top: 0.4rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+.viral-pill-chip:hover {
+  transform: translateY(-2px);
+  background: rgba(30, 41, 59, 0.95);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
 }
 
-.preset-sender-tag {
+.viral-pill-chip.whatsapp:hover {
+  border-color: rgba(37, 211, 102, 0.5);
+  box-shadow: 0 8px 22px rgba(37, 211, 102, 0.15);
+}
+
+.viral-pill-chip.telegram:hover {
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 8px 22px rgba(56, 189, 248, 0.15);
+}
+
+.pill-badge-icon {
+  font-size: 0.85rem;
+}
+
+.pill-text {
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.pill-action-arrow {
   font-size: 0.72rem;
   color: var(--text-muted);
+  transition: transform 0.2s ease, color 0.2s ease;
 }
 
-.btn-try-preset {
-  font-size: 0.76rem;
+.viral-pill-chip:hover .pill-action-arrow {
+  transform: translateX(3px);
   color: #38bdf8;
-  font-weight: 600;
 }
 
-.bot-info-tip-box {
-  display: flex;
-  gap: 0.75rem;
-  background: rgba(56, 189, 248, 0.08);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  border-radius: var(--radius-md);
-  padding: 0.9rem 1rem;
-}
-
-.tip-icon {
-  font-size: 1.2rem;
-}
-
-.tip-content strong {
-  display: block;
-  font-size: 0.84rem;
-  color: #38bdf8;
-  margin-bottom: 0.25rem;
-}
-
-.tip-content p {
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-  line-height: 1.45;
-  margin: 0;
-}
-
-/* Phone Mockup Simulator Frame */
-.phone-simulator-frame {
+/* Authentic iPhone Simulator Frame */
+.iphone-chassis {
+  position: relative;
   width: 100%;
-  max-width: 480px;
-  height: 640px;
-  background: #0b1320;
-  border-radius: 36px;
-  border: 6px solid #1e293b;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  max-width: 390px;
+  margin: 0.35rem auto 0.75rem;
+  background: #1e2634; /* Matte Titanium bezel */
+  border-radius: 52px;
+  padding: 9px;
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 25px 65px -10px rgba(0, 0, 0, 0.85),
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.08);
+  transition: all 0.3s ease;
+}
+
+/* iPhone Hardware Side Buttons */
+.iphone-hardware-button {
+  position: absolute;
+  background: #252f40;
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.6);
+}
+
+.iphone-hardware-button.btn-silent {
+  left: -4px;
+  top: 100px;
+  width: 4px;
+  height: 24px;
+  border-radius: 3px 0 0 3px;
+}
+
+.iphone-hardware-button.btn-volume-up {
+  left: -4px;
+  top: 138px;
+  width: 4px;
+  height: 46px;
+  border-radius: 3px 0 0 3px;
+}
+
+.iphone-hardware-button.btn-volume-down {
+  left: -4px;
+  top: 196px;
+  width: 4px;
+  height: 46px;
+  border-radius: 3px 0 0 3px;
+}
+
+.iphone-hardware-button.btn-power {
+  right: -4px;
+  top: 152px;
+  width: 4px;
+  height: 68px;
+  border-radius: 0 3px 3px 0;
+}
+
+/* iPhone Screen Container */
+.iphone-screen-container {
+  width: 100%;
+  height: 605px;
+  border-radius: 43px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  background: #090e17;
   position: relative;
 }
 
-.phone-status-bar {
+/* iPhone Status Bar with Dynamic Island */
+.iphone-status-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 1.25rem 0.25rem;
-  background: #090e17;
-  color: #94a3b8;
-  font-size: 0.75rem;
+  padding: 0.65rem 1.4rem 0.25rem;
+  background: #075e54;
+  color: #ffffff;
+  font-size: 0.78rem;
   font-weight: 600;
+  user-select: none;
+  z-index: 10;
+  transition: background 0.3s ease;
+}
+
+.iphone-screen-container.telegram .iphone-status-bar {
+  background: #17212b;
+}
+
+.status-clock {
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* Apple Dynamic Island Pill */
+.dynamic-island {
+  width: 105px;
+  height: 25px;
+  background: #000000;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 9px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.island-camera {
+  width: 10px;
+  height: 10px;
+  background: #0c121e;
+  border: 1.5px solid #1c2638;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.island-mic {
+  width: 6.5px;
+  height: 6.5px;
+  background: #05080f;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-system-icons {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+}
+
+.battery-icon {
+  width: 22px;
+  height: 11px;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  position: relative;
+  padding: 1px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.battery-icon::after {
+  content: '';
+  position: absolute;
+  right: -3.5px;
+  top: 2px;
+  width: 2px;
+  height: 4px;
+  background: currentColor;
+  border-radius: 0 1px 1px 0;
+}
+
+.battery-juice {
+  width: 75%;
+  height: 100%;
+  background: currentColor;
+  border-radius: 1px;
+  display: block;
+}
+
+/* iPhone Home Indicator Zone */
+.iphone-home-indicator-zone {
+  width: 100%;
+  padding: 7px 0 9px;
+  background: #090e17;
+  display: flex;
+  justify-content: center;
   user-select: none;
 }
 
-.phone-notch {
-  width: 80px;
-  height: 16px;
-  background: #1e293b;
-  border-radius: 0 0 12px 12px;
+.iphone-home-bar {
+  width: 130px;
+  height: 4.5px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 100px;
 }
 
-.status-icons {
-  display: flex;
-  gap: 0.35rem;
-  font-size: 0.7rem;
+/* Minimalist Note Below iPhone */
+.chatbot-minimal-note {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0.4rem auto 1rem;
+  max-width: 520px;
+  line-height: 1.45;
 }
 
 /* Phone Chat Header */
@@ -6414,12 +6495,36 @@ body {
 }
 
 .card-source-chip {
-  font-size: 0.68rem;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.7rem;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(56, 189, 248, 0.25);
   color: #38bdf8;
-  padding: 0.15rem 0.45rem;
-  border-radius: 4px;
+  padding: 0.18rem 0.5rem;
+  border-radius: 6px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.card-source-chip:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.6);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.2);
+}
+
+.source-chip-arrow {
+  font-size: 0.65rem;
+  opacity: 0.7;
+}
+
+.card-source-chip:hover .source-chip-arrow {
+  opacity: 1;
+  color: #ffffff;
 }
 
 .card-bubble-actions {

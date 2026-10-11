@@ -1,5 +1,24 @@
 import React, { useState, useEffect, useRef } from "react";
 import { verifyBotMessage, fetchBotPresets, simulateWebhookCall } from "../api";
+import {
+  IosCellular,
+  IosWifi,
+  IosBattery,
+  WhatsAppIcon,
+  TelegramIcon,
+  SendIcon,
+  DoubleCheckIcon,
+  ForwardIcon,
+  RefreshIcon,
+  VerifiedBadgeIcon,
+  ShieldIcon,
+  NewspaperIcon,
+  CopyIcon,
+  FlameIcon,
+  SearchGraphIcon,
+  PlugIcon,
+  ChatBubbleIcon
+} from "./Icons";
 
 export default function ChatbotBridgeView({ onOpenInDashboard }) {
   const [platform, setPlatform] = useState("whatsapp"); // 'whatsapp' | 'telegram'
@@ -36,6 +55,28 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
   const [isTestingWebhook, setIsTestingWebhook] = useState(false);
 
   const chatBodyRef = useRef(null);
+
+  const getSourceUrl = (src, verificationData) => {
+    if (!src) return "#";
+    const links = verificationData?.source_links || [];
+    const srcLower = src.trim().toLowerCase();
+
+    // 1. Exact match by title
+    const directMatch = links.find(
+      (l) => l.title && l.title.trim().toLowerCase() === srcLower
+    );
+    if (directMatch?.url) return directMatch.url;
+
+    // 2. Partial match by domain or title
+    const partialMatch = links.find(
+      (l) => l.title?.toLowerCase().includes(srcLower) || l.url?.toLowerCase().includes(srcLower.replace(/\s+/g, ""))
+    );
+    if (partialMatch?.url) return partialMatch.url;
+
+    // 3. Fallback: Direct search on Google News
+    const query = encodeURIComponent(`${src} ${verificationData?.sanitized_claim || ""}`);
+    return `https://news.google.com/search?q=${query}`;
+  };
 
   // Auto-scroll ONLY the internal phone chat container, NEVER scrolling the main browser window
   const scrollToBottom = (behavior = "smooth") => {
@@ -166,14 +207,14 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
             className={`platform-btn ${platform === "whatsapp" ? "active-whatsapp" : ""}`}
             onClick={() => setPlatform("whatsapp")}
           >
-            <span className="platform-icon">💬</span> WhatsApp Mode
+            <WhatsAppIcon size={15} /> <span>WhatsApp Mode</span>
           </button>
           <button
             type="button"
             className={`platform-btn ${platform === "telegram" ? "active-telegram" : ""}`}
             onClick={() => setPlatform("telegram")}
           >
-            <span className="platform-icon">✈️</span> Telegram Mode
+            <TelegramIcon size={15} /> <span>Telegram Mode</span>
           </button>
         </div>
 
@@ -183,90 +224,84 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
             className={`tab-switch-btn ${activeTab === "chat" ? "active" : ""}`}
             onClick={() => setActiveTab("chat")}
           >
-            💬 Chat Simulator
+            <ChatBubbleIcon size={14} /> <span>Chat Simulator</span>
           </button>
           <button
             type="button"
             className={`tab-switch-btn ${activeTab === "webhooks" ? "active" : ""}`}
             onClick={() => setActiveTab("webhooks")}
           >
-            🔌 Webhook Hub
+            <PlugIcon size={14} /> <span>Webhook Hub</span>
           </button>
         </div>
       </div>
 
       {activeTab === "chat" ? (
-        <div className="chatbot-layout-grid">
-          {/* Left Column: Preset Viral Rumor Scenarios */}
-          <div className="chatbot-presets-panel">
-            <div className="panel-title-row">
-              <span className="panel-icon">🔥</span>
-              <h3 className="panel-heading">Viral Forwards Simulator</h3>
+        <div className="chatbot-stage-centered">
+          {/* Minimalist Horizontal Viral Forward Prompt Pills */}
+          <div className="viral-pills-bar">
+            <div className="pills-lead-row">
+              <span className="pills-icon"><FlameIcon size={14} /></span>
+              <span className="pills-label">Tap any viral forward to test instant debunks:</span>
             </div>
-            <p className="presets-desc">
-              Tap any realistic viral WhatsApp/Telegram rumor to test instant debunks and fact-check responses:
-            </p>
-
-            <div className="presets-stack">
+            <div className="viral-pills-track">
               {presets.map((preset) => (
-                <div
+                <button
                   key={preset.id}
-                  className="preset-forward-card"
+                  type="button"
+                  className={`viral-pill-chip ${preset.platform}`}
                   onClick={() => handleSendMessage(preset.viral_text, preset.is_forwarded)}
+                  title={`Test: ${preset.title}`}
                 >
-                  <div className="preset-card-top">
-                    <span className={`preset-platform-badge ${preset.platform}`}>
-                      {preset.platform === "whatsapp" ? "💬 WhatsApp" : "✈️ Telegram"}
-                    </span>
-                    <span className="preset-cat-badge">{preset.category}</span>
-                  </div>
-                  <strong className="preset-card-title">{preset.title}</strong>
-                  <p className="preset-card-snippet">"{preset.viral_text}"</p>
-                  <div className="preset-card-footer">
-                    <span className="preset-sender-tag">👤 {preset.sender_label}</span>
-                    <span className="btn-try-preset">Test Forward →</span>
-                  </div>
-                </div>
+                  <span className="pill-badge-icon">
+                    {preset.platform === "whatsapp" ? (
+                      <WhatsAppIcon size={13} />
+                    ) : (
+                      <TelegramIcon size={13} />
+                    )}
+                  </span>
+                  <span className="pill-text">
+                    {preset.title.replace(/^(Viral\s+)?(WhatsApp\s+Forward|WhatsApp\s+Chain\s+Message|Telegram\s+News\s+Channel|Telegram\s+Alert):\s*/i, "")}
+                  </span>
+                  <span className="pill-action-arrow">→</span>
+                </button>
               ))}
-            </div>
-
-            {/* Quick Tips */}
-            <div className="bot-info-tip-box">
-              <span className="tip-icon">💡</span>
-              <div className="tip-content">
-                <strong>How the Bot Engine Works:</strong>
-                <p>
-                  Incoming forwarded messages automatically have spam chain-letter prefixes stripped.
-                  The core claim is extracted, cross-referenced with accredited news wires via Agentic RAG,
-                  and returned as a WhatsApp/Telegram ready markdown card.
-                </p>
-              </div>
             </div>
           </div>
 
-          {/* Right Column: Phone Mockup Chat Window */}
-          <div className={`phone-simulator-frame ${platform}`}>
-            {/* Phone Top Notch & Status */}
-            <div className="phone-status-bar">
-              <span className="status-time">09:41</span>
-              <div className="phone-notch"></div>
-              <div className="status-icons">
-                <span>📶</span>
-                <span>🛜</span>
-                <span>🔋</span>
-              </div>
-            </div>
+          {/* Centered iPhone Simulator Frame */}
+          <div className="iphone-chassis">
+            {/* iPhone Hardware Buttons */}
+            <div className="iphone-hardware-button btn-silent" aria-hidden="true"></div>
+            <div className="iphone-hardware-button btn-volume-up" aria-hidden="true"></div>
+            <div className="iphone-hardware-button btn-volume-down" aria-hidden="true"></div>
+            <div className="iphone-hardware-button btn-power" aria-hidden="true"></div>
 
-            {/* Chat Contact Header */}
+            <div className={`iphone-screen-container ${platform}`}>
+              {/* iPhone Dynamic Island & Status Bar */}
+              <div className="iphone-status-bar">
+                <span className="status-clock">09:41</span>
+                <div className="dynamic-island">
+                  <span className="island-camera"></span>
+                  <span className="island-mic"></span>
+                </div>
+                <div className="status-system-icons">
+                  <IosCellular size={15} />
+                  <IosWifi size={14} />
+                  <IosBattery percent={85} />
+                </div>
+              </div>
+
+              {/* Chat Contact Header */}
             <div className={`phone-chat-header ${platform}`}>
               <div className="header-contact-info">
                 <div className="contact-avatar-circle">
-                  <span>🛡️</span>
+                  <ShieldIcon size={18} />
                 </div>
                 <div className="contact-text-group">
                   <div className="contact-name-row">
                     <strong className="contact-name">TruthLens AI Fact-Checker</strong>
-                    <span className="verified-badge" title="Official Verified Bot">✓</span>
+                    <VerifiedBadgeIcon size={15} />
                   </div>
                   <span className="contact-status-sub">
                     {isProcessing ? "Verifying with news wires..." : "Online • Real-Time News Bridge"}
@@ -284,13 +319,13 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
                         id: "init-bot-welcome",
                         sender: "bot",
                         time: "Just now",
-                        text: "👋 TruthLens Bot ready. Forward any news snippet or viral claim to verify."
+                        text: "TruthLens Bot ready. Forward any news snippet or viral claim to verify."
                       }
                     ])
                   }
                   title="Clear conversation"
                 >
-                  🔄
+                  <RefreshIcon size={14} />
                 </button>
               </div>
             </div>
@@ -308,7 +343,7 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
                     {/* User Forwarded Label */}
                     {msg.sender === "user" && msg.isForwarded && (
                       <div className="forwarded-tag">
-                        <span className="fwd-icon">↪</span> Forwarded many times
+                        <ForwardIcon size={12} /> <span>Forwarded many times</span>
                       </div>
                     )}
 
@@ -316,7 +351,7 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
                     {msg.verificationData ? (
                       <div className="rich-factcheck-card">
                         <div className="card-header-badge-row">
-                          <span className="card-brand">🔍 TruthLens Fact-Check</span>
+                          <span className="card-brand"><SearchGraphIcon size={13} /> TruthLens Fact-Check</span>
                           <span
                             className={`card-verdict-tag ${
                               msg.verificationData.verdict === "SUPPORTED"
@@ -327,10 +362,10 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
                             }`}
                           >
                             {msg.verificationData.verdict === "SUPPORTED"
-                              ? "✅ VERIFIED"
+                              ? "VERIFIED"
                               : msg.verificationData.verdict === "CONTRADICTED"
-                              ? "❌ DEBUNKED / FAKE"
-                              : "⚠️ UNVERIFIED"}
+                              ? "DEBUNKED / FAKE"
+                              : "UNVERIFIED"}
                           </span>
                         </div>
 
@@ -364,11 +399,24 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
                           <div className="card-sources-section">
                             <span className="card-sources-label">Cited News Wires:</span>
                             <div className="card-sources-chips">
-                              {msg.verificationData.top_sources.map((src, sIdx) => (
-                                <span key={sIdx} className="card-source-chip">
-                                  📰 {src}
-                                </span>
-                              ))}
+                              {msg.verificationData.top_sources.map((src, sIdx) => {
+                                const targetUrl = getSourceUrl(src, msg.verificationData);
+                                return (
+                                  <a
+                                    key={sIdx}
+                                    href={targetUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="card-source-chip"
+                                    title={`Open ${src} news coverage in new tab`}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <NewspaperIcon size={12} />
+                                    <span>{src}</span>
+                                    <span className="source-chip-arrow">↗</span>
+                                  </a>
+                                );
+                              })}
                             </div>
                           </div>
                         )}
@@ -381,7 +429,13 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
                             onClick={() => copyToClipboard(msg.formattedReply, msg.id)}
                             title="Copy formatted reply to forward back to WhatsApp"
                           >
-                            {copiedId === msg.id ? "✓ Copied Reply!" : "📋 Copy Fact-Check Reply"}
+                            {copiedId === msg.id ? (
+                              "✓ Copied Reply!"
+                            ) : (
+                              <>
+                                <CopyIcon size={13} /> <span>Copy Fact-Check Reply</span>
+                              </>
+                            )}
                           </button>
 
                           {onOpenInDashboard && (
@@ -391,7 +445,7 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
                               onClick={() => onOpenInDashboard(msg.verificationData.sanitized_claim)}
                               title="Open in deep RAG search"
                             >
-                              🔍 Open in Live Graph
+                              <SearchGraphIcon size={13} /> <span>Open in Live Graph</span>
                             </button>
                           )}
                         </div>
@@ -402,7 +456,7 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
 
                     <div className="bubble-meta">
                       <span className="bubble-time">{msg.time}</span>
-                      {msg.sender === "user" && <span className="read-receipt">✓✓</span>}
+                      {msg.sender === "user" && <DoubleCheckIcon size={14} isRead={true} />}
                     </div>
                   </div>
                 </div>
@@ -431,7 +485,7 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
                 onClick={() => setIsForwarded(!isForwarded)}
                 title={isForwarded ? "Forwarded tag active" : "Mark as direct message"}
               >
-                ↪ {isForwarded ? "Fwd: ON" : "Direct"}
+                <ForwardIcon size={12} /> <span>{isForwarded ? "Fwd: ON" : "Direct"}</span>
               </button>
 
               <textarea
@@ -453,12 +507,24 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
                 className={`btn-send-message ${platform}`}
                 onClick={() => handleSendMessage()}
                 disabled={!inputText.trim() || isProcessing}
+                title="Send message"
               >
-                ➤
+                <SendIcon size={14} />
               </button>
+            </div>
+
+            {/* iPhone Bottom Home Indicator Bar */}
+            <div className="iphone-home-indicator-zone" aria-hidden="true">
+              <div className="iphone-home-bar"></div>
             </div>
           </div>
         </div>
+
+        {/* Subtle Minimalist Engine Note */}
+        <p className="chatbot-minimal-note">
+          💡 Incoming forwards automatically have spam chain-letter prefixes stripped. Evidence cross-referenced with accredited news wires in real time.
+        </p>
+      </div>
       ) : (
         /* Webhooks Developer Tab */
         <div className="webhook-dev-hub">
