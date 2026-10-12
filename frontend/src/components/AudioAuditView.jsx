@@ -1,5 +1,25 @@
 import React, { useState, useRef, useEffect } from "react";
 import { auditUploadedAudio, fetchAudioSamples, auditAudioPreset, transcribeAudioFast } from "../api";
+import {
+  ZapIcon,
+  MegaphoneIcon,
+  RocketIcon,
+  PillIcon,
+  MicrophoneIcon,
+  SquareStopIcon,
+  FolderIcon,
+  MusicNoteIcon,
+  CloudUploadIcon,
+  PlayIcon,
+  CopyIcon,
+  GlobeIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  HelpCircleIcon,
+  AlertTriangleIcon,
+  ActivityIcon,
+  DocumentIcon
+} from "./Icons";
 
 export default function AudioAuditView({ onAuditToLiveVerify }) {
   const [isRecording, setIsRecording] = useState(false);
@@ -347,7 +367,10 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
 
       {/* Preset Samples Bar */}
       <section className="audio-presets-bar">
-        <span className="audio-presets-label">⚡ Test with Curated Scenarios:</span>
+        <span className="audio-presets-label">
+          <ZapIcon size={13} style={{ color: "#f59e0b", marginRight: "4px" }} />
+          Test with Curated Scenarios:
+        </span>
         <div className="audio-presets-chips">
           <button
             type="button"
@@ -355,7 +378,7 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
             onClick={() => loadPreset("sample_curfew_rumor")}
             disabled={isAuditing || isRecording}
           >
-            <span className="chip-icon">📢</span>
+            <span className="chip-icon"><MegaphoneIcon size={14} style={{ color: "#f59e0b" }} /></span>
             <span>WhatsApp Curfew & Lockdown Voice Note</span>
             <span className="chip-badge chip-hoax">Hoax</span>
           </button>
@@ -365,7 +388,7 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
             onClick={() => loadPreset("sample_isro_mission")}
             disabled={isAuditing || isRecording}
           >
-            <span className="chip-icon">🚀</span>
+            <span className="chip-icon"><RocketIcon size={14} style={{ color: "#38bdf8" }} /></span>
             <span>ISRO Gaganyaan Crew Recovery Address</span>
             <span className="chip-badge chip-verified">Verified</span>
           </button>
@@ -375,7 +398,7 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
             onClick={() => loadPreset("sample_miracle_cure")}
             disabled={isAuditing || isRecording}
           >
-            <span className="chip-icon">💊</span>
+            <span className="chip-icon"><PillIcon size={14} style={{ color: "#ef4444" }} /></span>
             <span>Miracle Clove & Gourd Heart Cure</span>
             <span className="chip-badge chip-hoax">Debunked</span>
           </button>
@@ -387,7 +410,9 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
         {/* Card 1: Direct Microphone Capture */}
         <div className={`audio-deck-card mic-card ${isRecording ? "recording-active" : ""}`}>
           <div className="deck-card-header">
-            <div className="deck-icon mic-glow-icon">🎙️</div>
+            <div className="deck-icon mic-glow-icon">
+              <MicrophoneIcon size={22} style={{ color: "#38bdf8" }} />
+            </div>
             <div>
               <h3 className="deck-title">Live Microphone Stream</h3>
               <p className="deck-subtitle">Speak a statement or play audio into your microphone</p>
@@ -421,7 +446,8 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
                   className="btn-stop-record"
                   onClick={stopRecording}
                 >
-                  ⏹ Stop & Inspect Audio
+                  <SquareStopIcon size={13} />
+                  <span>Stop & Inspect Audio</span>
                 </button>
               </div>
             ) : (
@@ -432,7 +458,9 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
                   onClick={startRecording}
                   disabled={isAuditing}
                 >
-                  <span className="rec-btn-icon">🎙️</span>
+                  <span className="rec-btn-icon">
+                    <MicrophoneIcon size={15} />
+                  </span>
                   <span>Start Live Recording</span>
                 </button>
                 <span className="mic-hint">Click to capture voice with DSP noise cancellation</span>
@@ -457,7 +485,9 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
           />
 
           <div className="deck-card-header">
-            <div className="deck-icon upload-glow-icon">📁</div>
+            <div className="deck-icon upload-glow-icon">
+              <FolderIcon size={22} style={{ color: "#a855f7" }} />
+            </div>
             <div>
               <h3 className="deck-title">Upload Audio Clip</h3>
               <p className="deck-subtitle">Supports MP3, WAV, M4A, OGG, WEBM (up to 25MB)</p>
@@ -468,7 +498,9 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
             {selectedFileName ? (
               <div className="audio-staged-box">
                 <div className="staged-file-info">
-                  <span className="audio-file-icon">🎵</span>
+                  <span className="audio-file-icon">
+                    <MusicNoteIcon size={16} />
+                  </span>
                   <div className="staged-file-meta">
                     <strong className="staged-file-name">{selectedFileName}</strong>
                     {selectedFile?.size && (
@@ -494,7 +526,9 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
                 role="button"
                 tabIndex={0}
               >
-                <div className="dropzone-plus-icon">☁️</div>
+                <div className="dropzone-plus-icon">
+                  <CloudUploadIcon size={28} style={{ color: "#94a3b8" }} />
+                </div>
                 <span className="dropzone-prompt">Drag & Drop audio file here or <em>browse files</em></span>
                 <span className="dropzone-subtext">Ideal for forwarded WhatsApp voice notes & speech snippets</span>
               </div>
@@ -508,7 +542,9 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
         <div className="audio-playback-deck-wrapper">
           <div className="audio-playback-deck">
             <div className="audio-player-cluster">
-              <span className="player-indicator-icon">▶</span>
+              <span className="player-indicator-icon">
+                <PlayIcon size={12} />
+              </span>
               <div className="player-audio-wrapper">
                 <audio controls src={audioUrl || ""} className="native-audio-player" />
               </div>
@@ -541,7 +577,8 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
                   </>
                 ) : (
                   <>
-                    <span>⚡ Audit Spoken Claims</span>
+                    <ZapIcon size={14} style={{ color: "#f59e0b" }} />
+                    <span>Audit Spoken Claims</span>
                   </>
                 )}
               </button>
@@ -552,11 +589,13 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
           <div className="audio-statement-review-card">
             <div className="review-card-header">
               <div className="review-title-group">
-                <span className="review-icon">✏️</span>
+                <span className="review-icon">
+                  <DocumentIcon size={15} style={{ color: "#38bdf8" }} />
+                </span>
                 <strong className="review-title">Speech Transcript Preview (Editable)</strong>
                 {isTranscribingPreview && (
                   <span className="transcribing-badge">
-                    <span className="audio-spinner-mini"></span> 🧠 Gemini Flash Transcribing...
+                    <span className="audio-spinner-mini"></span> Gemini Flash Transcribing...
                   </span>
                 )}
               </div>
@@ -570,7 +609,7 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
               onChange={(e) => setStatementHint(e.target.value)}
               placeholder={
                 isTranscribingPreview
-                  ? "🧠 Transcribing audio with Gemini Flash..."
+                  ? "Transcribing audio with Gemini Flash..."
                   : "Live speech text appears here. You can edit any word or add keywords to ensure 100% accuracy..."
               }
               rows={2}
@@ -583,7 +622,9 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
       {/* Error Message */}
       {error && (
         <div className="audio-error-banner" role="alert">
-          <span className="error-icon">⚠️</span>
+          <span className="error-icon">
+            <AlertTriangleIcon size={15} />
+          </span>
           <span>{error}</span>
         </div>
       )}
@@ -594,7 +635,9 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
           <div className="radar-orbit-spinner">
             <div className="orbit-dot dot-1"></div>
             <div className="orbit-dot dot-2"></div>
-            <div className="orbit-center">🎙️</div>
+            <div className="orbit-center">
+              <MicrophoneIcon size={20} style={{ color: "#38bdf8" }} />
+            </div>
           </div>
           <h3 className="loader-title">Cross-Referencing Speech Across Live Wire Feeds</h3>
           <p className="loader-description">
@@ -623,7 +666,13 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
           ? "verdict-contradicted"
           : "verdict-unverified";
 
-        const verdictGlyph = isSupported ? "🟢" : isContradicted ? "🔴" : "🟠";
+        const verdictIcon = isSupported ? (
+          <CheckCircleIcon size={16} />
+        ) : isContradicted ? (
+          <XCircleIcon size={16} />
+        ) : (
+          <HelpCircleIcon size={16} />
+        );
         const verdictTitle = isSupported
           ? "VERIFIED / ACCURATE SPEECH"
           : isContradicted
@@ -636,7 +685,7 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
             <div className={`audio-verdict-hero ${verdictHeroClass}`}>
               <div className="hero-verdict-top">
                 <div className="hero-verdict-badge">
-                  <span className="verdict-glyph">{verdictGlyph}</span>
+                  <span className="verdict-glyph">{verdictIcon}</span>
                   <span className="verdict-name">{verdictTitle}</span>
                 </div>
                 <div className="confidence-pill">
@@ -679,7 +728,9 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
             {/* Box 1: Forensic Acoustic Signature */}
             <div className="bento-box forensics-box">
               <div className="bento-box-header">
-                <span className="bento-icon">🎛️</span>
+                <span className="bento-icon">
+                  <ActivityIcon size={16} style={{ color: "#38bdf8" }} />
+                </span>
                 <h3 className="bento-title">Acoustic & Synthetic Voice Forensics</h3>
               </div>
 
@@ -689,10 +740,10 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
                   <span className="risk-title">AI Voice Clone / Deepfake Risk:</span>
                   <span className={`risk-tag risk-${(auditResult.synthetic_voice_risk || "LOW").toLowerCase()}`}>
                     {auditResult.synthetic_voice_risk === "HIGH"
-                      ? "🔴 HIGH RISK (Synthetic TTS / Cloned)"
+                      ? "HIGH RISK (Synthetic TTS / Cloned)"
                       : auditResult.synthetic_voice_risk === "MEDIUM"
-                      ? "🟠 MEDIUM RISK (Unnatural Prosody)"
-                      : "🟢 LOW RISK (Authentic Vocal Harmonics)"}
+                      ? "MEDIUM RISK (Unnatural Prosody)"
+                      : "LOW RISK (Authentic Vocal Harmonics)"}
                   </span>
                 </div>
                 <div className="risk-meter-bar">
@@ -727,7 +778,9 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
             {/* Box 2: Verbatim Speech Transcription */}
             <div className="bento-box transcript-box">
               <div className="bento-box-header">
-                <span className="bento-icon">📝</span>
+                <span className="bento-icon">
+                  <DocumentIcon size={15} style={{ color: "#a855f7" }} />
+                </span>
                 <h3 className="bento-title">Verbatim Speech Transcription</h3>
                 <button
                   type="button"
@@ -735,7 +788,17 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
                   onClick={copyTranscript}
                   title="Copy transcription text"
                 >
-                  {copiedTranscript ? "✓ Copied" : "📋 Copy"}
+                  {copiedTranscript ? (
+                    <>
+                      <CheckCircleIcon size={12} />
+                      <span>Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <CopyIcon size={12} />
+                      <span>Copy</span>
+                    </>
+                  )}
                 </button>
               </div>
 
@@ -768,11 +831,19 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
                     <div className="claim-card-top">
                       <div className="claim-verdict-chip">
                         <span>
-                          {claim.verdict === "SUPPORTED"
-                            ? "🟢 SUPPORTED"
-                            : claim.verdict === "CONTRADICTED"
-                            ? "🔴 CONTRADICTED"
-                            : "🟠 UNVERIFIED"}
+                          {claim.verdict === "SUPPORTED" ? (
+                            <>
+                              <CheckCircleIcon size={12} /> SUPPORTED
+                            </>
+                          ) : claim.verdict === "CONTRADICTED" ? (
+                            <>
+                              <XCircleIcon size={12} /> CONTRADICTED
+                            </>
+                          ) : (
+                            <>
+                              <HelpCircleIcon size={12} /> UNVERIFIED
+                            </>
+                          )}
                         </span>
                       </div>
                       <button
@@ -812,7 +883,9 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
                                     className="evidence-source-pill"
                                     title={`Open corroborating reporting on ${link.title || link.url}`}
                                   >
-                                    🌐 {link.title || link.url} ↗
+                                    <GlobeIcon size={12} />
+                                    <span>{link.title || link.url}</span>
+                                    <span>↗</span>
                                   </a>
                                 );
                               })
@@ -828,7 +901,9 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
                                     className="evidence-source-pill"
                                     title={`Open corroborating coverage on ${src}`}
                                   >
-                                    🌐 {src} ↗
+                                    <GlobeIcon size={12} />
+                                    <span>{src}</span>
+                                    <span>↗</span>
                                   </a>
                                 );
                               })
@@ -843,7 +918,9 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
                                     className="evidence-source-pill"
                                     title={`Open reporting on ${ev.publisher || ev.domain || "News Wire"}`}
                                   >
-                                    🌐 {ev.publisher || ev.domain || "News Wire"} ↗
+                                    <GlobeIcon size={12} />
+                                    <span>{ev.publisher || ev.domain || "News Wire"}</span>
+                                    <span>↗</span>
                                   </a>
                                 );
                               })}
@@ -856,7 +933,7 @@ export default function AudioAuditView({ onAuditToLiveVerify }) {
                 <div className="claim-audit-card verdict-unverified">
                   <div className="claim-card-top">
                     <div className="claim-verdict-chip">
-                      <span>⚪ CORE CLAIM</span>
+                      <span>CORE CLAIM</span>
                     </div>
                     <button
                       type="button"

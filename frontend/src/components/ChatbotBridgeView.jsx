@@ -17,7 +17,8 @@ import {
   FlameIcon,
   SearchGraphIcon,
   PlugIcon,
-  ChatBubbleIcon
+  ChatBubbleIcon,
+  ZapIcon
 } from "./Icons";
 
 export default function ChatbotBridgeView({ onOpenInDashboard }) {
@@ -541,7 +542,9 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
             {/* Telegram Endpoint Card */}
             <div className="endpoint-card">
               <div className="endpoint-header">
-                <span className="platform-tag telegram">✈️ Telegram Bot API</span>
+                <span className="platform-tag telegram" style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                  <TelegramIcon size={14} /> Telegram Bot API
+                </span>
                 <span className="method-badge">POST</span>
               </div>
               <code className="endpoint-url">
@@ -554,6 +557,7 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
                 <button
                   type="button"
                   className="btn-copy-curl"
+                  style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}
                   onClick={() =>
                     copyToClipboard(
                       `curl -F "url=http://your-domain.com/v2/bot/webhook/telegram" https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook`,
@@ -561,7 +565,7 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
                     )
                   }
                 >
-                  {copiedId === "tg-curl" ? "✓ Copied!" : "📋 Copy Webhook Setup Command"}
+                  {copiedId === "tg-curl" ? "✓ Copied!" : <><CopyIcon size={13} /> Copy Webhook Setup Command</>}
                 </button>
               </div>
             </div>
@@ -569,7 +573,9 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
             {/* WhatsApp Endpoint Card */}
             <div className="endpoint-card">
               <div className="endpoint-header">
-                <span className="platform-tag whatsapp">💬 WhatsApp Cloud API</span>
+                <span className="platform-tag whatsapp" style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                  <WhatsAppIcon size={14} /> WhatsApp Cloud API
+                </span>
                 <span className="method-badge">POST</span>
               </div>
               <code className="endpoint-url">
@@ -582,6 +588,7 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
                 <button
                   type="button"
                   className="btn-copy-curl"
+                  style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}
                   onClick={() =>
                     copyToClipboard(
                       `curl -X POST http://localhost:8008/v2/bot/webhook/whatsapp -H "Content-Type: application/json" -d '{"Body":"RBI 500 note fake alert","From":"whatsapp:+919876543210"}'`,
@@ -589,7 +596,7 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
                     )
                   }
                 >
-                  {copiedId === "wa-curl" ? "✓ Copied!" : "📋 Copy Twilio Test Command"}
+                  {copiedId === "wa-curl" ? "✓ Copied!" : <><CopyIcon size={13} /> Copy Twilio Test Command</>}
                 </button>
               </div>
             </div>
@@ -598,7 +605,9 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
           {/* Interactive Webhook Simulator */}
           <div className="interactive-webhook-tester">
             <div className="tester-header">
-              <h4>🧪 Live Webhook Dispatch Tester</h4>
+              <h4 style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <ZapIcon size={16} style={{ color: "#38bdf8" }} /> Live Webhook Dispatch Tester
+              </h4>
               <span>Simulate an incoming HTTP webhook payload to verify backend response</span>
             </div>
 
@@ -614,10 +623,17 @@ export default function ChatbotBridgeView({ onOpenInDashboard }) {
                 <button
                   type="button"
                   className="btn-dispatch-test"
+                  style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
                   onClick={handleTestWebhook}
                   disabled={isTestingWebhook}
                 >
-                  {isTestingWebhook ? "⚡ Dispatching..." : "🚀 Send Mock Webhook HTTP Request"}
+                  {isTestingWebhook ? (
+                    "Dispatching..."
+                  ) : (
+                    <>
+                      <SendIcon size={14} /> Send Mock Webhook HTTP Request
+                    </>
+                  )}
                 </button>
               </div>
 

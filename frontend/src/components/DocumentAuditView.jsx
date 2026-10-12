@@ -1,23 +1,55 @@
 import React, { useState } from "react";
 import { auditDocumentText, auditUploadedFile } from "../api";
+import {
+  RocketIcon,
+  TrendingUpIcon,
+  VirusIcon,
+  ZapIcon,
+  DocumentIcon,
+  SearchGraphIcon,
+  AlertTriangleIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  TargetIcon,
+  PaperclipIcon,
+  HelpCircleIcon,
+  DownloadIcon,
+  GlobeIcon
+} from "./Icons";
 
 const SAMPLE_DOCS = [
   {
-    label: "🚀 Artemis II Press Briefing",
+    iconKey: "rocket",
+    label: "Artemis II Press Briefing",
     title: "NASA Artemis II Crew and SLS Mission Announcement",
     text: `NASA announced the four astronauts who will fly around the Moon on Artemis II: Reid Wiseman, Victor Glover, Christina Koch, and Jeremy Hansen. The 10-day flight test will pave the way for human missions to the lunar surface. The mission relies on NASA's Space Launch System (SLS) rocket and Orion spacecraft. NASA stated that Artemis II will test vital life-support systems in deep space. Furthermore, the spacecraft will travel approximately 5,700 nautical miles beyond the far side of the Moon before returning to Earth with a splashdown in the Pacific Ocean.`
   },
   {
-    label: "📈 Trent Retail Statement",
+    iconKey: "trend",
+    label: "Trent Retail Statement",
     title: "Trent Limited Q2 Financial and Expansion Filing",
     text: `Tata Group's retail firm Trent Limited reported a 23% year-on-year rise in standalone revenue for the July-September 2026 quarter. Operating revenue was driven by sustained expansion of its Zudio and Westside apparel stores. The company opened several new stores across tier-2 and tier-3 Indian cities during the quarter. Management confirmed that sales grew steadily despite competitive pressures in the fast-fashion segment.`
   },
   {
-    label: "🦠 5G Wireless & Health Claims",
+    iconKey: "virus",
+    label: "5G Wireless & Health Claims",
     title: "Viral Report: 5G Millimeter Wave Radiation",
     text: `Controversial online claims allege that 5G millimeter wave cell towers emit hazardous radiation that transmits viral pathogens and causes respiratory illness. The report suggests that high-frequency electromagnetic radiation directly creates coronavirus pathogens in human cells and causes widespread immune system suppression.`
   }
 ];
+
+const renderSampleIcon = (key) => {
+  switch (key) {
+    case "rocket":
+      return <RocketIcon size={14} style={{ color: "#ec4899", marginRight: "5px" }} />;
+    case "trend":
+      return <TrendingUpIcon size={14} style={{ color: "#38bdf8", marginRight: "5px" }} />;
+    case "virus":
+      return <VirusIcon size={14} style={{ color: "#ef4444", marginRight: "5px" }} />;
+    default:
+      return null;
+  }
+};
 
 const DocumentAuditView = () => {
   const [docTitle, setDocTitle] = useState("");
@@ -83,7 +115,7 @@ const DocumentAuditView = () => {
     if (!auditResult) return;
     const { document_title, authenticity_score, overall_status, executive_assessment, word_count, audited_claims } = auditResult;
 
-    let md = `# 📑 TruthLens AI — Document Authenticity Audit\n\n`;
+    let md = `# TruthLens AI — Document Authenticity Audit\n\n`;
     md += `**Document Title:** ${document_title}\n`;
     md += `**Authenticity Score:** ${authenticity_score}%\n`;
     md += `**Overall Credibility:** ${overall_status}\n`;
@@ -130,12 +162,27 @@ const DocumentAuditView = () => {
   const getStatusLabel = (status) => {
     switch (status) {
       case "HIGH_CREDIBILITY":
-        return "✅ High Credibility";
+        return (
+          <>
+            <CheckCircleIcon size={13} />
+            <span>High Credibility</span>
+          </>
+        );
       case "MIXED_CREDIBILITY":
-        return "⚠️ Mixed Credibility";
+        return (
+          <>
+            <AlertTriangleIcon size={13} />
+            <span>Mixed Credibility</span>
+          </>
+        );
       case "HIGH_RISK":
       default:
-        return "❌ High Risk / Discrepancies Found";
+        return (
+          <>
+            <XCircleIcon size={13} />
+            <span>High Risk / Discrepancies Found</span>
+          </>
+        );
     }
   };
 
@@ -152,7 +199,10 @@ const DocumentAuditView = () => {
       <div className="doc-audit-card">
         {/* Sample Presets */}
         <div className="presets-container">
-          <span className="presets-label">⚡ Try Sample Documents:</span>
+          <span className="presets-label">
+            <ZapIcon size={13} style={{ color: "#f59e0b", marginRight: "4px" }} />
+            Try Sample Documents:
+          </span>
           <div className="presets-grid">
             {SAMPLE_DOCS.map((sample, idx) => (
               <button
@@ -162,7 +212,8 @@ const DocumentAuditView = () => {
                 onClick={() => handleSelectSample(sample)}
                 disabled={isLoading}
               >
-                {sample.label}
+                {renderSampleIcon(sample.iconKey)}
+                <span>{sample.label}</span>
               </button>
             ))}
           </div>
@@ -180,7 +231,9 @@ const DocumentAuditView = () => {
               disabled={isLoading}
             />
             <label htmlFor="file-upload" className="file-drop-label">
-              <span className="drop-icon">📑</span>
+              <span className="drop-icon">
+                <DocumentIcon size={28} style={{ color: "#38bdf8" }} />
+              </span>
               <div className="drop-text-group">
                 <span className="drop-main-text">
                   {selectedFile ? `Selected: ${selectedFile.name}` : "Click to upload PDF (.pdf) or Text Document (.txt, .md)"}
@@ -207,34 +260,39 @@ const DocumentAuditView = () => {
           {/* Document Title (Optional) */}
           <div className="form-group">
             <label htmlFor="doc-title-input" className="form-label">
-              Document Title <span className="label-optional">(Optional)</span>
+              <span>Document Title</span>
+              <span className="label-optional">(Optional)</span>
             </label>
-            <input
-              id="doc-title-input"
-              type="text"
-              className="form-input"
-              placeholder="e.g., Financial Report Q2, NASA Press Release..."
-              value={docTitle}
-              onChange={(e) => setDocTitle(e.target.value)}
-              disabled={isLoading}
-            />
+            <div className="input-with-icon">
+              <DocumentIcon size={16} className="input-icon-lead" />
+              <input
+                id="doc-title-input"
+                type="text"
+                className="form-input"
+                placeholder="e.g., Financial Report Q2, NASA Press Release..."
+                value={docTitle}
+                onChange={(e) => setDocTitle(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
           </div>
 
           {/* Long Content Textarea */}
           <div className="form-group">
             <div className="form-label-row">
               <label htmlFor="doc-content-input" className="form-label">
-                Document Body Text <span className="label-required">*</span>
+                <span>Document Body Text</span>
+                <span className="label-required">*</span>
               </label>
-              <span className="char-count">
-                {docText.length} chars {docText.length > 0 && docText.length < 30 ? "(min 30 chars)" : ""}
+              <span className={`char-count ${docText.length >= 30 ? "count-valid" : ""}`}>
+                {docText.length} characters {docText.length > 0 && docText.length < 30 ? "(min 30 chars needed)" : ""}
               </span>
             </div>
             <textarea
               id="doc-content-input"
               className="form-textarea"
               rows={7}
-              placeholder="Paste complete article text, research report, or statement here..."
+              placeholder="Paste complete article body, official press statement, or long-form report content here to extract and verify factual assertions..."
               value={docText}
               onChange={(e) => setDocText(e.target.value)}
               disabled={isLoading || !!selectedFile}
@@ -243,7 +301,8 @@ const DocumentAuditView = () => {
 
           {error && (
             <div className="validation-alert" role="alert">
-              ⚠️ {error}
+              <AlertTriangleIcon size={14} style={{ marginRight: "6px" }} />
+              <span>{error}</span>
             </div>
           )}
 
@@ -259,7 +318,10 @@ const DocumentAuditView = () => {
                   <span>Auditing Document with AI...</span>
                 </>
               ) : (
-                "🔍 Run Document Audit"
+                <>
+                  <SearchGraphIcon size={16} />
+                  <span>Run Document Audit</span>
+                </>
               )}
             </button>
 
@@ -270,7 +332,7 @@ const DocumentAuditView = () => {
                 onClick={handleClear}
                 disabled={isLoading}
               >
-                Clear
+                Clear Content
               </button>
             )}
           </div>
@@ -302,9 +364,9 @@ const DocumentAuditView = () => {
                 </span>
                 <h2 className="audit-document-title">{auditResult.document_title}</h2>
                 <div className="audit-meta-row">
-                  <span>📄 {auditResult.word_count} Words</span>
-                  <span>🎯 {auditResult.total_claims_detected} Key Claims Audited</span>
-                  {auditResult.filename && <span>📎 {auditResult.filename}</span>}
+                  <span style={{ display: "inline-flex", alignItems: "center" }}><DocumentIcon size={14} style={{ marginRight: "4px" }} /> {auditResult.word_count} Words</span>
+                  <span style={{ display: "inline-flex", alignItems: "center" }}><TargetIcon size={14} style={{ marginRight: "4px", color: "#38bdf8" }} /> {auditResult.total_claims_detected} Key Claims Audited</span>
+                  {auditResult.filename && <span style={{ display: "inline-flex", alignItems: "center" }}><PaperclipIcon size={14} style={{ marginRight: "4px", color: "#94a3b8" }} /> {auditResult.filename}</span>}
                 </div>
               </div>
 
@@ -319,17 +381,17 @@ const DocumentAuditView = () => {
 
             {/* Claims Breakdown Pills */}
             <div className="audit-breakdown-strip">
-              <span className="breakdown-pill sup">
-                ✓ {auditResult.claims_breakdown.supported || 0} Supported
+              <span className="breakdown-pill sup" style={{ display: "inline-flex", alignItems: "center" }}>
+                <CheckCircleIcon size={13} style={{ marginRight: "5px" }} /> {auditResult.claims_breakdown.supported || 0} Supported
               </span>
-              <span className="breakdown-pill con">
-                ✗ {auditResult.claims_breakdown.contradicted || 0} Contradicted
+              <span className="breakdown-pill con" style={{ display: "inline-flex", alignItems: "center" }}>
+                <XCircleIcon size={13} style={{ marginRight: "5px" }} /> {auditResult.claims_breakdown.contradicted || 0} Contradicted
               </span>
-              <span className="breakdown-pill mis">
-                ⚠️ {auditResult.claims_breakdown.misleading || 0} Misleading
+              <span className="breakdown-pill mis" style={{ display: "inline-flex", alignItems: "center" }}>
+                <AlertTriangleIcon size={13} style={{ marginRight: "5px" }} /> {auditResult.claims_breakdown.misleading || 0} Misleading
               </span>
-              <span className="breakdown-pill unv">
-                ❓ {auditResult.claims_breakdown.unverified || 0} Unverified
+              <span className="breakdown-pill unv" style={{ display: "inline-flex", alignItems: "center" }}>
+                <HelpCircleIcon size={13} style={{ marginRight: "5px" }} /> {auditResult.claims_breakdown.unverified || 0} Unverified
               </span>
             </div>
 
@@ -337,16 +399,18 @@ const DocumentAuditView = () => {
               <button
                 type="button"
                 className="audit-export-btn"
+                style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
                 onClick={handleDownloadAuditReport}
               >
-                📝 Download Audit Dossier (.md)
+                <DocumentIcon size={14} /> Download Audit Dossier (.md)
               </button>
               <button
                 type="button"
                 className="audit-export-btn"
+                style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
                 onClick={() => window.print()}
               >
-                📄 Print / Export PDF
+                <DownloadIcon size={14} /> Print / Export PDF
               </button>
             </div>
           </div>
@@ -371,13 +435,38 @@ const DocumentAuditView = () => {
                     <p className="reasoning-body">{claim.reasoning}</p>
                   </div>
 
-                  {claim.top_sources && claim.top_sources.length > 0 && (
+                  {((claim.source_links && claim.source_links.length > 0) || (claim.top_sources && claim.top_sources.length > 0)) && (
                     <div className="claim-sources-row">
                       <span className="sources-label">Cited Outlets:</span>
                       <div className="sources-chips">
-                        {claim.top_sources.map((src, i) => (
-                          <span key={i} className="source-chip">{src}</span>
-                        ))}
+                        {(claim.source_links && claim.source_links.length > 0
+                          ? claim.source_links
+                          : claim.top_sources.map((src) => ({
+                              title: src,
+                              url: src.startsWith("http")
+                                ? src
+                                : src.includes(".")
+                                ? `https://${src}`
+                                : `https://www.google.com/search?q=${encodeURIComponent(src + " " + claim.text)}`
+                            }))
+                        ).map((linkObj, i) => {
+                          const title = linkObj.title || linkObj.name || "Source";
+                          const targetUrl = linkObj.url || `https://www.google.com/search?q=${encodeURIComponent(title + " " + claim.text)}`;
+                          return (
+                            <a
+                              key={i}
+                              href={targetUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="source-chip clickable"
+                              title={`Open verified reporting from ${title}`}
+                            >
+                              <GlobeIcon size={11} style={{ opacity: 0.85 }} />
+                              <span>{title}</span>
+                              <span className="source-chip-arrow">↗</span>
+                            </a>
+                          );
+                        })}
                       </div>
                     </div>
                   )}

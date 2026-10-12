@@ -1,15 +1,25 @@
 import React, { useState, useEffect, useRef } from "react";
 import { extractArticleFromUrl } from "../api";
+import {
+  IndianFlagIcon,
+  ZapIcon,
+  TrendingUpIcon,
+  VirusIcon,
+  RocketIcon,
+  GlobeIcon,
+  SparklesIcon,
+  LinkIcon
+} from "./Icons";
 
 const SUPPORTED_LANGUAGES = [
-  { code: "auto", label: "Auto-Detect", flag: "🌐" },
-  { code: "hi", label: "हिन्दी (Hindi)", flag: "🇮🇳" },
-  { code: "hinglish", label: "Hinglish (Roman)", flag: "💬" },
-  { code: "en", label: "English", flag: "🇬🇧" },
-  { code: "bn", label: "বাংলা (Bengali)", flag: "🇮🇳" },
-  { code: "ta", label: "தமிழ் (Tamil)", flag: "🇮🇳" },
-  { code: "te", label: "తెలుగు (Telugu)", flag: "🇮🇳" },
-  { code: "mr", label: "मराठी (Marathi)", flag: "🇮🇳" }
+  { code: "auto", label: "Auto-Detect" },
+  { code: "hi", label: "हिन्दी (Hindi)" },
+  { code: "hinglish", label: "Hinglish (Roman)" },
+  { code: "en", label: "English" },
+  { code: "bn", label: "বাংলা (Bengali)" },
+  { code: "ta", label: "தமிழ் (Tamil)" },
+  { code: "te", label: "తెలుగు (Telugu)" },
+  { code: "mr", label: "मराठी (Marathi)" }
 ];
 
 const detectScriptClientSide = (text) => {
@@ -35,52 +45,77 @@ const detectScriptClientSide = (text) => {
 const TRENDING_EXAMPLES = [
   {
     type: "claim",
-    label: "🇮🇳 ₹500 Note Rumor (हिन्दी)",
+    iconKey: "india",
+    label: "₹500 Note Rumor (हिन्दी)",
     title: "RBI 500 Currency Note Ban Rumor",
     text: "सोशल मीडिया पर दावा किया जा रहा है कि RBI ने ₹500 के स्टार मार्क वाले नोटों को अवैध घोषित कर बंद कर दिया है।",
     language: "hi"
   },
   {
     type: "claim",
-    label: "⚡ Free Bijli Subsidy (Hinglish)",
+    iconKey: "zap",
+    label: "Free Bijli Subsidy (Hinglish)",
     title: "PM Muft Bijli Yojna WhatsApp Message",
     text: "WhatsApp forward keh raha hai ki sarkar sabhi nagriko ke account me 5000 rupaye bijli subsidy direct bhej rahi hai link se claim karein.",
     language: "hinglish"
   },
   {
     type: "claim",
-    label: "📈 Trent Q2 Revenue",
+    iconKey: "trend",
+    label: "Trent Q2 Revenue",
     title: "Trent Q2 standalone revenue",
     text: "Indian retailer Trent reported a 23% year-on-year rise in standalone revenue in the July-September 2026 quarter.",
     language: "en"
   },
   {
     type: "claim",
-    label: "🦠 5G COVID Hoax",
+    iconKey: "virus",
+    label: "5G COVID Hoax",
     title: "5G and Coronavirus",
     text: "5G mobile towers transmit coronavirus pathogens and cause COVID-19 infections.",
     language: "en"
   },
   {
     type: "claim",
-    label: "🚀 NASA Artemis I",
+    iconKey: "rocket",
+    label: "NASA Artemis I",
     title: "NASA Artemis Mission",
     text: "NASA launched the Artemis I mission to test the Orion spacecraft and Space Launch System rocket.",
     language: "en"
   },
   {
     type: "url",
-    label: "🌐 BBC Tech Article",
+    iconKey: "globe",
+    label: "BBC Tech Article",
     url: "https://www.bbc.com/news/technology",
     language: "en"
   }
 ];
 
+const renderTrendingIcon = (key) => {
+  switch (key) {
+    case "india":
+      return <IndianFlagIcon size={14} />;
+    case "zap":
+      return <ZapIcon size={13} style={{ color: "#f59e0b" }} />;
+    case "trend":
+      return <TrendingUpIcon size={13} style={{ color: "#38bdf8" }} />;
+    case "virus":
+      return <VirusIcon size={13} style={{ color: "#ef4444" }} />;
+    case "rocket":
+      return <RocketIcon size={13} style={{ color: "#ec4899" }} />;
+    case "globe":
+      return <GlobeIcon size={13} style={{ color: "#60a5fa" }} />;
+    default:
+      return null;
+  }
+};
+
 const LOADING_STEPS = [
-  { text: "🔍 Searching live web, breaking news & regional archives...", delay: 0 },
-  { text: "📄 Reading source paragraphs & fact-check wires...", delay: 3500 },
-  { text: "🧠 Analyzing claims & cross-verifying stance with Gemini AI...", delay: 7000 },
-  { text: "✨ Formulating multilingual verdict & citations...", delay: 11000 }
+  { text: "Searching live web, breaking news & regional archives...", delay: 0 },
+  { text: "Reading source paragraphs & fact-check wires...", delay: 3500 },
+  { text: "Analyzing claims & cross-verifying stance with Gemini AI...", delay: 7000 },
+  { text: "Formulating multilingual verdict & citations...", delay: 11000 }
 ];
 
 const OmniSearchInput = ({
@@ -264,8 +299,8 @@ const OmniSearchInput = ({
         <div className="omni-bottom-bar">
           <div className="omni-left-tools">
             {isUrl ? (
-              <span className="omni-url-indicator">
-                🔗 Web URL Detected
+              <span className="omni-url-indicator" style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                <LinkIcon size={12} /> Web URL Detected
               </span>
             ) : !showHeadlineInput ? (
               <button
@@ -332,7 +367,8 @@ const OmniSearchInput = ({
                 </>
               ) : (
                 <>
-                  <span>✨ Verify</span>
+                  <SparklesIcon size={14} />
+                  <span>Verify</span>
                   <span className="shortcut-hint">↵</span>
                 </>
               )}
@@ -343,7 +379,7 @@ const OmniSearchInput = ({
 
       {validationError && (
         <div className="omni-alert" role="alert">
-          ⚠️ {validationError}
+          {validationError}
         </div>
       )}
 
@@ -360,7 +396,8 @@ const OmniSearchInput = ({
                 onClick={() => handleSelectExample(ex)}
                 disabled={isLoading || isExtracting}
               >
-                {ex.label}
+                <span className="trending-chip-icon">{renderTrendingIcon(ex.iconKey)}</span>
+                <span className="trending-chip-text">{ex.label}</span>
               </button>
             ))}
           </div>
@@ -373,7 +410,7 @@ const OmniSearchInput = ({
           <div className="progress-header">
             <span className="pulsar-dot"></span>
             <span className="progress-step-text">
-              {isExtracting ? "📄 Fetching and parsing web article content..." : LOADING_STEPS[loadingStepIndex].text}
+              {isExtracting ? "Fetching and parsing web article content..." : LOADING_STEPS[loadingStepIndex].text}
             </span>
           </div>
           <div className="progress-track">

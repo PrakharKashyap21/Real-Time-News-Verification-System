@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { getAnalyticsData } from "../api";
+import {
+  TargetIcon,
+  ShieldIcon,
+  GlobeIcon,
+  SearchGraphIcon,
+  NewspaperIcon,
+  DocumentIcon,
+  HelpCircleIcon
+} from "./Icons";
 
 export default function AnalyticsView() {
   const [data, setData] = useState(null);
@@ -84,7 +93,9 @@ export default function AnalyticsView() {
 
           <div className="kpi-card highlight-green">
             <div className="kpi-header">
-              <span className="kpi-icon">🎯</span>
+              <span className="kpi-icon" style={{ display: "inline-flex", alignItems: "center" }}>
+                <TargetIcon size={18} style={{ color: "#10b981" }} />
+              </span>
               <span className="kpi-label">Benchmark Accuracy</span>
             </div>
             <div className="kpi-value">{data.engine_metrics.benchmark_accuracy_pct}%</div>
@@ -93,7 +104,9 @@ export default function AnalyticsView() {
 
           <div className="kpi-card">
             <div className="kpi-header">
-              <span className="kpi-icon">🛡️</span>
+              <span className="kpi-icon" style={{ display: "inline-flex", alignItems: "center" }}>
+                <ShieldIcon size={18} style={{ color: "#38bdf8" }} />
+              </span>
               <span className="kpi-label">Attribution Purity</span>
             </div>
             <div className="kpi-value">{data.engine_metrics.zero_hallucination_attribution_rate}%</div>
@@ -102,7 +115,9 @@ export default function AnalyticsView() {
 
           <div className="kpi-card">
             <div className="kpi-header">
-              <span className="kpi-icon">🌐</span>
+              <span className="kpi-icon" style={{ display: "inline-flex", alignItems: "center" }}>
+                <GlobeIcon size={18} style={{ color: "#a855f7" }} />
+              </span>
               <span className="kpi-label">Tracked Domains</span>
             </div>
             <div className="kpi-value">{data.total_tracked_domains}+</div>
@@ -228,36 +243,41 @@ export default function AnalyticsView() {
             type="button"
             className={`filter-pill ${selectedTierFilter === "TIER_0" ? "active" : ""}`}
             onClick={() => setSelectedTierFilter("TIER_0")}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
           >
-            🏛️ Tier-0 Archives
+            <DocumentIcon size={14} style={{ color: "#38bdf8" }} /> Tier-0 Archives
           </button>
           <button
             type="button"
             className={`filter-pill ${selectedTierFilter === "TIER_1" ? "active" : ""}`}
             onClick={() => setSelectedTierFilter("TIER_1")}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
           >
-            📡 Tier-1 Wires
+            <GlobeIcon size={14} style={{ color: "#34d399" }} /> Tier-1 Wires
           </button>
           <button
             type="button"
             className={`filter-pill ${selectedTierFilter === "TIER_2" ? "active" : ""}`}
             onClick={() => setSelectedTierFilter("TIER_2")}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
           >
-            🔍 Fact-Checkers
+            <SearchGraphIcon size={14} style={{ color: "#a855f7" }} /> Fact-Checkers
           </button>
           <button
             type="button"
             className={`filter-pill ${selectedTierFilter === "TIER_3" ? "active" : ""}`}
             onClick={() => setSelectedTierFilter("TIER_3")}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
           >
-            📰 Major Press
+            <NewspaperIcon size={14} style={{ color: "#f59e0b" }} /> Major Press
           </button>
           <button
             type="button"
             className={`filter-pill ${selectedTierFilter === "TIER_4" ? "active" : ""}`}
             onClick={() => setSelectedTierFilter("TIER_4")}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
           >
-            🎭 Parody / Satire
+            <HelpCircleIcon size={14} style={{ color: "#f43f5e" }} /> Parody / Satire
           </button>
         </div>
 
@@ -269,7 +289,9 @@ export default function AnalyticsView() {
           </div>
         ) : filteredCatalog.length === 0 ? (
           <div className="empty-catalog-box">
-            <span className="empty-icon">🔍</span>
+            <span className="empty-icon" style={{ display: "inline-flex", justifyContent: "center" }}>
+              <SearchGraphIcon size={36} style={{ color: "#64748b" }} />
+            </span>
             <h3>No matching domains found</h3>
             <p>Try searching for another domain name or clear your filters.</p>
             <button type="button" onClick={handleClearSearch} className="btn-reset-filters">

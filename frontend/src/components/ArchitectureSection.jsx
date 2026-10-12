@@ -1,4 +1,5 @@
 import React from "react";
+import { ZapIcon, NavDocIcon, BrainIcon, ShieldIcon } from "./Icons";
 
 const ArchitectureSection = () => {
   return (
@@ -14,7 +15,9 @@ const ArchitectureSection = () => {
       <div className="arch-grid">
         <div className="arch-card">
           <div className="arch-card-badge">01</div>
-          <div className="arch-card-icon">⚡</div>
+          <div className="arch-card-icon">
+            <ZapIcon size={24} style={{ color: "#f59e0b" }} />
+          </div>
           <h3 className="arch-card-title">Live DuckDuckGo Search</h3>
           <p className="arch-card-desc">
             Dispatches targeted search queries across live breaking news, official archives, and investigative journalism portals.
@@ -23,7 +26,9 @@ const ArchitectureSection = () => {
 
         <div className="arch-card">
           <div className="arch-card-badge">02</div>
-          <div className="arch-card-icon">📑</div>
+          <div className="arch-card-icon">
+            <NavDocIcon size={24} style={{ color: "#38bdf8" }} />
+          </div>
           <h3 className="arch-card-title">Concurrent Deep Extraction</h3>
           <p className="arch-card-desc">
             Scrapes complete article body paragraphs via Trafilatura in parallel with strict timeouts to avoid surface-level summaries.
@@ -32,7 +37,9 @@ const ArchitectureSection = () => {
 
         <div className="arch-card">
           <div className="arch-card-badge">03</div>
-          <div className="arch-card-icon">🧠</div>
+          <div className="arch-card-icon">
+            <BrainIcon size={24} style={{ color: "#c084fc" }} />
+          </div>
           <h3 className="arch-card-title">Gemini AI Synthesis</h3>
           <p className="arch-card-desc">
             Deconstructs claims into core propositions, evaluates corroborating vs contradictory stances, and flags distortions.
@@ -41,7 +48,9 @@ const ArchitectureSection = () => {
 
         <div className="arch-card">
           <div className="arch-card-badge">04</div>
-          <div className="arch-card-icon">🛡️</div>
+          <div className="arch-card-icon">
+            <ShieldIcon size={24} style={{ color: "#34d399" }} />
+          </div>
           <h3 className="arch-card-title">Attributed Citations</h3>
           <p className="arch-card-desc">
             Provides 100% transparent evidence cards with exact quotes, publisher domains, and direct external source links.

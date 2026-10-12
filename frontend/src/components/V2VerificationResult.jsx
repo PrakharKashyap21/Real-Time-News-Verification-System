@@ -1,5 +1,17 @@
 import React, { useState } from "react";
 import EvidenceKnowledgeGraph from "./EvidenceKnowledgeGraph";
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+  AlertTriangleIcon,
+  HelpCircleIcon,
+  CopyIcon,
+  DocumentIcon,
+  DownloadIcon,
+  GlobeIcon,
+  NewspaperIcon,
+  SparklesIcon
+} from "./Icons";
 
 const V2VerificationResult = ({ result }) => {
   if (!result) return null;
@@ -46,14 +58,14 @@ const V2VerificationResult = ({ result }) => {
   const getVerdictIcon = (verdict) => {
     switch (verdict?.toUpperCase()) {
       case "SUPPORTED":
-        return "✅";
+        return <CheckCircleIcon size={22} style={{ color: "#10b981", verticalAlign: "middle" }} />;
       case "CONTRADICTED":
-        return "❌";
+        return <XCircleIcon size={22} style={{ color: "#ef4444", verticalAlign: "middle" }} />;
       case "MISLEADING":
-        return "⚠️";
+        return <AlertTriangleIcon size={22} style={{ color: "#f59e0b", verticalAlign: "middle" }} />;
       case "UNVERIFIED":
       default:
-        return "❓";
+        return <HelpCircleIcon size={22} style={{ color: "#94a3b8", verticalAlign: "middle" }} />;
     }
   };
 
@@ -171,7 +183,9 @@ ${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: 
       {isVernacular && (
         <div className="vernacular-toggle-banner">
           <div className="vernacular-meta">
-            <span className="vernacular-icon">🌍</span>
+            <span className="vernacular-icon">
+              <GlobeIcon size={18} style={{ color: "#38bdf8" }} />
+            </span>
             <div className="vernacular-meta-text">
               <span className="vernacular-title">
                 Multi-Lingual Claim Verified: <strong>{language_name}</strong>
@@ -188,8 +202,9 @@ ${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: 
               className={`vernacular-lang-pill ${displayLanguage === "native" ? "active" : ""}`}
               onClick={() => setDisplayLanguage("native")}
               title={`View explanation in ${language_name}`}
+              style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}
             >
-              🌐 मूल भाषा ({language_name.split(" ")[0]})
+              <GlobeIcon size={12} /> मूल भाषा ({language_name.split(" ")[0]})
             </button>
             <button
               type="button"
@@ -197,7 +212,7 @@ ${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: 
               onClick={() => setDisplayLanguage("en")}
               title="View English translation"
             >
-              🇬🇧 English
+              English
             </button>
           </div>
         </div>
@@ -217,8 +232,9 @@ ${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: 
               className="verdict-action-btn"
               onClick={handleCopyReport}
               title="Copy structured summary to clipboard"
+              style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}
             >
-              {copied ? "✓ Copied" : "📋 Copy"}
+              {copied ? "✓ Copied" : <><CopyIcon size={13} /> Copy</>}
             </button>
 
             <button
@@ -226,8 +242,9 @@ ${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: 
               className="verdict-action-btn"
               onClick={handleDownloadMarkdown}
               title="Download structured Markdown (.md) dossier"
+              style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}
             >
-              📝 Markdown
+              <DocumentIcon size={13} /> Markdown
             </button>
 
             <button
@@ -235,8 +252,9 @@ ${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: 
               className="verdict-action-btn verdict-action-pdf"
               onClick={handleExportPDF}
               title="Print or save official PDF dossier"
+              style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}
             >
-              📄 Export PDF
+              <DownloadIcon size={13} /> Export PDF
             </button>
           </div>
         </div>
@@ -248,8 +266,8 @@ ${(claims || []).flatMap((c) => c.evidence || []).map((e) => `- ${e.publisher}: 
             <strong>Analysis Context:</strong> {getVerdictDescription(overall_assessment)}
           </div>
           {has_conflict && (
-            <div className="conflict-alert-badge">
-              ⚠️ Conflicting reports found across different publishers
+            <div className="conflict-alert-badge" style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+              <AlertTriangleIcon size={14} style={{ color: "#f59e0b" }} /> Conflicting reports found across different publishers
             </div>
           )}
         </div>
@@ -347,13 +365,15 @@ const ClaimCard = ({ claim, index, getVerdictClass, getVerdictIcon, getStanceBad
           <div className="claim-headline-meta">
             <span className="claim-badge-num">Claim #{index + 1}</span>
             {vernacular_info?.language_name && (
-              <span className="claim-lang-tag">🌐 {vernacular_info.language_name}</span>
+              <span className="claim-lang-tag" style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                <GlobeIcon size={12} /> {vernacular_info.language_name}
+              </span>
             )}
           </div>
           <h4 className="claim-quote-text">"{text}"</h4>
           {vernacular_info?.translated_claim_en && (
             <p className="claim-translated-sub">
-              🇬🇧 <em>English Translation:</em> "{vernacular_info.translated_claim_en}"
+              <em>English Translation:</em> "{vernacular_info.translated_claim_en}"
             </p>
           )}
         </div>
@@ -373,7 +393,9 @@ const ClaimCard = ({ claim, index, getVerdictClass, getVerdictIcon, getStanceBad
           {/* AI Explanation Box */}
           <div className="ai-reasoning-card">
             <div className="reasoning-header">
-              <span className="ai-icon">💡</span>
+              <span className="ai-icon">
+                <SparklesIcon size={14} style={{ color: "#38bdf8" }} />
+              </span>
               <span className="ai-label">
                 AI Verification Analysis {isNative ? `(${vernacular_info.language_name})` : "(English)"}
               </span>
@@ -405,7 +427,9 @@ const ClaimCard = ({ claim, index, getVerdictClass, getVerdictIcon, getStanceBad
           {/* Evidence Sources List */}
           {evidence.length > 0 ? (
             <div className="sources-container">
-              <h5 className="sources-title">📰 Citations & Verified Sources ({evidence.length})</h5>
+              <h5 className="sources-title" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <NewspaperIcon size={16} style={{ color: "#38bdf8" }} /> Citations & Verified Sources ({evidence.length})
+              </h5>
               <div className="sources-grid">
                 {evidence.map((item, idx) => (
                   <SourceCard key={item.id || idx} item={item} getStanceBadge={getStanceBadge} />
@@ -428,7 +452,9 @@ const SourceCard = ({ item, getStanceBadge }) => {
     <div className="source-citation-card">
       <div className="source-card-header">
         <div className="publisher-badge">
-          <span className="publisher-logo-icon">🌐</span>
+          <span className="publisher-logo-icon">
+            <GlobeIcon size={13} style={{ color: "#60a5fa" }} />
+          </span>
           <span className="publisher-name">{item.publisher || item.domain}</span>
         </div>
         {getStanceBadge(item.stance)}

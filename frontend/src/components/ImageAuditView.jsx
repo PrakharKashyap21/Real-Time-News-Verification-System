@@ -1,5 +1,23 @@
 import React, { useState, useRef } from "react";
 import { auditUploadedImage } from "../api";
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+  AlertTriangleIcon,
+  HelpCircleIcon,
+  FlameIcon,
+  ShieldIcon,
+  PhoneIcon,
+  TelescopeIcon,
+  TrendingUpIcon,
+  ImageFrameIcon,
+  CameraIcon,
+  DocumentIcon,
+  MicroscopeIcon,
+  NewspaperIcon,
+  GlobeIcon,
+  NetworkGraphIcon
+} from "./Icons";
 
 export default function ImageAuditView({ onAuditToLiveVerify }) {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -153,27 +171,62 @@ export default function ImageAuditView({ onAuditToLiveVerify }) {
     switch (verdict?.toUpperCase()) {
       case "SUPPORTED":
       case "VERIFIED":
-        return <span className="image-verdict-tag tag-sup">✅ Verified Factual</span>;
+        return (
+          <span className="image-verdict-tag tag-sup">
+            <CheckCircleIcon size={13} />
+            <span>Verified Factual</span>
+          </span>
+        );
       case "CONTRADICTED":
       case "FALSE":
-        return <span className="image-verdict-tag tag-con">❌ False / Fabricated</span>;
+        return (
+          <span className="image-verdict-tag tag-con">
+            <XCircleIcon size={13} />
+            <span>False / Fabricated</span>
+          </span>
+        );
       case "MISLEADING":
-        return <span className="image-verdict-tag tag-mis">⚠️ Misleading / Out of Context</span>;
+        return (
+          <span className="image-verdict-tag tag-mis">
+            <AlertTriangleIcon size={13} />
+            <span>Misleading / Out of Context</span>
+          </span>
+        );
       case "UNVERIFIED":
       default:
-        return <span className="image-verdict-tag tag-unv">❓ Unverified Rumor</span>;
+        return (
+          <span className="image-verdict-tag tag-unv">
+            <HelpCircleIcon size={13} />
+            <span>Unverified Rumor</span>
+          </span>
+        );
     }
   };
 
   const getRiskBadge = (risk) => {
     switch (risk?.toUpperCase()) {
       case "HIGH":
-        return <span className="risk-pill risk-high">🔥 High Manipulation Risk</span>;
+        return (
+          <span className="risk-pill risk-high">
+            <FlameIcon size={13} />
+            <span>High Manipulation Risk</span>
+          </span>
+        );
       case "MEDIUM":
-        return <span className="risk-pill risk-med">⚠️ Moderate Manipulation Risk</span>;
+        return (
+          <span className="risk-pill risk-med">
+            <AlertTriangleIcon size={13} />
+            <span>Moderate Manipulation Risk</span>
+          </span>
+        );
       case "LOW":
       default:
-        return <span className="risk-pill risk-low">🛡️ Low Manipulation Risk</span>;
+        return (
+          <span className="risk-pill risk-low">
+            <ShieldIcon size={13} />
+            <span>Low Manipulation Risk</span>
+          </span>
+        );
     }
   };
 
@@ -200,7 +253,8 @@ export default function ImageAuditView({ onAuditToLiveVerify }) {
           onClick={() => loadPresetSample("5g")}
           disabled={isAuditing}
         >
-          📱 Viral 5G Claim
+          <PhoneIcon size={14} style={{ color: "#38bdf8", marginRight: "5px" }} />
+          <span>Viral 5G Claim</span>
         </button>
         <button
           type="button"
@@ -208,7 +262,8 @@ export default function ImageAuditView({ onAuditToLiveVerify }) {
           onClick={() => loadPresetSample("jwst")}
           disabled={isAuditing}
         >
-          🔭 NASA Exoplanet Banner
+          <TelescopeIcon size={14} style={{ color: "#c084fc", marginRight: "5px" }} />
+          <span>NASA Exoplanet Banner</span>
         </button>
         <button
           type="button"
@@ -216,7 +271,8 @@ export default function ImageAuditView({ onAuditToLiveVerify }) {
           onClick={() => loadPresetSample("tata")}
           disabled={isAuditing}
         >
-          📈 Tata Trent Earnings Post
+          <TrendingUpIcon size={14} style={{ color: "#34d399", marginRight: "5px" }} />
+          <span>Tata Trent Earnings Post</span>
         </button>
       </div>
 
@@ -235,7 +291,9 @@ export default function ImageAuditView({ onAuditToLiveVerify }) {
             accept=".png,.jpg,.jpeg,.webp"
             style={{ display: "none" }}
           />
-          <div className="dropzone-icon">🖼️</div>
+          <div className="dropzone-icon">
+            <ImageFrameIcon size={44} style={{ color: "#818cf8" }} />
+          </div>
           <h3 className="dropzone-title">Drop your screenshot or image here</h3>
           <p className="dropzone-subtitle">
             Supports PNG, JPG, or WEBP up to 15MB • Captures social posts, newspaper clips, memes
@@ -311,7 +369,9 @@ export default function ImageAuditView({ onAuditToLiveVerify }) {
           <div className="audit-hero-card">
             <div className="hero-top-cluster">
               <div className="hero-status-group">
-                <span className="media-type-badge">📸 {auditResult.media_type}</span>
+                <span className="media-type-badge">
+                  <CameraIcon size={14} style={{ color: "#38bdf8", marginRight: "4px" }} /> {auditResult.media_type}
+                </span>
                 {getRiskBadge(auditResult.visual_manipulation_risk)}
               </div>
               <div className="hero-verdict-wrap">
@@ -347,7 +407,9 @@ export default function ImageAuditView({ onAuditToLiveVerify }) {
             {/* Transcribed Text Card */}
             <div className="detail-panel-card">
               <div className="panel-header">
-                <span className="panel-icon">📝</span>
+                <span className="panel-icon">
+                  <DocumentIcon size={16} style={{ color: "#818cf8" }} />
+                </span>
                 <h4 className="panel-title">Transcribed Content & Core Claim</h4>
               </div>
 
@@ -369,7 +431,9 @@ export default function ImageAuditView({ onAuditToLiveVerify }) {
             {/* Forensic Visual Clues Card */}
             <div className="detail-panel-card">
               <div className="panel-header">
-                <span className="panel-icon">🔬</span>
+                <span className="panel-icon">
+                  <MicroscopeIcon size={16} style={{ color: "#34d399" }} />
+                </span>
                 <h4 className="panel-title">Forensic Visual Observations</h4>
               </div>
 
@@ -402,8 +466,8 @@ export default function ImageAuditView({ onAuditToLiveVerify }) {
           {/* Audited Fact-Check Claims List */}
           {auditResult.claims_breakdown && auditResult.claims_breakdown.length > 0 && (
             <div className="fact-checks-card">
-              <h3 className="fact-checks-title">
-                📰 Cross-Referenced Fact-Checks & News Reports ({auditResult.claims_breakdown.length})
+              <h3 className="fact-checks-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <NewspaperIcon size={18} style={{ color: "#f59e0b" }} /> Cross-Referenced Fact-Checks & News Reports ({auditResult.claims_breakdown.length})
               </h3>
               <div className="fact-checks-list">
                 {auditResult.claims_breakdown.map((claim, idx) => (
@@ -421,8 +485,8 @@ export default function ImageAuditView({ onAuditToLiveVerify }) {
                       <div className="claim-row-sources">
                         <span className="sources-lbl">Attributed Publishers:</span>
                         {claim.top_sources.map((src, sIdx) => (
-                          <span key={sIdx} className="src-chip">
-                            🌐 {src}
+                          <span key={sIdx} className="src-chip" style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                            <GlobeIcon size={12} style={{ color: "#60a5fa" }} /> {src}
                           </span>
                         ))}
                       </div>
@@ -439,6 +503,7 @@ export default function ImageAuditView({ onAuditToLiveVerify }) {
               <button
                 type="button"
                 className="btn-action-primary"
+                style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}
                 onClick={() =>
                   onAuditToLiveVerify({
                     title: auditResult.extracted_headline,
@@ -446,7 +511,7 @@ export default function ImageAuditView({ onAuditToLiveVerify }) {
                   })
                 }
               >
-                🕸️ Open in Interactive Evidence Graph →
+                <NetworkGraphIcon size={16} /> Open in Interactive Evidence Graph →
               </button>
             )}
             <button

@@ -1,4 +1,12 @@
 import React from "react";
+import {
+  ClockIcon,
+  BookOpenIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  AlertTriangleIcon,
+  HelpCircleIcon
+} from "./Icons";
 
 const RecentHistory = ({ history, onSelectHistoryItem, onClearHistory, onDeleteItem, activeId }) => {
   if (!history || history.length === 0) {
@@ -6,7 +14,9 @@ const RecentHistory = ({ history, onSelectHistoryItem, onClearHistory, onDeleteI
       <div className="card history-card empty-history">
         <div className="history-header">
           <div className="history-title-group">
-            <span className="history-icon">🕒</span>
+            <span className="history-icon" style={{ display: "inline-flex", alignItems: "center" }}>
+              <ClockIcon size={16} style={{ color: "#38bdf8" }} />
+            </span>
             <h3 className="history-title">Recent Verifications</h3>
           </div>
         </div>
@@ -34,14 +44,14 @@ const RecentHistory = ({ history, onSelectHistoryItem, onClearHistory, onDeleteI
   const getVerdictIcon = (verdict) => {
     switch (verdict?.toUpperCase()) {
       case "SUPPORTED":
-        return "✅";
+        return <CheckCircleIcon size={12} style={{ color: "#10b981", verticalAlign: "middle" }} />;
       case "CONTRADICTED":
-        return "❌";
+        return <XCircleIcon size={12} style={{ color: "#ef4444", verticalAlign: "middle" }} />;
       case "MISLEADING":
-        return "⚠️";
+        return <AlertTriangleIcon size={12} style={{ color: "#f59e0b", verticalAlign: "middle" }} />;
       case "UNVERIFIED":
       default:
-        return "❓";
+        return <HelpCircleIcon size={12} style={{ color: "#94a3b8", verticalAlign: "middle" }} />;
     }
   };
 
@@ -63,7 +73,9 @@ const RecentHistory = ({ history, onSelectHistoryItem, onClearHistory, onDeleteI
     <div className="card history-card">
       <div className="history-header">
         <div className="history-title-group">
-          <span className="history-icon">🕒</span>
+          <span className="history-icon" style={{ display: "inline-flex", alignItems: "center" }}>
+            <ClockIcon size={16} style={{ color: "#38bdf8" }} />
+          </span>
           <h3 className="history-title">Recent Verifications</h3>
           <span className="history-count">{history.length}</span>
         </div>
@@ -98,8 +110,8 @@ const RecentHistory = ({ history, onSelectHistoryItem, onClearHistory, onDeleteI
               </div>
               <div className="history-item-title">{displayTitle}</div>
               <div className="history-item-footer">
-                <span className="history-item-sources">
-                  📚 {(item.result?.claims || []).flatMap((c) => c.evidence || []).length} sources
+                <span className="history-item-sources" style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  <BookOpenIcon size={12} style={{ color: "#818cf8" }} /> {(item.result?.claims || []).flatMap((c) => c.evidence || []).length} sources
                 </span>
                 <button
                   type="button"

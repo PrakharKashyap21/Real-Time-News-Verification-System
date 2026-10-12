@@ -219,7 +219,18 @@ class GeminiRAGVerifier:
             parsed = urllib.parse.urlparse(url)
             domain = parsed.netloc.replace("www.", "")
             parts = domain.split(".")
-            publisher = parts[0].capitalize() if parts else domain
+            if len(parts) >= 3 and parts[0].lower() in ["en", "hi", "m", "news", "www3", "amp", "beta", "edition", "in"]:
+                publisher = parts[-2].capitalize()
+            elif parts:
+                publisher = parts[0].capitalize()
+            else:
+                publisher = domain
+            # Common recognizable names & acronyms
+            clean_lower = publisher.lower()
+            if clean_lower == "wikipedia":
+                publisher = "Wikipedia"
+            elif clean_lower in ["nasa", "bbc", "cnn", "rbi", "isro", "who", "ndtv", "pib", "ani"]:
+                publisher = clean_lower.upper()
             return publisher, domain
         except Exception:
             return "Unknown", "unknown"

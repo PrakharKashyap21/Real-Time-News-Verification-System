@@ -56,3 +56,8 @@ frontend/dist-ssr/
 backend/evaluation/results.json
 backend/evaluation/results_mock.json
 backend/evaluation/real_world_results*.json
+
+# Project Reports & Local Docs (kept local)
+*.docx
+MAJOR_PROJECT_REPORT.md
+generate_truthlens_report.py

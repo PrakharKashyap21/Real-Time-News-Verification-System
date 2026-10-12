@@ -1,4 +1,10 @@
 import React from "react";
+import {
+  GlobeIcon,
+  DocumentIcon,
+  BrainIcon,
+  ShieldIcon
+} from "./Icons";
 
 const EmptyState = ({ onSelectSample }) => {
   return (
@@ -17,7 +23,9 @@ const EmptyState = ({ onSelectSample }) => {
       <div className="pipeline-grid">
         <div className="pipeline-step-card">
           <div className="step-number">01</div>
-          <div className="step-icon">🌐</div>
+          <div className="step-icon">
+            <GlobeIcon size={24} style={{ color: "#38bdf8" }} />
+          </div>
           <h4 className="step-title">Live News Retrieval</h4>
           <p className="step-desc">
             Dispatches live search queries across reputable news outlets, official archives, and investigative journalism portals.
@@ -26,7 +34,9 @@ const EmptyState = ({ onSelectSample }) => {
 
         <div className="pipeline-step-card">
           <div className="step-number">02</div>
-          <div className="step-icon">📑</div>
+          <div className="step-icon">
+            <DocumentIcon size={24} style={{ color: "#818cf8" }} />
+          </div>
           <h4 className="step-title">Deep Full-Text Extraction</h4>
           <p className="step-desc">
             Extracts full article body paragraphs concurrently to inspect detailed reporting beyond superficial headlines.
@@ -35,7 +45,9 @@ const EmptyState = ({ onSelectSample }) => {
 
         <div className="pipeline-step-card">
           <div className="step-number">03</div>
-          <div className="step-icon">🧠</div>
+          <div className="step-icon">
+            <BrainIcon size={24} style={{ color: "#f472b6" }} />
+          </div>
           <h4 className="step-title">Gemini Reasoning & NLI</h4>
           <p className="step-desc">
             Decomposes multi-sentence claims, matches specific propositions against evidence, and classifies corroborating vs contradictory stances.
@@ -44,7 +56,9 @@ const EmptyState = ({ onSelectSample }) => {
 
         <div className="pipeline-step-card">
           <div className="step-number">04</div>
-          <div className="step-icon">🛡️</div>
+          <div className="step-icon">
+            <ShieldIcon size={24} style={{ color: "#34d399" }} />
+          </div>
           <h4 className="step-title">Attributed Verdicts</h4>
           <p className="step-desc">
             Produces structured transparent reports with direct quotes, domain credibility indicators, and exact source citations.

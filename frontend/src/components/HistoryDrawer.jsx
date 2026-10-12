@@ -1,4 +1,13 @@
 import React from "react";
+import {
+  ClockIcon,
+  SearchGraphIcon,
+  BookOpenIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  AlertTriangleIcon,
+  HelpCircleIcon
+} from "./Icons";
 
 const HistoryDrawer = ({ isOpen, onClose, history, onSelectHistoryItem, onClearHistory, onDeleteItem, activeId }) => {
   if (!isOpen) return null;
@@ -20,14 +29,14 @@ const HistoryDrawer = ({ isOpen, onClose, history, onSelectHistoryItem, onClearH
   const getVerdictIcon = (verdict) => {
     switch (verdict?.toUpperCase()) {
       case "SUPPORTED":
-        return "✅";
+        return <CheckCircleIcon size={12} style={{ color: "#10b981", verticalAlign: "middle" }} />;
       case "CONTRADICTED":
-        return "❌";
+        return <XCircleIcon size={12} style={{ color: "#ef4444", verticalAlign: "middle" }} />;
       case "MISLEADING":
-        return "⚠️";
+        return <AlertTriangleIcon size={12} style={{ color: "#f59e0b", verticalAlign: "middle" }} />;
       case "UNVERIFIED":
       default:
-        return "❓";
+        return <HelpCircleIcon size={12} style={{ color: "#94a3b8", verticalAlign: "middle" }} />;
     }
   };
 
@@ -50,7 +59,9 @@ const HistoryDrawer = ({ isOpen, onClose, history, onSelectHistoryItem, onClearH
       <div className="drawer-panel" onClick={(e) => e.stopPropagation()}>
         <div className="drawer-header">
           <div className="drawer-title-group">
-            <span className="drawer-icon">🕒</span>
+            <span className="drawer-icon" style={{ display: "inline-flex", alignItems: "center" }}>
+              <ClockIcon size={16} style={{ color: "#38bdf8" }} />
+            </span>
             <h3 className="drawer-title">Verification History</h3>
             <span className="drawer-badge">{history.length}</span>
           </div>
@@ -79,7 +90,9 @@ const HistoryDrawer = ({ isOpen, onClose, history, onSelectHistoryItem, onClearH
         <div className="drawer-content">
           {history.length === 0 ? (
             <div className="drawer-empty-state">
-              <span className="drawer-empty-icon">🔍</span>
+              <span className="drawer-empty-icon" style={{ display: "inline-flex", justifyContent: "center" }}>
+                <SearchGraphIcon size={36} style={{ color: "#64748b" }} />
+              </span>
               <p className="drawer-empty-title">No verifications yet</p>
               <p className="drawer-empty-desc">
                 Whenever you fact-check a news claim or article URL, it will be saved here for instant recall.
@@ -113,8 +126,8 @@ const HistoryDrawer = ({ isOpen, onClose, history, onSelectHistoryItem, onClearH
                     <div className="drawer-item-title">{displayTitle}</div>
 
                     <div className="drawer-item-footer">
-                      <span className="drawer-item-sources">
-                        📚 {sourcesCount} verified {sourcesCount === 1 ? "source" : "sources"}
+                      <span className="drawer-item-sources" style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                        <BookOpenIcon size={12} style={{ color: "#818cf8" }} /> {sourcesCount} verified {sourcesCount === 1 ? "source" : "sources"}
                       </span>
                       <button
                         type="button"

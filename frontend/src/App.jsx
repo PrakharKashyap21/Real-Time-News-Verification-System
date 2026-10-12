@@ -223,7 +223,7 @@ function App() {
     setError("");
     setValidationError("");
     setVerifyModality("search");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   };
 
   useEffect(() => {
@@ -265,7 +265,34 @@ function App() {
     } catch (e) {
       // ignore
     }
-    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  };
+
+  const handleNavigateArchitecture = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (activeTab !== "verify" || verifyModality !== "search") {
+      setActiveTab("verify");
+      setVerifyModality("search");
+      try {
+        window.history.replaceState(null, "", window.location.pathname);
+      } catch (err) {
+        // ignore
+      }
+    }
+
+    const scrollToArch = () => {
+      const el = document.getElementById("how-it-works");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        return true;
+      }
+      return false;
+    };
+
+    if (!scrollToArch()) {
+      setTimeout(scrollToArch, 80);
+      setTimeout(scrollToArch, 250);
+    }
   };
 
   return (
@@ -335,7 +362,11 @@ function App() {
             </button>
           )}
 
-          <a href="#how-it-works" className="nav-link">
+          <a
+            href="#how-it-works"
+            className="nav-link"
+            onClick={handleNavigateArchitecture}
+          >
             Architecture
           </a>
 
@@ -510,6 +541,9 @@ function App() {
                   <div className="result-report-card">
                     <V2VerificationResult result={verificationResult} />
                   </div>
+
+                  {/* Below-the-fold Architecture Section */}
+                  <ArchitectureSection />
                 </div>
               )}
             </div>

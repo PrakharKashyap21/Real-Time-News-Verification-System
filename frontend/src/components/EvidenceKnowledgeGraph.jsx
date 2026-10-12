@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { NetworkGraphIcon } from "./Icons";
 
 export default function EvidenceKnowledgeGraph({ claims = [], overallAssessment = "SUPPORTED" }) {
   const [selectedClaimIndex, setSelectedClaimIndex] = useState(0);
@@ -158,7 +159,9 @@ export default function EvidenceKnowledgeGraph({ claims = [], overallAssessment 
       <div className="graph-canvas-container">
         {filteredEvidence.length === 0 ? (
           <div className="graph-empty-state">
-            <span className="empty-graph-icon">🕸️</span>
+            <span className="empty-graph-icon" style={{ display: "inline-flex", justifyContent: "center" }}>
+              <NetworkGraphIcon size={36} style={{ color: "#64748b" }} />
+            </span>
             <p className="empty-graph-text">
               No evidence sources matched the current filter for this claim.
             </p>
