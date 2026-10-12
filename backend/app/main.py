@@ -1,6 +1,10 @@
 from contextlib import asynccontextmanager
+import io
+import os
+import zipfile
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from backend.app.schemas import PredictionRequest, PredictionResponse
 from backend.app.predictor import get_predictor, NewsPredictor
 from backend.app.v2.router import router as v2_router
@@ -42,6 +46,30 @@ def health_check():
     return {
         "status": "healthy"
     }
+
+@app.get("/api/v2/extension/download", tags=["Extension"])
+def download_extension_zip():
+    """Package the Chrome Extension into an in-memory zip file for 1-click download."""
+    extension_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "extension"))
+    if not os.path.exists(extension_dir):
+        raise HTTPException(status_code=404, detail="Extension directory not found")
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for root, dirs, files in os.walk(extension_dir):
+            for file in files:
+                if file.startswith(".") or file.endswith(".tmp"):
+                    continue
+                file_path = os.path.join(root, file)
+                arcname = os.path.relpath(file_path, extension_dir)
+                zip_file.write(file_path, arcname=os.path.join("truthlens-extension", arcname))
+
+    zip_buffer.seek(0)
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=truthlens-ai-chrome-extension.zip"}
+    )
 
 import logging
 

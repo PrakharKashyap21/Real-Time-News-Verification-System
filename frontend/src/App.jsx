@@ -9,6 +9,7 @@ import RadarView from "./components/RadarView";
 import ImageAuditView from "./components/ImageAuditView";
 import AudioAuditView from "./components/AudioAuditView";
 import ChatbotBridgeView from "./components/ChatbotBridgeView";
+import ExtensionModal from "./components/ExtensionModal";
 import {
   NavVerifyIcon,
   NavRadarIcon,
@@ -17,7 +18,8 @@ import {
   NavChatbotIcon,
   NavDocIcon,
   NavAnalyticsIcon,
-  NavClockIcon
+  NavClockIcon,
+  ChromeIcon
 } from "./components/Icons";
 import { verifyNewsV2 } from "./api";
 
@@ -64,6 +66,7 @@ function App() {
     return { title: "", text: "" };
   });
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isExtensionModalOpen, setIsExtensionModalOpen] = useState(false);
   const [error, setError] = useState("");
   const [validationError, setValidationError] = useState("");
   const autoVerifiedRef = useRef(false);
@@ -372,6 +375,17 @@ function App() {
 
           <button
             type="button"
+            className="nav-btn nav-extension-btn"
+            onClick={() => setIsExtensionModalOpen(true)}
+            title="Install 1-Click Chrome Browser Extension"
+          >
+            <ChromeIcon size={14} style={{ color: "#38bdf8" }} />
+            <span>Extension</span>
+            <span className="nav-extension-badge">1-Click</span>
+          </button>
+
+          <button
+            type="button"
             className="nav-btn nav-history-btn"
             onClick={() => setIsDrawerOpen(true)}
             title="Open Recent Verification History"
@@ -559,6 +573,12 @@ function App() {
         onSelectHistoryItem={handleSelectHistoryItem}
         onClearHistory={handleClearHistory}
         onDeleteItem={handleDeleteHistoryItem}
+      />
+
+      {/* Chrome Extension Showcase & Install Modal */}
+      <ExtensionModal
+        isOpen={isExtensionModalOpen}
+        onClose={() => setIsExtensionModalOpen(false)}
       />
 
       {/* Modern Footer */}
