@@ -21,6 +21,9 @@ export default function RadarView({ onVerifyStory }) {
   const selectedCountryRef = useRef(selectedCountry);
   selectedCountryRef.current = selectedCountry;
 
+  const radarDataRef = useRef(radarData);
+  radarDataRef.current = radarData;
+
   const COUNTRIES = [
     { code: "IN", name: "India", flag: "🇮🇳" },
     { code: "US", name: "United States", flag: "🇺🇸" },
@@ -38,7 +41,7 @@ export default function RadarView({ onVerifyStory }) {
 
   // Fetch when category or country changes
   useEffect(() => {
-    fetchFeed(selectedCategory, selectedCountry, false, false);
+    fetchFeed(selectedCategory, selectedCountry, false, false, false);
     setPendingNewData(null);
     setPendingNewCount(0);
   }, [selectedCategory, selectedCountry]);
@@ -46,8 +49,8 @@ export default function RadarView({ onVerifyStory }) {
   // Silent Background Polling Engine (Every 30s)
   useEffect(() => {
     const interval = setInterval(() => {
-      // Trigger background poll with rotation so buffer stays fresh
-      fetchFeed(selectedCategoryRef.current, selectedCountryRef.current, true, true);
+      // Trigger silent background poll with rotation without touching manual refresh state
+      fetchFeed(selectedCategoryRef.current, selectedCountryRef.current, true, false, true);
     }, 30000);
 
     return () => clearInterval(interval);
@@ -84,32 +87,41 @@ export default function RadarView({ onVerifyStory }) {
     return () => clearInterval(timer);
   }, []);
 
-  const fetchFeed = async (cat = "All", ctry = selectedCountry, isBackground = false, rotate = false) => {
-    if (!isBackground) {
-      setLoading(true);
-    } else {
+  const fetchFeed = async (
+    cat = "All",
+    ctry = selectedCountryRef.current,
+    isBackground = false,
+    isManualRefresh = false,
+    rotate = false
+  ) => {
+    if (isManualRefresh) {
       setIsRefreshing(true);
+    } else if (!isBackground) {
+      setLoading(true);
     }
     setError("");
 
     try {
       const data = await getRadarFeed(cat, ctry, rotate);
 
-      if (isBackground && radarData?.items?.length) {
+      const currentItems = radarDataRef.current?.items || [];
+
+      if (isBackground && currentItems.length > 0) {
         // Approach A: Check if any stories are new compared to current screen
-        const currentTitles = new Set(radarData.items.map((it) => it.title));
-        const freshItems = (data.items || []).filter((it) => !currentTitles.has(it.title));
+        const currentTitles = new Set(
+          currentItems.map((it) => (it.title || "").trim().toLowerCase())
+        );
+        const freshItems = (data.items || []).filter(
+          (it) => it.title && !currentTitles.has(it.title.trim().toLowerCase())
+        );
 
         if (freshItems.length > 0) {
-          // Do not abruptly replace the cards; prompt the user gracefully
+          // Do not abruptly replace the cards; prompt the user gracefully with the floating banner!
           setPendingNewData(data);
           setPendingNewCount(freshItems.length);
-        } else {
-          // If stories match current set, update timestamps without disrupting view
-          setRadarData(data);
         }
       } else {
-        // Immediate user-initiated fetch / category switch
+        // Immediate user-initiated fetch / category switch / manual refresh
         setRadarData(data);
         setPendingNewData(null);
         setPendingNewCount(0);
@@ -121,8 +133,12 @@ export default function RadarView({ onVerifyStory }) {
         setError(err.message || "Failed to load breaking news radar stream.");
       }
     } finally {
-      setLoading(false);
-      setIsRefreshing(false);
+      if (!isBackground) {
+        setLoading(false);
+      }
+      if (isManualRefresh) {
+        setIsRefreshing(false);
+      }
     }
   };
 
@@ -216,12 +232,12 @@ export default function RadarView({ onVerifyStory }) {
             type="button"
             className="radar-refresh-btn"
             onClick={() => {
-              fetchFeed(selectedCategory, selectedCountry, false, true);
+              fetchFeed(selectedCategory, selectedCountry, false, true, true);
             }}
             disabled={loading || isRefreshing}
             title="Rotate to fresh stories from buffer pool now"
           >
-            <span className={loading || isRefreshing ? "spin-icon" : ""}>🔄</span> Refresh
+            <span className={isRefreshing ? "spin-icon" : ""}>🔄</span> Refresh
           </button>
         </div>
       </div>
@@ -246,7 +262,7 @@ export default function RadarView({ onVerifyStory }) {
       {error && (
         <div className="radar-error-banner">
           <span>⚠️ {error}</span>
-          <button type="button" onClick={() => fetchFeed(selectedCategory, selectedCountry, false, false)} className="retry-btn">
+          <button type="button" onClick={() => fetchFeed(selectedCategory, selectedCountry, false, false, false)} className="retry-btn">
             Retry
           </button>
         </div>
