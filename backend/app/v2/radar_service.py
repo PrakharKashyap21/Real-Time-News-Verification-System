@@ -74,6 +74,31 @@ def _format_time_ago(dt: datetime, now: datetime) -> Tuple[str, int]:
     return f"{days}d ago", mins
 
 
+def _parse_pub_date(text_date: str) -> Optional[datetime]:
+    """Robustly parses RFC 822 (e.g. RSS pubDate) or ISO 8601 timestamps."""
+    if not text_date:
+        return None
+    cleaned = text_date.strip()
+    dt = None
+    # 1. Try RFC 822 / 2822 (standard for RSS: 'Mon, 12 Oct 2026 14:15:00 GMT')
+    try:
+        dt = parsedate_to_datetime(cleaned)
+    except Exception:
+        pass
+
+    # 2. Try ISO 8601 (standard for Atom: '2026-10-12T14:15:00Z')
+    if dt is None:
+        try:
+            iso_str = cleaned.replace("Z", "+00:00")
+            dt = datetime.fromisoformat(iso_str)
+        except Exception:
+            pass
+
+    if dt is not None and dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
 def _fetch_single_rss(feed_url: str, default_source: str, target_cat: str) -> List[RadarItem]:
     """Fetches an individual RSS feed and converts items to RadarItem models."""
     items: List[RadarItem] = []
@@ -125,24 +150,18 @@ def _fetch_single_rss(feed_url: str, default_source: str, target_cat: str) -> Li
                 pub_elem = item_elem.find("pubDate")
                 if pub_elem is None:
                     pub_elem = item_elem.find("{http://www.w3.org/2005/Atom}published")
+                if pub_elem is None:
+                    pub_elem = item_elem.find("{http://www.w3.org/2005/Atom}updated")
+
                 pub_iso = None
-                time_str = "Recent"
-                mins_ago = 60
+                time_str = "Just now"
+                mins_ago = 10
 
                 if pub_elem is not None and pub_elem.text:
-                    try:
-                        # Handles RFC 822 or ISO 8601
-                        text_date = pub_elem.text.strip()
-                        if text_date.endswith("Z") or "T" in text_date:
-                            dt = datetime.fromisoformat(text_date.replace("Z", "+00:00"))
-                        else:
-                            dt = parsedate_to_datetime(text_date)
-                        if dt.tzinfo is None:
-                            dt = dt.replace(tzinfo=timezone.utc)
+                    dt = _parse_pub_date(pub_elem.text)
+                    if dt:
                         pub_iso = dt.isoformat()
                         time_str, mins_ago = _format_time_ago(dt, now)
-                    except Exception:
-                        pass
 
                 desc_elem = item_elem.find("description")
                 if desc_elem is None:

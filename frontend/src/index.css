@@ -3068,6 +3068,9 @@ body {
 }
 
 .radar-cat-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   padding: 0.42rem 0.95rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-color);
@@ -3078,6 +3081,17 @@ body {
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s ease;
+}
+
+.radar-cat-icon {
+  opacity: 0.85;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.radar-cat-btn:hover .radar-cat-icon,
+.radar-cat-btn.active .radar-cat-icon {
+  opacity: 1;
+  transform: scale(1.08);
 }
 
 .radar-cat-btn:hover {
@@ -3229,8 +3243,26 @@ body {
 }
 
 .country-globe-icon {
-  font-size: 0.85rem;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #818cf8;
+}
+
+.inline-zap,
+.inline-sparkle,
+.inline-badge-icon,
+.inline-btn-icon,
+.inline-alert {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.banner-sparkle-icon {
+  color: #34d399;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.35rem;
 }
 
 .radar-country-select {

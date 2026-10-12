@@ -1,5 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getRadarFeed } from "../api";
+import {
+  FlameIcon,
+  GlobeIcon,
+  CpuIcon,
+  ActivityIcon,
+  TrendingUpIcon,
+  ZapIcon,
+  AlertTriangleIcon,
+  SparklesIcon,
+  RefreshIcon,
+  RadarSignalIcon,
+} from "./Icons";
 
 export default function RadarView({ onVerifyStory }) {
   const [radarData, setRadarData] = useState(null);
@@ -32,11 +44,11 @@ export default function RadarView({ onVerifyStory }) {
   ];
 
   const categories = [
-    { label: "🔥 All Trending", val: "All" },
-    { label: "🌍 World & Politics", val: "World & Politics" },
-    { label: "🤖 Tech & AI", val: "Tech & AI" },
-    { label: "🧬 Science & Health", val: "Science & Health" },
-    { label: "📈 Markets & Finance", val: "Markets & Finance" },
+    { label: "All Trending", val: "All", icon: <FlameIcon size={14} className="radar-cat-icon" /> },
+    { label: "World & Politics", val: "World & Politics", icon: <GlobeIcon size={14} className="radar-cat-icon" /> },
+    { label: "Tech & AI", val: "Tech & AI", icon: <CpuIcon size={14} className="radar-cat-icon" /> },
+    { label: "Science & Health", val: "Science & Health", icon: <ActivityIcon size={14} className="radar-cat-icon" /> },
+    { label: "Markets & Finance", val: "Markets & Finance", icon: <TrendingUpIcon size={14} className="radar-cat-icon" /> },
   ];
 
   // Fetch when category or country changes
@@ -171,7 +183,7 @@ export default function RadarView({ onVerifyStory }) {
           <span className="live-dot pulse-amber"></span>
           <span>Live Detection Stream</span>
           <span className="radar-live-indicator" title="Stream continuously updating in background">
-            ⚡ LIVE
+            <ZapIcon size={11} className="inline-zap" /> LIVE
           </span>
         </div>
         <h1 className="radar-title">Breaking News Radar & Viral Claims</h1>
@@ -191,7 +203,8 @@ export default function RadarView({ onVerifyStory }) {
               className={`radar-cat-btn ${selectedCategory === c.val ? "active" : ""}`}
               onClick={() => setSelectedCategory(c.val)}
             >
-              {c.label}
+              {c.icon}
+              <span>{c.label}</span>
             </button>
           ))}
         </div>
@@ -200,7 +213,7 @@ export default function RadarView({ onVerifyStory }) {
         <div className="radar-meta-controls">
           {/* Country Regional Edition Selector */}
           <div className="radar-country-selector-wrapper" title="Select regional breaking news edition">
-            <span className="country-globe-icon">🌐</span>
+            <span className="country-globe-icon"><GlobeIcon size={14} /></span>
             <select
               className="radar-country-select"
               value={selectedCountry}
@@ -223,7 +236,7 @@ export default function RadarView({ onVerifyStory }) {
 
           {justUpdated && (
             <span className="radar-flash-tag animate-fade">
-              ✨ Fresh Stream
+              <SparklesIcon size={12} className="inline-sparkle" /> Fresh Stream
             </span>
           )}
 
@@ -237,7 +250,7 @@ export default function RadarView({ onVerifyStory }) {
             disabled={loading || isRefreshing}
             title="Rotate to fresh stories from buffer pool now"
           >
-            <span className={isRefreshing ? "spin-icon" : ""}>🔄</span> Refresh
+            <span className={isRefreshing ? "spin-icon" : ""}><RefreshIcon size={14} /></span> Refresh
           </button>
         </div>
       </div>
@@ -253,7 +266,7 @@ export default function RadarView({ onVerifyStory }) {
         >
           <span className="radar-pill-dot pulse-emerald"></span>
           <span className="radar-banner-text">
-            ✨ <strong>{pendingNewCount} New Breaking Stories</strong> Available — Click to view latest updates
+            <SparklesIcon size={14} className="banner-sparkle-icon" /> <strong>{pendingNewCount} New Breaking Stories</strong> Available — Click to view latest updates
           </span>
           <span className="radar-banner-action">View Stream ↑</span>
         </div>
@@ -261,7 +274,7 @@ export default function RadarView({ onVerifyStory }) {
 
       {error && (
         <div className="radar-error-banner">
-          <span>⚠️ {error}</span>
+          <span><AlertTriangleIcon size={14} className="inline-alert" /> {error}</span>
           <button type="button" onClick={() => fetchFeed(selectedCategory, selectedCountry, false, false, false)} className="retry-btn">
             Retry
           </button>
@@ -278,7 +291,7 @@ export default function RadarView({ onVerifyStory }) {
         </div>
       ) : !radarData?.items?.length ? (
         <div className="radar-empty-box">
-          <span className="radar-empty-icon">📡</span>
+          <span className="radar-empty-icon"><RadarSignalIcon size={36} /></span>
           <h3>No active stories in this category right now</h3>
           <p>Try switching to "All Trending" or refresh the feed.</p>
           <button
@@ -310,11 +323,23 @@ export default function RadarView({ onVerifyStory }) {
                         isHigh ? "velocity-high" : isSurging ? "velocity-surging" : "velocity-mod"
                       }`}
                     >
-                      {isHigh ? "🔥 High Velocity" : isSurging ? "⚡ Surging" : "📈 Active"}
+                      {isHigh ? (
+                        <>
+                          <FlameIcon size={12} className="inline-badge-icon" /> High Velocity
+                        </>
+                      ) : isSurging ? (
+                        <>
+                          <ZapIcon size={12} className="inline-badge-icon" /> Surging
+                        </>
+                      ) : (
+                        <>
+                          <TrendingUpIcon size={12} className="inline-badge-icon" /> Active
+                        </>
+                      )}
                     </span>
                     {item.disputed_flag && (
                       <span className="story-disputed-tag" title="Flagged as unverified or disputed rumor">
-                        ⚠️ Disputed Rumor
+                        <AlertTriangleIcon size={12} className="inline-badge-icon" /> Disputed Rumor
                       </span>
                     )}
                   </div>
@@ -348,7 +373,8 @@ export default function RadarView({ onVerifyStory }) {
                       </>
                     ) : (
                       <>
-                        <span>⚡ Verify Story</span>
+                        <ZapIcon size={13} className="inline-btn-icon" />
+                        <span>Verify Story</span>
                         <span className="audit-arrow">→</span>
                       </>
                     )}
