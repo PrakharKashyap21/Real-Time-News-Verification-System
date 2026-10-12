@@ -175,6 +175,29 @@ export default function RadarView({ onVerifyStory }) {
     }
   };
 
+  const formatToIST = (dateStr) => {
+    if (!dateStr) return "";
+    try {
+      const iso = dateStr.endsWith("Z")
+        ? dateStr
+        : dateStr.replace(" UTC", "Z").replace(" ", "T");
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return dateStr;
+      return (
+        d
+          .toLocaleTimeString("en-IN", {
+            timeZone: "Asia/Kolkata",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })
+          .toUpperCase() + " IST"
+      );
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
   return (
     <div className="radar-page-container">
       {/* Header */}
@@ -229,8 +252,11 @@ export default function RadarView({ onVerifyStory }) {
           </div>
 
           {radarData?.last_updated && (
-            <span className="radar-updated-tag" title="Last feed synchronization time">
-              Updated: {radarData.last_updated.split(" ")[1]} UTC
+            <span
+              className="radar-updated-tag"
+              title={`Last feed synchronization: ${formatToIST(radarData.last_updated)}`}
+            >
+              Updated: {formatToIST(radarData.last_updated)}
             </span>
           )}
 
@@ -249,8 +275,11 @@ export default function RadarView({ onVerifyStory }) {
             }}
             disabled={loading || isRefreshing}
             title="Rotate to fresh stories from buffer pool now"
+            aria-label="Refresh stories stream"
           >
-            <span className={isRefreshing ? "spin-icon" : ""}><RefreshIcon size={14} /></span> Refresh
+            <span className={isRefreshing ? "spin-icon" : ""}>
+              <RefreshIcon size={15} />
+            </span>
           </button>
         </div>
       </div>
