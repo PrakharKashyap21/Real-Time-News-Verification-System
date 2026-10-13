@@ -1,14 +1,11 @@
---extra-index-url https://download.pytorch.org/whl/cpu
-pandas
-numpy
-scikit-learn
-joblib
 fastapi
 uvicorn
 pydantic
+scikit-learn
+joblib
+numpy
+pandas
 scipy
-torch
-transformers
 google-genai
 ddgs
 trafilatura
