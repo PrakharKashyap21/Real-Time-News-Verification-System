@@ -1,9 +1,8 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
 pandas
 numpy
 scikit-learn
 joblib
-matplotlib
-seaborn
 fastapi
 uvicorn
 pydantic
@@ -15,3 +14,4 @@ ddgs
 trafilatura
 pypdf
 python-multipart
+

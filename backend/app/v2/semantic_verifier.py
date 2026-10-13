@@ -345,5 +345,12 @@ def get_semantic_verifier(mock_mode: bool = False) -> SemanticVerifier:
     if mock_mode:
         return SemanticVerifier(mock_mode=True)
     if _semantic_verifier_instance is None:
-        _semantic_verifier_instance = SemanticVerifier(mock_mode=False)
+        try:
+            _semantic_verifier_instance = SemanticVerifier(mock_mode=False)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(
+                "Semantic verifier failed to load with PyTorch/HF (%s). Gracefully falling back to mock mode.", e
+            )
+            _semantic_verifier_instance = SemanticVerifier(mock_mode=True)
     return _semantic_verifier_instance
