@@ -10,6 +10,7 @@ import ImageAuditView from "./components/ImageAuditView";
 import AudioAuditView from "./components/AudioAuditView";
 import ChatbotBridgeView from "./components/ChatbotBridgeView";
 import ExtensionModal from "./components/ExtensionModal";
+import AuthModal from "./components/AuthModal";
 import {
   NavVerifyIcon,
   NavRadarIcon,
@@ -19,9 +20,12 @@ import {
   NavDocIcon,
   NavAnalyticsIcon,
   NavClockIcon,
-  ChromeIcon
+  ChromeIcon,
+  UserIcon,
+  LogOutIcon,
+  ShieldCheckIcon
 } from "./components/Icons";
-import { verifyNewsV2 } from "./api";
+import { verifyNewsV2, fetchCurrentUser } from "./api";
 
 const LOCAL_STORAGE_KEY = "truthlens_verification_history_v1";
 
@@ -67,9 +71,44 @@ function App() {
   });
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isExtensionModalOpen, setIsExtensionModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem("truthlens_user_profile");
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [error, setError] = useState("");
   const [validationError, setValidationError] = useState("");
   const autoVerifiedRef = useRef(false);
+
+  // Validate active auth session on app mount
+  useEffect(() => {
+    const token = localStorage.getItem("truthlens_auth_token");
+    if (token) {
+      fetchCurrentUser().then((u) => {
+        if (u) {
+          setCurrentUser(u);
+          localStorage.setItem("truthlens_user_profile", JSON.stringify(u));
+        }
+      });
+    }
+  }, []);
+
+  const handleAuthSuccess = (user) => {
+    setCurrentUser(user);
+    setIsAuthModalOpen(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("truthlens_auth_token");
+    localStorage.removeItem("truthlens_user_profile");
+    setCurrentUser(null);
+    setIsUserMenuOpen(false);
+  };
 
   const [history, setHistory] = useState(() => {
     try {
@@ -393,6 +432,67 @@ function App() {
             <NavClockIcon size={14} /> <span>History</span>
             {history.length > 0 && <span className="nav-history-count">{history.length}</span>}
           </button>
+
+          {/* Authentication User Pill / Sign In Button */}
+          {currentUser ? (
+            <div className="nav-user-wrapper">
+              <button
+                type="button"
+                className="nav-btn nav-user-btn"
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                title="Account & Investigator Profile"
+              >
+                <span className="user-avatar-badge">
+                  {currentUser.name
+                    ? currentUser.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .slice(0, 2)
+                        .join("")
+                        .toUpperCase()
+                    : "PK"}
+                </span>
+                <span className="user-name-text">{currentUser.name.split(" ")[0]}</span>
+                <span className="user-menu-chevron">▾</span>
+              </button>
+
+              {isUserMenuOpen && (
+                <div className="user-dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                  <div className="user-dropdown-header">
+                    <div className="user-dropdown-name">{currentUser.name}</div>
+                    <div className="user-dropdown-email">{currentUser.email}</div>
+                    <div className="user-dropdown-role">
+                      <ShieldCheckIcon size={12} style={{ color: "#38bdf8" }} />
+                      <span>{currentUser.role || "Senior Fact-Checker"}</span>
+                    </div>
+                  </div>
+                  <div className="user-dropdown-divider" />
+                  <div className="user-dropdown-item-info">
+                    <span>Cloud Sync:</span> <strong style={{ color: "#34d399" }}>Active</strong>
+                  </div>
+                  <div className="user-dropdown-divider" />
+                  <button
+                    type="button"
+                    className="user-dropdown-logout-btn"
+                    onClick={handleLogout}
+                  >
+                    <LogOutIcon size={14} />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="nav-btn nav-auth-btn"
+              onClick={() => setIsAuthModalOpen(true)}
+              title="Sign in or create investigator account"
+            >
+              <UserIcon size={14} style={{ color: "#818cf8" }} />
+              <span>Sign In</span>
+            </button>
+          )}
         </div>
       </nav>
 
@@ -579,6 +679,13 @@ function App() {
       <ExtensionModal
         isOpen={isExtensionModalOpen}
         onClose={() => setIsExtensionModalOpen(false)}
+      />
+
+      {/* Cloud Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onAuthSuccess={handleAuthSuccess}
       />
 
       {/* Modern Footer */}

@@ -8,11 +8,13 @@ from fastapi.responses import StreamingResponse
 from backend.app.schemas import PredictionRequest, PredictionResponse
 from backend.app.predictor import get_predictor, NewsPredictor
 from backend.app.v2.router import router as v2_router
+from backend.app.auth import auth_router, init_auth_db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Pre-load models on application startup
+    # Pre-load models on application startup and init authentication DB
     get_predictor()
+    init_auth_db()
     yield
 
 app = FastAPI(
@@ -33,6 +35,10 @@ app.add_middleware(
 # Register V2 verification endpoints
 app.include_router(v2_router)
 app.include_router(v2_router, prefix="/api")
+
+# Register V2 authentication endpoints
+app.include_router(auth_router)
+app.include_router(auth_router, prefix="/api")
 
 @app.get("/", tags=["General"])
 def read_root():

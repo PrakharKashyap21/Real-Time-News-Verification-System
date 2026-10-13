@@ -31,6 +31,9 @@ wheels/
 # Dataset files
 backend/data/*.csv
 backend/data/*.npz
+*.db
+*.sqlite*
+*.sqlite3
 
 # ML Model artifacts
 backend/models/*.joblib

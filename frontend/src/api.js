@@ -269,5 +269,66 @@ export const simulateWebhookCall = async (platform, payload) => {
   }
 };
 
+// =========================================================================
+// AUTHENTICATION API
+// =========================================================================
+
+apiClient.interceptors.request.use((config) => {
+  try {
+    const token = localStorage.getItem("truthlens_auth_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (e) {
+    // ignore
+  }
+  return config;
+});
+
+export const loginUser = async (email, password) => {
+  try {
+    const response = await apiClient.post("/v2/auth/login", { email, password });
+    return response.data;
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw new Error(error.response.data.detail);
+    }
+    throw new Error(error.message || "Failed to sign in. Please verify your credentials.");
+  }
+};
+
+export const signupUser = async ({ name, email, password, role = "Fact-Checker" }) => {
+  try {
+    const response = await apiClient.post("/v2/auth/signup", { name, email, password, role });
+    return response.data;
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw new Error(error.response.data.detail);
+    }
+    throw new Error(error.message || "Failed to create account. Please try again.");
+  }
+};
+
+export const loginDemoUser = async () => {
+  try {
+    const response = await apiClient.post("/v2/auth/demo");
+    return response.data;
+  } catch (error) {
+    if (error.response?.data?.detail) {
+      throw new Error(error.response.data.detail);
+    }
+    throw new Error(error.message || "Failed to sign in with demo account.");
+  }
+};
+
+export const fetchCurrentUser = async () => {
+  try {
+    const response = await apiClient.get("/v2/auth/me");
+    return response.data?.user || null;
+  } catch (error) {
+    return null;
+  }
+};
+
 
 
