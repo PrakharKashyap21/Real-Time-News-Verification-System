@@ -11,4 +11,5 @@ ddgs
 trafilatura
 pypdf
 python-multipart
+python-dotenv
 

@@ -5,9 +5,11 @@ import logging
 import urllib.parse
 import datetime
 from typing import List, Dict, Any, Optional
-from dotenv import load_dotenv
-
-load_dotenv("backend/.env")
+try:
+    from dotenv import load_dotenv
+    load_dotenv("backend/.env")
+except ImportError:
+    pass
 
 logger = logging.getLogger(__name__)
 
