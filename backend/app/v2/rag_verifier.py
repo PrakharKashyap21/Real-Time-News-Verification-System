@@ -108,50 +108,96 @@ class GeminiRAGVerifier:
 
         return "en", "English"
 
+    DISALLOWED_DOMAINS = {
+        "looksmax.org", "4chan.org", "kiwifarms.net", "stormfront.org",
+        "reddit.com", "quora.com", "pinterest.com", "tiktok.com",
+        "facebook.com", "instagram.com"
+    }
+
+    def _extract_search_keywords(self, text: str, max_words: int = 7) -> str:
+        """Extracts high-signal entity and action keywords from claims to optimize search precision."""
+        if not text:
+            return ""
+        # Strip conversational prefixes
+        cleaned = re.sub(
+            r'(?i)^(whatsapp forward|social media|breaking news|viral message|claims that|says that|according to|keh raha hai ki|bata raha hai ki|dawa kiya ja raha hai ki)\s*[:,-]?\s*',
+            '',
+            text.strip()
+        )
+        words = [re.sub(r'^[^\w]+|[^\w]+$', '', w) for w in cleaned.split()]
+        stopwords = {
+            'a', 'an', 'the', 'and', 'or', 'but', 'if', 'because', 'as', 'what',
+            'when', 'where', 'how', 'who', 'which', 'this', 'that', 'these', 'those',
+            'then', 'just', 'so', 'than', 'such', 'both', 'through', 'about', 'into',
+            'over', 'after', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+            'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'can',
+            'could', 'should', 'may', 'might', 'shall', 'must', 'to', 'from', 'up',
+            'down', 'in', 'out', 'on', 'off', 'for', 'with', 'by', 'at', 'it', 'its',
+            'reported', 'reporting', 'quarter', 'year-on-year'
+        }
+        kw = [w for w in words if w and w.lower() not in stopwords and len(w) > 1]
+        return ' '.join(kw[:max_words]) if kw else cleaned[:60]
+
     def _search_web_and_news(self, query: str, max_results: int = 4) -> List[Dict[str, str]]:
-        """Search live web and news articles for the given query using DDGS."""
+        """Search live news and web articles with news-first priority and junk domain filtering."""
         results = []
+        seen_urls = set()
+
         try:
             from ddgs import DDGS
             ddgs = DDGS()
-            
-            # Clean and compact search query
-            clean_q = re.sub(r'["\n\r]', ' ', query).strip()[:90]
-            
-            # Try text search (broad coverage)
-            raw = list(ddgs.text(clean_q, max_results=max_results))
-            for item in raw:
-                url = item.get("href") or item.get("url") or ""
-                title = item.get("title") or ""
-                body = item.get("body") or ""
-                if url and title:
+        except ImportError:
+            return []
+
+        kw_query = self._extract_search_keywords(query)
+        clean_q = re.sub(r'["\n\r]', ' ', query).strip()[:80]
+
+        # Strategic search query cascade: prioritized for verified journalism
+        attempts = [
+            ("news", kw_query),
+            ("news", f"{kw_query} fact check" if "fact check" not in kw_query.lower() else kw_query),
+            ("news", clean_q),
+            ("text", f"{kw_query} news" if kw_query else clean_q),
+            ("text", f"{kw_query} fact check" if kw_query else clean_q),
+        ]
+
+        for mode, q_str in attempts:
+            if not q_str or len(results) >= max_results:
+                break
+            try:
+                if mode == "news":
+                    raw_items = list(ddgs.news(q_str, max_results=max_results))
+                else:
+                    raw_items = list(ddgs.text(q_str, max_results=max_results))
+
+                for item in raw_items:
+                    url = item.get("url") or item.get("href") or ""
+                    title = (item.get("title") or "").strip()
+                    body = (item.get("body") or "").strip()
+
+                    if not url or not title or url in seen_urls:
+                        continue
+
+                    # Filter out spam/forum domains
+                    try:
+                        parsed = urllib.parse.urlparse(url)
+                        domain = parsed.netloc.lower().replace("www.", "")
+                        if any(bad in domain for bad in self.DISALLOWED_DOMAINS):
+                            continue
+                    except Exception:
+                        pass
+
+                    seen_urls.add(url)
                     results.append({
                         "title": title,
                         "url": url,
                         "snippet": body
                     })
-        except Exception as e:
-            logger.warning("DDGS text search error: %s", e)
 
-        # Fallback to news search if few results
-        if len(results) < 2:
-            try:
-                from ddgs import DDGS
-                ddgs = DDGS()
-                clean_q = re.sub(r'["\n\r]', ' ', query).strip()[:80]
-                raw_news = list(ddgs.news(clean_q, max_results=max_results))
-                for item in raw_news:
-                    url = item.get("url") or item.get("href") or ""
-                    title = item.get("title") or ""
-                    body = item.get("body") or ""
-                    if url and title and not any(r["url"] == url for r in results):
-                        results.append({
-                            "title": title,
-                            "url": url,
-                            "snippet": body
-                        })
+                    if len(results) >= max_results:
+                        break
             except Exception as e:
-                logger.warning("DDGS news search error: %s", e)
+                logger.debug("DDGS %s search exception for '%s': %s", mode, q_str, e)
 
         return results[:max_results]
 
@@ -245,27 +291,33 @@ class GeminiRAGVerifier:
             return self._search_web_and_news(query, max_results=max_results)
 
         results = []
-        queries_to_try = []
-
+        seen_urls = set()
+        kw_query = self._extract_search_keywords(query)
         clean_q = re.sub(r'["\n\r]', ' ', query).strip()[:80]
 
-        # Targeted fact-checking queries
+        queries_to_try = []
         if lang_code == "hi":
-            queries_to_try.append(f"{clean_q} PIB fact check")
-            queries_to_try.append(f"{clean_q} सच या झूठ")
+            if kw_query:
+                queries_to_try.append(f"{kw_query} PIB fact check")
+                queries_to_try.append(f"{kw_query} सच या झूठ")
+            queries_to_try.append(f"{clean_q} fact check")
+            queries_to_try.append(clean_q)
         elif lang_code == "hinglish":
+            if kw_query:
+                queries_to_try.append(f"{kw_query} fact check")
+                queries_to_try.append(f"{kw_query} PIB fact check")
             queries_to_try.append(f"{clean_q} fact check")
-            queries_to_try.append(f"{clean_q} real or fake")
-        elif lang_code in ["bn", "ta", "te", "mr"]:
-            queries_to_try.append(f"{clean_q} fact check")
-
-        # Direct query
-        queries_to_try.append(clean_q)
+            queries_to_try.append(clean_q)
+        else:
+            if kw_query:
+                queries_to_try.append(f"{kw_query} fact check")
+            queries_to_try.append(clean_q)
 
         for q in queries_to_try:
-            items = self._search_web_and_news(q, max_results=3)
+            items = self._search_web_and_news(q, max_results=max_results)
             for it in items:
-                if not any(r["url"] == it["url"] for r in results):
+                if it["url"] not in seen_urls:
+                    seen_urls.add(it["url"])
                     results.append(it)
             if len(results) >= max_results:
                 break
