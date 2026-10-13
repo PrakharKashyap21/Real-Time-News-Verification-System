@@ -50,7 +50,8 @@ class GeminiRAGVerifier:
     """
 
     def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.getenv("GEMINI_API_KEY")
+        raw_key = api_key or os.getenv("GEMINI_API_KEY") or ""
+        self.api_key = raw_key.strip().strip('"').strip("'")
         self.client = None
         if self.api_key:
             try:
@@ -61,8 +62,8 @@ class GeminiRAGVerifier:
 
         self.candidate_models = [
             "gemini-3.5-flash-lite",
-            "gemini-3.8-flash",
             "gemini-flash-lite-latest",
+            "gemini-3.8-flash",
             "gemini-3.5-flash",
             "gemma-4-26b-a4b-it"
         ]

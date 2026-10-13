@@ -143,8 +143,23 @@ def verify_news_v2(payload: VerificationRequest, service: VerificationService = 
         logger.error("V2 verification service error: %s", str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="The verification service encountered an internal error. Please try again later."
+            detail=f"Verification internal error ({type(e).__name__}): {str(e)}"
         )
+
+
+@router.get("/debug-env")
+def debug_environment():
+    import os
+    from backend.app.v2.rag_verifier import get_rag_verifier
+    rag = get_rag_verifier()
+    raw_key = os.getenv("GEMINI_API_KEY") or ""
+    return {
+        "gemini_key_present": bool(raw_key),
+        "gemini_key_len": len(raw_key),
+        "rag_client_ready": bool(rag.client),
+        "candidate_models": getattr(rag, "candidate_models", [])
+    }
+
 
 
 @router.post("/audit-document", response_model=DocumentAuditResponse)
