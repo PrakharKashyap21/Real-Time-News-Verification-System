@@ -264,8 +264,12 @@ class GeminiRAGVerifier:
             # Check title, snippet, and url for recognized media houses (crucial for MSN/Yahoo syndication)
             comb_text = f"{title} {snippet} {url}".lower()
             for kw, pub_name in self.KNOWN_PUBLISHERS:
-                if kw in comb_text:
-                    return pub_name, domain
+                if len(kw) <= 4:
+                    if re.search(r'\b' + re.escape(kw) + r'\b', comb_text):
+                        return pub_name, domain
+                else:
+                    if kw in comb_text:
+                        return pub_name, domain
 
             parts = domain.split(".")
             if len(parts) >= 3 and parts[0].lower() in ["en", "hi", "m", "news", "www3", "amp", "beta", "edition", "in"]:
@@ -301,19 +305,22 @@ class GeminiRAGVerifier:
                 "content": body
             }
 
-        evidence_docs = []
+        results_by_url = {}
         with concurrent.futures.ThreadPoolExecutor(max_workers=min(4, max(1, len(search_results)))) as executor:
             future_to_item = {executor.submit(_fetch_one, item): item for item in search_results}
             for future in concurrent.futures.as_completed(future_to_item, timeout=5.0):
                 try:
-                    evidence_docs.append(future.result())
+                    res = future.result()
+                    results_by_url[res["url"]] = res
                 except Exception:
                     pass
 
-        # If any failed or timed out, add from fallback snippet
-        existing_urls = {d["url"] for d in evidence_docs}
+        # Preserve deterministic order of original search results
+        evidence_docs = []
         for item in search_results:
-            if item["url"] not in existing_urls:
+            if item["url"] in results_by_url:
+                evidence_docs.append(results_by_url[item["url"]])
+            else:
                 pub, dom = self._get_publisher_and_domain(item["url"], title=item["title"], snippet=item["snippet"])
                 evidence_docs.append({
                     "title": item["title"],
@@ -441,7 +448,10 @@ INSTRUCTIONS:
 2. Assign a confidence score (0.0 to 1.0).
 3. Write a clear, objective 2-3 sentence explanation in English summarizing the verdict and why.
 4. Provide 2-3 key findings in English.
-5. For each source that was relevant, identify its stance towards the claim: "SUPPORTS", "CONTRADICTS", or "NEUTRAL".{vernacular_instructions}
+5. CRITICAL: For each source (Source [1], Source [2], etc.), evaluate its stance RELATIVE TO THE CLAIM:
+   - "CONTRADICTS": If the source refutes, debunks, disproves, denies, or warns against the claim (e.g. calls it fake, a scam, a hoax, false, baseless, or clarifies that no such order/scheme exists).
+   - "SUPPORTS": If the source confirms, corroborates, validates, or proves the claim is authentic and true.
+   - "NEUTRAL": If the source provides general background context without directly confirming or refuting the claim.{vernacular_instructions}
 
 OUTPUT FORMAT:
 Return strictly a valid JSON object matching this schema:
@@ -456,6 +466,7 @@ Return strictly a valid JSON object matching this schema:
   "key_findings": ["Finding 1", "Finding 2"],
   "source_stances": [
     {{
+      "source_index": 1,
       "url": "exact URL from sources",
       "stance": "SUPPORTS" | "CONTRADICTS" | "NEUTRAL",
       "relevant_quote": "Direct quote from source that supports or contradicts"
@@ -481,21 +492,89 @@ Return strictly a valid JSON object matching this schema:
 
         # Parse JSON output
         parsed_data = self._parse_gemini_json(llm_response)
-        
+
+        # Map verdict string to ClaimVerdict
+        raw_v = parsed_data.get("verdict", "UNVERIFIED").upper()
+        if "SUPPORT" in raw_v:
+            claim_verdict = ClaimVerdict.SUPPORTED
+        elif "CONTRADICT" in raw_v:
+            claim_verdict = ClaimVerdict.CONTRADICTED
+        else:
+            claim_verdict = ClaimVerdict.UNVERIFIED
+
+        # Build flexible multi-key lookup for source stances
+        raw_stances = parsed_data.get("source_stances", [])
+        if not isinstance(raw_stances, list):
+            raw_stances = []
+
+        def _clean_url_key(u: str) -> str:
+            if not u:
+                return ""
+            return u.split("?")[0].split("#")[0].rstrip("/").lower()
+
+        index_stance_map = {}
+        exact_url_stance_map = {}
+        clean_url_stance_map = {}
+
+        for s in raw_stances:
+            if not isinstance(s, dict):
+                continue
+            s_idx = s.get("source_index")
+            if s_idx is not None:
+                try:
+                    index_stance_map[int(s_idx)] = s
+                except (ValueError, TypeError):
+                    pass
+            s_url = s.get("url") or ""
+            if s_url:
+                exact_url_stance_map[s_url] = s
+                clean_url_stance_map[_clean_url_key(s_url)] = s
+
+        debunk_keywords = [
+            "fake", "debunk", "scam", "hoax", "false", "fraud", "warning",
+            "clarifies", "clarification", "busted", "myth", "rumour", "rumor",
+            "misleading", "fact check", "fact-check", "not true", "baseless",
+            "no such", "rejects", "refutes", "denies", "pib fact check"
+        ]
+
         # Build EvidenceItems list
         evidence_items: List[EvidenceItem] = []
-        source_stance_map = {
-            s.get("url"): s for s in parsed_data.get("source_stances", [])
-        }
-
         for idx, doc in enumerate(evidence_docs):
-            stance_info = source_stance_map.get(doc["url"], {})
-            raw_stance = stance_info.get("stance", "NEUTRAL").upper()
+            doc_idx = idx + 1
+            doc_url = doc.get("url") or ""
+            doc_clean_url = _clean_url_key(doc_url)
+
+            # Hierarchical lookup:
+            # 1. By source_index (1..N)
+            # 2. By exact URL
+            # 3. By clean URL without query parameters
+            # 4. Positional fallback if Gemini returned items in array order
+            stance_info = (
+                index_stance_map.get(doc_idx)
+                or exact_url_stance_map.get(doc_url)
+                or clean_url_stance_map.get(doc_clean_url)
+                or (raw_stances[idx] if idx < len(raw_stances) and isinstance(raw_stances[idx], dict) else {})
+            )
+
+            raw_stance = (stance_info.get("stance") or "NEUTRAL").upper()
             stance = StanceType.NEUTRAL
             if "SUPPORT" in raw_stance:
                 stance = StanceType.SUPPORTS
-            elif "CONTRADICT" in raw_stance:
+            elif "CONTRADICT" in raw_stance or "REFUT" in raw_stance:
                 stance = StanceType.CONTRADICTS
+
+            # Safety fallback:
+            # If claim verdict is CONTRADICTED and stance is still NEUTRAL, check if the source title/snippet is a debunking article
+            doc_text = f"{doc.get('title', '')} {doc.get('snippet', '')}".lower()
+            if stance == StanceType.NEUTRAL:
+                if claim_verdict == ClaimVerdict.CONTRADICTED:
+                    if any(kw in doc_text for kw in debunk_keywords):
+                        stance = StanceType.CONTRADICTS
+                        logger.info("Auto-assigned stance CONTRADICTS to source [%d] '%s' matching debunk keywords", doc_idx, doc.get("title"))
+                elif claim_verdict == ClaimVerdict.SUPPORTED:
+                    if not any(kw in doc_text for kw in debunk_keywords) and len(doc_text) > 20:
+                        stance = StanceType.SUPPORTS
+                        logger.info("Auto-assigned stance SUPPORTS to source [%d] '%s' for supported claim", doc_idx, doc.get("title"))
 
             quote = stance_info.get("relevant_quote") or doc["snippet"]
 
@@ -520,15 +599,6 @@ Return strictly a valid JSON object matching this schema:
         sup_count = sum(1 for e in evidence_items if e.stance == StanceType.SUPPORTS)
         con_count = sum(1 for e in evidence_items if e.stance == StanceType.CONTRADICTS)
         neu_count = sum(1 for e in evidence_items if e.stance == StanceType.NEUTRAL)
-
-        # Map verdict string to ClaimVerdict
-        raw_v = parsed_data.get("verdict", "UNVERIFIED").upper()
-        if "SUPPORT" in raw_v:
-            claim_verdict = ClaimVerdict.SUPPORTED
-        elif "CONTRADICT" in raw_v:
-            claim_verdict = ClaimVerdict.CONTRADICTED
-        else:
-            claim_verdict = ClaimVerdict.UNVERIFIED
 
         strength = EvidenceStrength.STRONG if (sup_count >= 2 or con_count >= 1) else (
             EvidenceStrength.MODERATE if (sup_count == 1 or con_count == 1) else (
