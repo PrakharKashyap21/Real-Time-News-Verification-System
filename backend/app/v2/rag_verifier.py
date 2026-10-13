@@ -222,13 +222,76 @@ class GeminiRAGVerifier:
             pass
         return fallback_snippet
 
+    KNOWN_PUBLISHERS = [
+        ("moneycontrol", "Moneycontrol"),
+        ("the hindu", "The Hindu"),
+        ("economic times", "The Economic Times"),
+        ("livemint", "Livemint"),
+        ("business standard", "Business Standard"),
+        ("business today", "Business Today"),
+        ("times of india", "Times of India"),
+        ("financial express", "Financial Express"),
+        ("ndtv", "NDTV"),
+        ("india today", "India Today"),
+        ("pib fact check", "PIB Fact Check"),
+        ("pib", "PIB (Govt of India)"),
+        ("rbi", "Reserve Bank of India"),
+        ("bbc", "BBC News"),
+        ("reuters", "Reuters"),
+        ("bloomberg", "Bloomberg"),
+        ("press trust of india", "PTI"),
+        ("pti", "PTI"),
+        ("ani", "ANI"),
+        ("zee news", "Zee News"),
+        ("hindustan times", "Hindustan Times"),
+        ("indian express", "The Indian Express"),
+        ("cnbc", "CNBC-TV18"),
+        ("nasa", "NASA"),
+        ("who", "World Health Organization"),
+        ("isro", "ISRO"),
+        ("alt news", "Alt News"),
+        ("boom", "BOOM Live"),
+        ("vishvas news", "Vishvas News"),
+        ("the quint", "The Quint WebQoof"),
+    ]
+
+    def _get_publisher_and_domain(self, url: str, title: str = "", snippet: str = "") -> tuple[str, str]:
+        """Extract domain and friendly, authentic publisher name from URL and syndicated article metadata."""
+        try:
+            parsed = urllib.parse.urlparse(url)
+            domain = parsed.netloc.replace("www.", "")
+
+            # Check title, snippet, and url for recognized media houses (crucial for MSN/Yahoo syndication)
+            comb_text = f"{title} {snippet} {url}".lower()
+            for kw, pub_name in self.KNOWN_PUBLISHERS:
+                if kw in comb_text:
+                    return pub_name, domain
+
+            parts = domain.split(".")
+            if len(parts) >= 3 and parts[0].lower() in ["en", "hi", "m", "news", "www3", "amp", "beta", "edition", "in"]:
+                publisher = parts[-2].capitalize()
+            elif parts:
+                publisher = parts[0].capitalize()
+            else:
+                publisher = domain
+
+            if publisher.lower() == "msn":
+                if any(w in comb_text for w in ["share", "stock", "revenue", "q2", "rs", "crore", "market"]):
+                    publisher = "MSN Financial News"
+                else:
+                    publisher = "MSN News"
+
+            return publisher, domain
+        except Exception:
+            return "Unknown", "unknown"
+
     def _fetch_all_docs_concurrently(self, search_results: List[Dict[str, str]]) -> List[Dict[str, Any]]:
         """Fetch multiple article bodies in parallel with bounded time."""
         import concurrent.futures
 
         def _fetch_one(item):
             body = self._extract_article_content(item["url"], item["snippet"])
-            pub, dom = self._get_publisher_and_domain(item["url"])
+            pub, dom = self._get_publisher_and_domain(item["url"], title=item["title"], snippet=item["snippet"])
             return {
                 "title": item["title"],
                 "url": item["url"],
@@ -251,7 +314,7 @@ class GeminiRAGVerifier:
         existing_urls = {d["url"] for d in evidence_docs}
         for item in search_results:
             if item["url"] not in existing_urls:
-                pub, dom = self._get_publisher_and_domain(item["url"])
+                pub, dom = self._get_publisher_and_domain(item["url"], title=item["title"], snippet=item["snippet"])
                 evidence_docs.append({
                     "title": item["title"],
                     "url": item["url"],
@@ -263,56 +326,57 @@ class GeminiRAGVerifier:
 
         return evidence_docs
 
-    def _get_publisher_and_domain(self, url: str) -> tuple[str, str]:
-        """Extract domain and friendly publisher name from URL."""
+    def _generate_fact_check_queries(self, claim_text: str) -> List[str]:
+        """Uses Gemini to translate and optimize claims into sharp English fact-checking search queries."""
+        if not self.client:
+            return [self._extract_search_keywords(claim_text)]
+
+        clean_text = claim_text.strip()[:180]
+        prompt = f"""You are a fact-checking search specialist. Given this claim (which may be in Hindi, Hinglish, or English):
+\"{clean_text}\"
+
+Generate 2 concise, highly specific English search queries (3 to 6 words each) that will find official news reports, government fact-checks (like PIB Fact Check), or debunks.
+Return ONLY the 2 queries separated by a newline, with no extra text or numbering."""
         try:
-            parsed = urllib.parse.urlparse(url)
-            domain = parsed.netloc.replace("www.", "")
-            parts = domain.split(".")
-            if len(parts) >= 3 and parts[0].lower() in ["en", "hi", "m", "news", "www3", "amp", "beta", "edition", "in"]:
-                publisher = parts[-2].capitalize()
-            elif parts:
-                publisher = parts[0].capitalize()
-            else:
-                publisher = domain
-            # Common recognizable names & acronyms
-            clean_lower = publisher.lower()
-            if clean_lower == "wikipedia":
-                publisher = "Wikipedia"
-            elif clean_lower in ["nasa", "bbc", "cnn", "rbi", "isro", "who", "ndtv", "pib", "ani"]:
-                publisher = clean_lower.upper()
-            return publisher, domain
-        except Exception:
-            return "Unknown", "unknown"
+            resp = self.client.models.generate_content(
+                model="gemini-3.5-flash-lite",
+                contents=prompt
+            )
+            if resp and resp.text:
+                queries = []
+                for q in resp.text.strip().split('\n'):
+                    q_clean = re.sub(r'^[0-9\.\-\*\s"\']+|[0-9\.\-\*\s"\']+$', '', q).strip()
+                    if len(q_clean) >= 4 and len(q_clean.split()) >= 2:
+                        queries.append(q_clean)
+                if queries:
+                    return queries[:2]
+        except Exception as e:
+            logger.debug("AI query generation exception: %s", e)
+
+        return [self._extract_search_keywords(claim_text)]
 
     def _search_multilingual_evidence(self, query: str, lang_code: str, max_results: int = 4) -> List[Dict[str, str]]:
         """Search live web and news articles with cross-lingual query construction."""
-        if lang_code == "en":
-            return self._search_web_and_news(query, max_results=max_results)
-
         results = []
         seen_urls = set()
+
+        # Step 1: Generate AI-optimized English fact-checking queries
+        queries_to_try = self._generate_fact_check_queries(query)
+
+        # Step 2: Add keyword and regional variations
         kw_query = self._extract_search_keywords(query)
-        clean_q = re.sub(r'["\n\r]', ' ', query).strip()[:80]
+        if kw_query and kw_query not in queries_to_try:
+            queries_to_try.append(kw_query)
 
-        queries_to_try = []
-        if lang_code == "hi":
-            if kw_query:
+        if lang_code in ["hi", "hinglish"]:
+            if "pib" not in " ".join(queries_to_try).lower():
                 queries_to_try.append(f"{kw_query} PIB fact check")
-                queries_to_try.append(f"{kw_query} सच या झूठ")
-            queries_to_try.append(f"{clean_q} fact check")
-            queries_to_try.append(clean_q)
-        elif lang_code == "hinglish":
-            if kw_query:
-                queries_to_try.append(f"{kw_query} fact check")
-                queries_to_try.append(f"{kw_query} PIB fact check")
-            queries_to_try.append(f"{clean_q} fact check")
-            queries_to_try.append(clean_q)
-        else:
-            if kw_query:
-                queries_to_try.append(f"{kw_query} fact check")
-            queries_to_try.append(clean_q)
+        elif lang_code == "en":
+            clean_q = re.sub(r'["\n\r]', ' ', query).strip()[:80]
+            if clean_q not in queries_to_try:
+                queries_to_try.append(clean_q)
 
+        # Step 3: Search news and web articles
         for q in queries_to_try:
             items = self._search_web_and_news(q, max_results=max_results)
             for it in items:
