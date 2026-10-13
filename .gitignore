@@ -35,8 +35,8 @@ backend/data/*.npz
 *.sqlite*
 *.sqlite3
 
-# ML Model artifacts
-backend/models/*.joblib
+# ML Model artifacts (tracked for production deployment)
+
 
 # Environment files
 .env

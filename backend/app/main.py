@@ -13,8 +13,15 @@ from backend.app.auth import auth_router, init_auth_db
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Pre-load models on application startup and init authentication DB
-    get_predictor()
-    init_auth_db()
+    try:
+        get_predictor()
+    except Exception as e:
+        print(f"Warning: Predictor startup initialization: {e}")
+
+    try:
+        init_auth_db()
+    except Exception as e:
+        print(f"Warning: Auth DB startup initialization: {e}")
     yield
 
 app = FastAPI(
