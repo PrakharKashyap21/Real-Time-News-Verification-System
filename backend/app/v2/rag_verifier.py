@@ -138,8 +138,8 @@ class GeminiRAGVerifier:
         kw = [w for w in words if w and w.lower() not in stopwords and len(w) > 1]
         return ' '.join(kw[:max_words]) if kw else cleaned[:60]
 
-    def _search_web_and_news(self, query: str, max_results: int = 4) -> List[Dict[str, str]]:
-        """Search live news and web articles with news-first priority and junk domain filtering."""
+    def _search_web_and_news(self, query: str, max_results: int = 4, region: str = "in-en") -> List[Dict[str, str]]:
+        """Search live news and web articles with regional localization and news-first priority."""
         results = []
         seen_urls = set()
 
@@ -161,14 +161,15 @@ class GeminiRAGVerifier:
             ("text", f"{kw_query} fact check" if kw_query else clean_q),
         ]
 
+        # Phase 1: Search with preferred region (default Indian in-en)
         for mode, q_str in attempts:
             if not q_str or len(results) >= max_results:
                 break
             try:
                 if mode == "news":
-                    raw_items = list(ddgs.news(q_str, max_results=max_results))
+                    raw_items = list(ddgs.news(q_str, region=region, max_results=max_results))
                 else:
-                    raw_items = list(ddgs.text(q_str, max_results=max_results))
+                    raw_items = list(ddgs.text(q_str, region=region, max_results=max_results))
 
                 for item in raw_items:
                     url = item.get("url") or item.get("href") or ""
@@ -197,7 +198,37 @@ class GeminiRAGVerifier:
                     if len(results) >= max_results:
                         break
             except Exception as e:
-                logger.debug("DDGS %s search exception for '%s': %s", mode, q_str, e)
+                logger.debug("DDGS %s search exception for '%s' (region=%s): %s", mode, q_str, region, e)
+
+        # Phase 2: If regional search returned 0 items, fallback to worldwide (wt-wt)
+        if not results and region != "wt-wt":
+            for mode, q_str in attempts[:2]:
+                if len(results) >= max_results:
+                    break
+                try:
+                    if mode == "news":
+                        raw_items = list(ddgs.news(q_str, region="wt-wt", max_results=max_results))
+                    else:
+                        raw_items = list(ddgs.text(q_str, region="wt-wt", max_results=max_results))
+                    for item in raw_items:
+                        url = item.get("url") or item.get("href") or ""
+                        title = (item.get("title") or "").strip()
+                        body = (item.get("body") or "").strip()
+                        if not url or not title or url in seen_urls:
+                            continue
+                        try:
+                            parsed = urllib.parse.urlparse(url)
+                            domain = parsed.netloc.lower().replace("www.", "")
+                            if any(bad in domain for bad in self.DISALLOWED_DOMAINS):
+                                continue
+                        except Exception:
+                            pass
+                        seen_urls.add(url)
+                        results.append({"title": title, "url": url, "snippet": body})
+                        if len(results) >= max_results:
+                            break
+                except Exception:
+                    pass
 
         return results[:max_results]
 
@@ -247,7 +278,7 @@ class GeminiRAGVerifier:
         ("indian express", "The Indian Express"),
         ("cnbc", "CNBC-TV18"),
         ("nasa", "NASA"),
-        ("who", "World Health Organization"),
+        ("world health organization", "World Health Organization"),
         ("isro", "ISRO"),
         ("alt news", "Alt News"),
         ("boom", "BOOM Live"),
@@ -383,9 +414,17 @@ Return ONLY the 2 queries separated by a newline, with no extra text or numberin
             if clean_q not in queries_to_try:
                 queries_to_try.append(clean_q)
 
-        # Step 3: Search news and web articles
+        # Step 3: Determine optimal regional search index (prioritize Indian context unless purely global)
+        global_indicators = ["nasa", "trump", "biden", "white house", "ukraine", "putin", "israel", "gaza", "pentagon", "fed", "elon musk", "tesla"]
+        q_lower = query.lower()
+        if any(ind in q_lower for ind in global_indicators) and lang_code == "en" and "india" not in q_lower and "isro" not in q_lower:
+            target_region = "wt-wt"
+        else:
+            target_region = "in-en"
+
+        # Step 4: Search news and web articles
         for q in queries_to_try:
-            items = self._search_web_and_news(q, max_results=max_results)
+            items = self._search_web_and_news(q, max_results=max_results, region=target_region)
             for it in items:
                 if it["url"] not in seen_urls:
                     seen_urls.add(it["url"])
