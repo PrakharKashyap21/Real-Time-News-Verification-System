@@ -115,7 +115,9 @@ const LOADING_STEPS = [
   { text: "Searching live web, breaking news & regional archives...", delay: 0 },
   { text: "Reading source paragraphs & fact-check wires...", delay: 3500 },
   { text: "Analyzing claims & cross-verifying stance with Gemini AI...", delay: 7000 },
-  { text: "Formulating multilingual verdict & citations...", delay: 11000 }
+  { text: "Formulating multilingual verdict & citations...", delay: 11000 },
+  { text: "Waking up cloud verification engine from standby...", delay: 16000 },
+  { text: "Finalizing live verification dossier with external wires...", delay: 26000 }
 ];
 
 const OmniSearchInput = ({

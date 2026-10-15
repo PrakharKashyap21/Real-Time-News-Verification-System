@@ -7,8 +7,20 @@ const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 60000,
+  timeout: 120000,
 });
+
+/**
+ * Silent health ping called on app mount to wake up Render free tier container in background.
+ */
+export const pingBackendHealth = async () => {
+  try {
+    await apiClient.get("/health", { timeout: 15000 });
+  } catch (err) {
+    // Silent fail; purely used to wake up the cloud container early
+    console.debug("Silent backend wake-up ping:", err?.message);
+  }
+};
 
 export const predictNews = async (title, text) => {
   try {
@@ -39,7 +51,7 @@ export const predictNews = async (title, text) => {
   }
 };
 
-export const verifyNewsV2 = async (title, text, language = "auto") => {
+export const verifyNewsV2 = async (title, text, language = "auto", isRetry = false) => {
   try {
     const response = await apiClient.post("/v2/verify", {
       title: title || "",
@@ -48,6 +60,11 @@ export const verifyNewsV2 = async (title, text, language = "auto") => {
     });
     return response.data;
   } catch (error) {
+    // Auto-retry once if timeout or connection drop occurred (server was waking up)
+    if (!isRetry && (error.code === "ECONNABORTED" || error.message?.includes("timeout") || !error.response)) {
+      console.warn("Server cold start or network delay detected. Retrying verification automatically...");
+      return await verifyNewsV2(title, text, language, true);
+    }
     if (error.response) {
       if (error.response.status === 422) {
         const detail = error.response.data?.detail;
@@ -60,9 +77,9 @@ export const verifyNewsV2 = async (title, text, language = "auto") => {
       }
       throw new Error(error.response.data?.detail || "Unable to complete real-time news verification. Please try again.");
     } else if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
-      throw new Error("Verification request timed out. External fact-checking and news retrieval took longer than 30 seconds. Please try again.");
+      throw new Error("The cloud verification engine was waking up from standby and took longer than expected. The server is now awake — please click Verify again!");
     } else if (error.request) {
-      throw new Error("Unable to connect to the backend verification server. Please check if the API server is running on " + API_BASE_URL + ".");
+      throw new Error("Unable to connect to the backend verification server. The server is waking up from standby — please try again in a moment.");
     } else {
       throw new Error("An unexpected error occurred during verification.");
     }

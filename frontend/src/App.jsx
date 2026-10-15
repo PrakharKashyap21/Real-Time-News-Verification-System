@@ -25,7 +25,7 @@ import {
   LogOutIcon,
   ShieldCheckIcon
 } from "./components/Icons";
-import { verifyNewsV2, fetchCurrentUser } from "./api";
+import { verifyNewsV2, fetchCurrentUser, pingBackendHealth } from "./api";
 
 const LOCAL_STORAGE_KEY = "truthlens_verification_history_v1";
 
@@ -85,8 +85,12 @@ function App() {
   const [validationError, setValidationError] = useState("");
   const autoVerifiedRef = useRef(false);
 
-  // Validate active auth session on app mount
+  // Validate active auth session on app mount & wake up cloud backend
   useEffect(() => {
+    // 1. Silent wake-up ping for Render backend (solves cold start delay)
+    pingBackendHealth();
+
+    // 2. Validate active auth session
     const token = localStorage.getItem("truthlens_auth_token");
     if (token) {
       fetchCurrentUser().then((u) => {
