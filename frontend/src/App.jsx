@@ -353,12 +353,13 @@ function App() {
       {/* Sleek Top Navbar */}
       <nav className="navbar">
         <div className="nav-brand" onClick={() => switchTab("verify")} role="button" tabIndex={0}>
+          <img src="/favicon.svg" alt="TruthLens AI" className="nav-brand-icon" />
           <span className="brand-logo">TruthLens</span>
           <span className="brand-ai">AI</span>
           <span className="nav-badge">Agentic RAG</span>
         </div>
 
-        {/* Primary Page Navigation Tabs */}
+        {/* Primary Page Navigation Tabs (Centered & Balanced) */}
         <div className="nav-center-tabs">
           <button
             type="button"
@@ -397,25 +398,8 @@ function App() {
           </button>
         </div>
 
+        {/* Clean Right-Side Actions */}
         <div className="nav-actions">
-          {activeTab === "verify" && verifyModality === "search" && verificationResult && (
-            <button
-              type="button"
-              className="nav-btn nav-new-btn"
-              onClick={handleResetHome}
-            >
-              + New Search
-            </button>
-          )}
-
-          <a
-            href="#how-it-works"
-            className="nav-link"
-            onClick={handleNavigateArchitecture}
-          >
-            Architecture
-          </a>
-
           <button
             type="button"
             className="nav-btn nav-extension-btn"
@@ -699,7 +683,7 @@ function App() {
             <strong>TruthLens AI</strong> searches live news, official archives, and investigative journalism to verify facts with transparent citations.
           </p>
           <p className="footer-sub-text">
-            Powered by DuckDuckGo, Trafilatura & Google Gemini AI • Zero Hallucination Attribution
+            Powered by DuckDuckGo, Trafilatura & Google Gemini AI • <a href="#how-it-works" onClick={handleNavigateArchitecture} className="footer-arch-link">System Architecture & Pipeline</a>
           </p>
         </div>
       </footer>
