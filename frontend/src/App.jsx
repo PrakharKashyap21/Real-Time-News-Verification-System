@@ -400,6 +400,17 @@ function App() {
 
         {/* Clean Right-Side Actions */}
         <div className="nav-actions">
+          {activeTab === "verify" && verifyModality === "search" && verificationResult && (
+            <button
+              type="button"
+              className="nav-btn nav-new-search-pill"
+              onClick={handleResetHome}
+              title="Start a new news or claim verification"
+            >
+              <span className="plus-symbol">+</span> <span>New Search</span>
+            </button>
+          )}
+
           <button
             type="button"
             className="nav-btn nav-extension-btn"
